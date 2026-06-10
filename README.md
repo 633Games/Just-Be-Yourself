@@ -12,8 +12,25 @@ python3 -m http.server 8000
 
 Then visit [http://localhost:8000](http://localhost:8000).
 
+## Project structure
+
+```
+the-rent-is-due/
+├── index.html
+├── css/
+│   └── styles.css
+└── js/
+    ├── state.js    # Game state and data
+    ├── ui.js       # HUD, views, toasts
+    ├── messages.js # Messages app and notifications
+    ├── jobs.js     # Job search, interviews, CV
+    ├── work.js     # Work shifts
+    ├── casino.js   # Scratch cards and blackjack
+    └── main.js     # Entry point
+```
+
 ## Stack
 
-- Single-file HTML
+- HTML, CSS, and JavaScript
 - [Tailwind CSS](https://tailwindcss.com/) (CDN)
 - [Silkscreen](https://fonts.google.com/specimen/Silkscreen) font (Google Fonts)

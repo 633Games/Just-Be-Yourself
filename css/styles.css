@@ -1,0 +1,222 @@
+:root {
+    --lcd-bg: #8cac24; /* Iconic Nokia green backlight */
+    --lcd-pixel: #111406; /* Dark green/black LCD pixel */
+    --phone-body: #2a2a2e; /* Dark plastic casing */
+    --phone-accent: #71717a; /* Silver plastic accents */
+}
+
+body {
+    font-family: 'Silkscreen', monospace;
+    background-color: #121214;
+    color: var(--lcd-pixel);
+    overflow: hidden;
+    text-transform: uppercase;
+    font-size: 14px; /* Smaller base size for the "phone" screen */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.nokia-screen {
+    background-color: var(--lcd-bg);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+    position: relative;
+    flex: 1 1 0%;
+    min-height: 0;
+}
+
+.phone-shell {
+    min-height: 0;
+    overflow: hidden;
+}
+
+.phone-bezel {
+    min-height: 0;
+}
+
+.phone-main {
+    min-height: 0;
+    position: relative;
+}
+
+.app-screen {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.thread-scroll {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Subtle dot matrix grid overlay */
+.nokia-screen::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+        linear-gradient(rgba(17, 20, 6, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 20, 6, 0.05) 1px, transparent 1px);
+    background-size: 2px 2px;
+    pointer-events: none;
+    z-index: 50;
+}
+
+.nokia-border {
+    border: 3px solid var(--lcd-pixel);
+}
+
+/* Interactive Menu Items */
+.nokia-btn {
+    background: transparent;
+    color: var(--lcd-pixel);
+    border: 2px solid transparent;
+    transition: none;
+    cursor: pointer;
+    text-align: left;
+    padding: 4px 8px;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+
+.nokia-btn:hover, .nokia-btn:active {
+    background-color: var(--lcd-pixel);
+    color: var(--lcd-bg);
+}
+
+.nokia-btn-outline {
+    border: 2px solid var(--lcd-pixel);
+    background-color: transparent;
+    text-align: center;
+    justify-content: center;
+}
+
+.nokia-btn-outline:hover {
+    background-color: var(--lcd-pixel);
+    color: var(--lcd-bg);
+}
+
+/* Custom scrollbar for tiny screen */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: var(--lcd-pixel); }
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+}
+.blinking { animation: blink 1s infinite; }
+
+@keyframes app-flash {
+    0%, 49% {
+        background-color: var(--lcd-pixel);
+        color: var(--lcd-bg);
+        border-color: var(--lcd-pixel);
+    }
+    50%, 100% {
+        background-color: transparent;
+        color: var(--lcd-pixel);
+    }
+}
+
+.app-flash {
+    animation: app-flash 0.9s infinite;
+    border: 2px solid var(--lcd-pixel);
+}
+
+.glitch-text {
+    font-weight: bold;
+    display: inline-block;
+    animation: glitch-text 2.5s infinite;
+}
+
+@keyframes glitch-text {
+    0%, 88%, 100% { opacity: 1; transform: translate(0); }
+    90% { opacity: 0.65; transform: translate(-1px, 1px); }
+    92% { opacity: 1; transform: translate(1px, -1px); }
+    94% { opacity: 0.75; transform: translate(-1px, 0); }
+    96% { opacity: 1; transform: translate(1px, 1px); }
+}
+
+.nokia-input {
+    background: transparent;
+    border: 2px solid var(--lcd-pixel);
+    color: var(--lcd-pixel);
+    font-family: 'Silkscreen', monospace;
+    font-size: 12px;
+    padding: 8px;
+    width: 100%;
+    text-transform: uppercase;
+    outline: none;
+}
+
+.contact-unread-flash {
+    animation: app-flash 0.9s infinite;
+    border: 2px solid var(--lcd-pixel);
+}
+
+.msg-incoming {
+    border-bottom: 1px dashed var(--lcd-pixel);
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.msg-incoming p {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.msg-outgoing {
+    border: 1px solid var(--lcd-pixel);
+    background: rgba(17, 20, 6, 0.08);
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    margin-left: auto;
+    max-width: 88%;
+    min-width: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.msg-outgoing p {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+.msg-outgoing-label {
+    font-size: 8px;
+    opacity: 0.65;
+    margin-bottom: 2px;
+}
+
+.nokia-input::placeholder {
+    color: var(--lcd-pixel);
+    opacity: 0.45;
+}
+
+.nokia-input-reply {
+    font-size: 11px;
+    padding: 10px 8px;
+    min-height: 44px;
+}
+
+.nokia-send-btn {
+    width: 32px;
+    min-width: 32px;
+    height: 44px;
+    padding: 0;
+    font-size: 14px;
+    justify-content: center;
+    align-items: center;
+}
