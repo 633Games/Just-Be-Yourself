@@ -1,16 +1,6 @@
-# The Rent is Due (Y2K Edition)
+# Always Be Yourself
 
-A Nokia-style browser game about working shifts, paying rent, and surviving the Y2K economy.
-
-## Run locally
-
-Serve the folder (required — game data is loaded from JSON via `fetch`, which does not work when opening `index.html` directly as `file://`):
-
-```bash
-python3 -m http.server 8000
-```
-
-Then visit [http://localhost:8000](http://localhost:8000).
+A browser style game documenting the difficulties and the honesties of getting a job the modern world. Navigate tricky situations to fill your CV with experiance and become the ultimate millionare.
 
 ## Project structure
 
@@ -32,9 +22,3 @@ the-rent-is-due/
     ├── casino.js   # Scratch cards and blackjack
     └── main.js     # Entry point
 ```
-
-## Stack
-
-- HTML, CSS, and JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) (CDN)
-- [Silkscreen](https://fonts.google.com/specimen/Silkscreen) font (Google Fonts)
