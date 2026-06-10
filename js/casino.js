@@ -228,9 +228,8 @@ function endBj(result) {
         updateHUD();
 
         // Grant Risk-Taker Achievement on devastating losses
-        if (lostHugeAmount && !state.achievements.includes('RISK-TAKER')) {
-            state.achievements.push('RISK-TAKER');
-            setTimeout(() => notifySkillUnlocked('RISK-TAKER'), 1500);
+        if (lostHugeAmount && unlockSkill(3)) {
+            setTimeout(() => notifySkillUnlocked(3), 1500);
         }
 
         setTimeout(initBlackjack, 2500);

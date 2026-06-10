@@ -4,13 +4,11 @@ const SHIFT_PROFILES = {
         archetype: 'spawn_tap',
         verb: 'DELIVERING',
         sceneClass: 'scene-pizza',
-        glyph: '[□]',
+        glyph: '',
         taskLabel: 'TIP',
-        bonusBase: 0.50,
-        spawnMin: 2500,
-        spawnMax: 5500,
-        taskTimeout: 1200,
-        instructions: 'Tap tips as they pop up on your route. Build combos for bigger payouts.',
+        spawnMin: 1200,
+        spawnMax: 3500,
+        taskTimeout: 2500,
     },
     'DISHWASHER': {
         archetype: 'spawn_tap',
@@ -18,11 +16,9 @@ const SHIFT_PROFILES = {
         sceneClass: 'scene-sink',
         glyph: '[=]',
         taskLabel: 'PLATE',
-        bonusBase: 0.75,
         spawnMin: 2200,
         spawnMax: 5000,
         taskTimeout: 1400,
-        instructions: 'Tap dirty plates before they pile up. Faster scrubbing = more tips.',
     },
     'CASHIER': {
         archetype: 'spawn_tap',
@@ -30,75 +26,170 @@ const SHIFT_PROFILES = {
         sceneClass: 'scene-register',
         glyph: '[$]',
         taskLabel: 'SALE',
-        bonusBase: 1.00,
         spawnMin: 2400,
         spawnMax: 5200,
         taskTimeout: 1600,
-        instructions: 'Tap customers at the register. Ring them up before they leave.',
     },
     'BURGER FLIP': {
         archetype: 'timing_bar',
         verb: 'FLIPPING',
         sceneClass: 'scene-grill',
         glyph: '[#]',
-        bonusBase: 1.00,
         zoneWidth: 0.18,
         sweepMs: 1200,
-        instructions: 'Hit [HIT] when the cursor lands in the green zone. Chain hits for combos.',
     },
     'SIGN SPINNER': {
         archetype: 'timing_bar',
         verb: 'SPINNING',
         sceneClass: 'scene-sign',
         glyph: '[/]',
-        bonusBase: 0.75,
         zoneWidth: 0.22,
         sweepMs: 1000,
-        instructions: 'Time your spins perfectly. Miss the zone and your combo resets.',
     },
     'DATA ENTRY': {
         archetype: 'key_match',
         verb: 'TYPING',
         sceneClass: 'scene-desk',
         glyph: '[A]',
-        bonusBase: 1.25,
         roundMs: 2500,
-        instructions: 'Tap the matching key before the timer runs out. Speed builds combos.',
     },
     'DAY TRADER': {
         archetype: 'key_match',
         verb: 'TRADING',
         sceneClass: 'scene-ticker',
         glyph: '[%]',
-        bonusBase: 4.00,
         roundMs: 2000,
-        instructions: 'Buy or sell on the ticker. Fast calls earn volatile bonuses.',
     },
     'MANAGER': {
         archetype: 'executive',
         verb: 'MANAGING',
         sceneClass: 'scene-office',
         glyph: '[M]',
-        bonusBase: 2.50,
         eventMin: 4000,
         eventMax: 9000,
         eventLabel: 'MEETING',
-        instructions: 'Oversee the floor. Rare meeting bonuses pop up — tap to collect.',
     },
     'CEO': {
         archetype: 'executive',
         verb: 'EXECUTING',
         sceneClass: 'scene-corner',
         glyph: '[C]',
-        bonusBase: 12.00,
         eventMin: 5000,
         eventMax: 12000,
         eventLabel: 'GOLF',
-        instructions: 'Mostly passive income. Tap golf invites and board meetings when they appear.',
     },
 };
 
 const DEFAULT_SHIFT_PROFILE = SHIFT_PROFILES['PIZZA SHIFT'];
+
+const PIZZA_BAND_PATTERNS = [
+    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+    { left: [null, null, null, null], right: ['house', 'house', 'house', 'house'] },
+    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+    { left: ['tree', 'tree', null, null], right: ['house', 'house', 'house', 'house'] },
+    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', null, null] },
+    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+    { left: [null, null, 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+];
+
+function buildPizzaSlot(type) {
+    if (!type) return '<span class="pizza-slot pizza-slot--empty"></span>';
+    const isHouse = type === 'house';
+    const symbol = isHouse ? '⌂' : '♣';
+    const cls = isHouse ? 'pizza-house' : 'pizza-tree';
+    return `<span class="pizza-slot ${cls}">${symbol}</span>`;
+}
+
+function buildPizzaLotGrid(items) {
+    const slots = [...items];
+    while (slots.length < 4) slots.push(null);
+    return slots.slice(0, 4).map(buildPizzaSlot).join('');
+}
+
+function buildPizzaPaveBlock() {
+    return '<div class="pizza-pave"><span>▒▒</span><span>▒▒</span></div>';
+}
+
+function buildPizzaStreetBand(pattern) {
+    return `<div class="pizza-street-band">
+        <div class="pizza-side pizza-side--left">
+            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.left)}</div>
+            ${buildPizzaPaveBlock()}
+        </div>
+        <div class="pizza-road-spacer"></div>
+        <div class="pizza-side pizza-side--right">
+            ${buildPizzaPaveBlock()}
+            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.right)}</div>
+        </div>
+    </div>`;
+}
+
+function buildPizzaScenerySegment() {
+    return PIZZA_BAND_PATTERNS.map(buildPizzaStreetBand).join('');
+}
+
+function getPizzaRoadOverlay() {
+    return `<div class="pizza-road-fixed">
+        <div class="pizza-road-edge pizza-road-edge--left"></div>
+        <div class="pizza-road-center">
+            <span class="pizza-car">♦</span>
+        </div>
+        <div class="pizza-road-edge pizza-road-edge--right"></div>
+    </div>`;
+}
+
+function getPizzaDriveSceneHtml(variant) {
+    const segment = buildPizzaScenerySegment();
+    const previewBands = PIZZA_BAND_PATTERNS.slice(0, 2).map(buildPizzaStreetBand).join('');
+    const trackClass = variant === 'preview' ? 'pizza-scenery-track pizza-scenery-track--static' : 'pizza-scenery-track';
+    const segmentHtml = variant === 'preview' ? previewBands : segment;
+    const duplicateSegment = variant === 'preview' ? '' : `<div class="pizza-scenery-segment" aria-hidden="true">${segment}</div>`;
+
+    return `<div class="pizza-drive-scene${variant === 'preview' ? ' pizza-drive-scene--preview' : ''}">
+        <div class="pizza-scene-frame">
+            <div class="pizza-scenery-belt">
+                <div class="${trackClass}" id="pizza-scenery-track">
+                    <div class="pizza-scenery-segment">${segmentHtml}</div>
+                    ${duplicateSegment}
+                </div>
+            </div>
+            ${getPizzaRoadOverlay()}
+        </div>
+    </div>`;
+}
+
+let pizzaTipLeftPct = null;
+let pizzaTipRightPct = null;
+
+function getPizzaTipOffset(side) {
+    const cached = side === 'left' ? pizzaTipLeftPct : pizzaTipRightPct;
+    if (cached != null) return cached;
+
+    const container = document.getElementById('tip-container');
+    const selector = side === 'left'
+        ? '.pizza-side--left .pizza-lot-grid'
+        : '.pizza-side--right .pizza-lot-grid';
+    const grid = container?.querySelector(selector);
+    const fallback = side === 'left' ? 24 : 76;
+
+    if (grid && container) {
+        const g = grid.getBoundingClientRect();
+        const c = container.getBoundingClientRect();
+        const pct = (((g.left + g.right) / 2 - c.left) / c.width) * 100;
+        if (side === 'left') pizzaTipLeftPct = pct;
+        else pizzaTipRightPct = pct;
+        return pct;
+    }
+    return fallback;
+}
+
+function resetPizzaTipLane() {
+    pizzaTipLeftPct = null;
+    pizzaTipRightPct = null;
+    const lane = document.getElementById('pizza-tip-lane');
+    if (lane) lane.innerHTML = '';
+}
 
 const KEY_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const TRADER_KEYS = ['BUY', 'SELL', 'HOLD'];
@@ -107,8 +198,14 @@ let shiftOccupiedZones = [];
 let timingBarState = null;
 let keyMatchState = null;
 
-function getShiftProfile() {
-    return SHIFT_PROFILES[state.currentJobTitle] || DEFAULT_SHIFT_PROFILE;
+function getShiftProfile(jobTitle = state.currentJobTitle) {
+    const gameplay = SHIFT_PROFILES[jobTitle] || DEFAULT_SHIFT_PROFILE;
+    const job = getJobByTitle(jobTitle);
+    return {
+        ...gameplay,
+        bonusBase: job?.bonusBase ?? 0,
+        instructions: job?.instructions ?? '',
+    };
 }
 
 function getComboMultiplier() {
@@ -137,31 +234,39 @@ function setShiftStatus(text, blink) {
 
 function renderJobScene(profile, containerId) {
     const container = document.getElementById(containerId);
-    const glyph = document.getElementById('shift-scene-glyph');
     if (!container) return;
 
     container.className = container.id === 'shift-scene-preview'
         ? 'shift-scene-preview'
         : 'shift-workzone shift-workzone-live flex-1 relative overflow-hidden min-h-0';
 
+    const isPizza = profile.sceneClass === 'scene-pizza';
+
     if (container.id === 'tip-container') {
+        if (isPizza) resetPizzaTipLane();
         container.classList.add(profile.sceneClass);
         container.innerHTML = `
+            ${isPizza ? getPizzaDriveSceneHtml('live') : ''}
             <div class="shift-workzone-grid" aria-hidden="true"></div>
             <div class="shift-workzone-scanline" aria-hidden="true"></div>
             <div id="shift-float-layer" class="shift-float-layer"></div>
+            ${isPizza ? '<div id="pizza-tip-lane" class="pizza-tip-lane"></div>' : ''}
             <div class="shift-workzone-label">
                 <span class="blinking">█</span> <span id="ui-shift-verb-label">${profile.verb}</span> <span class="blinking">█</span>
             </div>`;
     } else {
         container.classList.add(profile.sceneClass);
-        if (glyph) glyph.innerText = profile.glyph;
+        if (isPizza) {
+            container.innerHTML = getPizzaDriveSceneHtml('preview');
+        } else {
+            container.innerHTML = `<span id="shift-scene-glyph" class="shift-scene-glyph">${profile.glyph}</span>`;
+        }
     }
 }
 
 function updateShiftBriefing() {
     const unemployed = state.isUnemployed;
-    const profile = unemployed ? DEFAULT_SHIFT_PROFILE : getShiftProfile();
+    const profile = unemployed ? getShiftProfile('PIZZA SHIFT') : getShiftProfile();
     const pizzaWage = 0.30;
     const length = state.shiftMaxTime;
     const baseEstimate = (unemployed ? pizzaWage : state.baseWagePerSec) * length;
@@ -220,12 +325,12 @@ function begForJobBack() {
     state.baseWagePerSec = 0.30;
     state.bossStrikes = 0;
 
-    if (!state.achievements.includes('BOUNCES-BACK-WELL')) {
-        state.achievements.push('BOUNCES-BACK-WELL');
-        notifySkillUnlocked('BOUNCES-BACK-WELL');
+    if (unlockSkill(2)) {
+        notifySkillUnlocked(2);
     }
 
     updateWorkAppLabel();
+    updateShiftBriefing();
     showToast('PIZZA JOB RESTORED');
     addMessage('BOSS', 'Fine. One more chance at pizza delivery. Do not mess this up.');
 }
@@ -245,7 +350,7 @@ function updateShiftHUD() {
 
     if (timerEl) {
         timerEl.innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
-        timerEl.classList.toggle('shift-timer-urgent', seconds <= 10 && state.isShiftActive);
+        timerEl.classList.toggle('shift-timer-urgent', seconds <= 11 && state.isShiftActive);
     }
     if (earnedEl) earnedEl.innerText = `$${state.shiftEarned.toFixed(2)}`;
     if (comboEl) comboEl.innerText = `x${getComboMultiplier().toFixed(1)}`;
@@ -337,12 +442,73 @@ function scheduleSpawnTap() {
 function spawnTapTask() {
     if (!state.isShiftActive) return;
     const profile = getShiftProfile();
+    if (profile.sceneClass === 'scene-pizza') {
+        spawnPizzaTip();
+        return;
+    }
+    spawnTapTaskGeneric(profile);
+}
+
+function spawnPizzaTip() {
+    const profile = getShiftProfile();
+    const container = document.getElementById('tip-container');
+    let lane = document.getElementById('pizza-tip-lane');
+    if (!container) return;
+    if (!lane) {
+        lane = document.createElement('div');
+        lane.id = 'pizza-tip-lane';
+        lane.className = 'pizza-tip-lane';
+        container.appendChild(lane);
+    }
+
+    const amount = profile.bonusBase;
+    const side = Math.random() < 0.5 ? 'left' : 'right';
+    const leftPct = getPizzaTipOffset(side);
+    const fallMs = profile.taskTimeout + 2000;
+    const cRect = container.getBoundingClientRect();
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pizza-tip-btn';
+    btn.style.left = `${leftPct}%`;
+    btn.style.setProperty('--tip-fall-ms', `${fallMs}ms`);
+    btn.innerHTML = `+$${amount.toFixed(2)}`;
+
+    let done = false;
+
+    const removeTip = () => {
+        if (btn.parentNode) btn.remove();
+    };
+
+    const finish = (missed) => {
+        if (done) return;
+        done = true;
+        clearTimeout(expireTimer);
+        btn.removeEventListener('animationend', onFallEnd);
+        if (missed) resetCombo();
+        removeTip();
+    };
+
+    const onFallEnd = () => finish(true);
+    const expireTimer = setTimeout(onFallEnd, fallMs);
+
+    btn.onclick = function () {
+        const r = btn.getBoundingClientRect();
+        const topPct = ((r.top + r.height / 2 - cRect.top) / cRect.height) * 100;
+        awardBonus(amount, topPct, leftPct);
+        finish(false);
+    };
+
+    btn.addEventListener('animationend', onFallEnd);
+    lane.appendChild(btn);
+}
+
+function spawnTapTaskGeneric(profile) {
     const container = document.getElementById('tip-container');
     if (!container) return;
 
     const btn = document.createElement('button');
     const pos = findClearPosition(22, 12);
-    const label = profile.taskLabel || 'TIP';
     const amount = profile.bonusBase;
 
     btn.className = 'tip-btn pointer-events-auto';
@@ -357,14 +523,12 @@ function spawnTapTask() {
 
     btn.onclick = function () {
         awardBonus(amount, pos.top, pos.left);
-        this.innerHTML = 'OK';
-        this.classList.add('tip-btn-collected');
-        setTimeout(removeBtn, 400);
+        removeBtn();
     };
 
     container.appendChild(btn);
     setTimeout(() => {
-        if (btn.parentNode && !btn.classList.contains('tip-btn-collected')) {
+        if (btn.parentNode) {
             resetCombo();
             removeBtn();
         }
@@ -652,6 +816,15 @@ function startShift() {
     renderJobScene(profile, 'tip-container');
     updateShiftHUD();
 
+    if (profile.sceneClass === 'scene-pizza') {
+        requestAnimationFrame(() => {
+            pizzaTipLeftPct = null;
+            pizzaTipRightPct = null;
+            getPizzaTipOffset('left');
+            getPizzaTipOffset('right');
+        });
+    }
+
     state.shiftInterval = setInterval(processShiftTick, 100);
     startArchetypeEngine();
 }
@@ -709,8 +882,7 @@ function finishShiftSummary() {
     sendBossShiftFeedback(manual, earned);
     switchView('home-view');
 
-    if (state.shiftsCompleted === 2 && !state.achievements.includes('NO-LIFE')) {
-        state.achievements.push('NO-LIFE');
+    if (state.shiftsCompleted === 2 && unlockSkill(1)) {
         unlockCVApp();
     }
 

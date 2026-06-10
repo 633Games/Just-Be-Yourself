@@ -113,6 +113,36 @@ body {
 }
 .blinking { animation: blink 1s infinite; }
 
+#toast-container {
+    z-index: 100;
+}
+
+.toast-alert {
+    position: relative;
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translateY(-100%);
+    opacity: 0;
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+}
+
+.toast-alert-visible {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast-alert-hide {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+@keyframes timer-urgent-blink {
+    0%, 49% { opacity: 1; color: var(--lcd-bg); }
+    50%, 100% { opacity: 0.35; color: var(--lcd-bg); }
+}
+
 @keyframes app-flash {
     0%, 49% {
         background-color: var(--lcd-pixel);
@@ -415,11 +445,256 @@ body {
     100% { transform: scale(1); opacity: 1; }
 }
 
+/* Pizza delivery: 3-column street, fixed center road + car, sides scroll down */
+.pizza-drive-scene {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.pizza-drive-scene--preview {
+    position: relative;
+    min-height: 72px;
+}
+
+.pizza-scene-frame {
+    position: absolute;
+    inset: 4px;
+    border: 3px double var(--lcd-pixel);
+    overflow: hidden;
+}
+
+.pizza-drive-scene--preview .pizza-scene-frame {
+    position: relative;
+    inset: auto;
+    min-height: 68px;
+}
+
+.pizza-scenery-belt {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.pizza-drive-scene--preview .pizza-scenery-belt {
+    position: relative;
+    height: 56px;
+}
+
+.pizza-scenery-track {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    animation: pizza-belt-scroll-v 20s linear infinite;
+    will-change: transform;
+}
+
+.pizza-scenery-track--static {
+    animation: none;
+}
+
+.pizza-scenery-segment {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 100%;
+}
+
+.pizza-street-band {
+    display: grid;
+    grid-template-columns: 1fr var(--pizza-road-width, 34%) 1fr;
+    align-items: stretch;
+    height: 46px;
+    flex-shrink: 0;
+    border-bottom: 2px solid var(--lcd-pixel);
+}
+
+.pizza-drive-scene--preview .pizza-street-band {
+    height: 26px;
+}
+
+.pizza-side {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 4px;
+    min-width: 0;
+}
+
+.pizza-side--left {
+    justify-content: flex-end;
+}
+
+.pizza-side--right {
+    justify-content: flex-start;
+}
+
+.pizza-road-spacer {
+    /* gap for fixed road overlay */
+}
+
+.pizza-lot-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+}
+
+.pizza-drive-scene--preview .pizza-lot-grid {
+    width: 22px;
+    height: 22px;
+}
+
+.pizza-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    line-height: 1;
+    position: relative;
+    color: var(--lcd-pixel);
+}
+
+.pizza-drive-scene--preview .pizza-slot {
+    font-size: 8px;
+}
+
+.pizza-slot--empty {
+    opacity: 0;
+}
+
+.pizza-tree {
+    opacity: 0.9;
+}
+
+.pizza-house {
+    font-size: 12px;
+}
+
+.pizza-drive-scene--preview .pizza-house {
+    font-size: 9px;
+}
+
+.pizza-pave {
+    display: flex;
+    flex-direction: column;
+    font-size: 7px;
+    line-height: 0.85;
+    letter-spacing: -1px;
+    color: var(--lcd-pixel);
+    opacity: 0.55;
+    flex-shrink: 0;
+}
+
+.pizza-drive-scene--preview .pizza-pave {
+    font-size: 5px;
+}
+
+.pizza-road-fixed {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.pizza-road-edge {
+    width: 3px;
+    flex-shrink: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        var(--lcd-pixel) 0,
+        var(--lcd-pixel) 5px,
+        transparent 5px,
+        transparent 9px
+    );
+    opacity: 0.85;
+}
+
+.pizza-road-center {
+    width: var(--pizza-road-width, 34%);
+    position: relative;
+    flex-shrink: 0;
+}
+
+.pizza-car {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 15px;
+    color: var(--lcd-pixel);
+    z-index: 5;
+}
+
+.pizza-drive-scene--preview .pizza-car {
+    font-size: 10px;
+}
+
+#tip-container .pizza-tip-lane {
+    position: absolute;
+    inset: 0;
+    z-index: 45;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.pizza-tip-btn {
+    position: absolute;
+    top: 0;
+    border: 2px solid var(--lcd-pixel);
+    background: var(--lcd-bg);
+    color: var(--lcd-pixel);
+    padding: 4px 7px;
+    font-size: 10px;
+    font-weight: bold;
+    font-family: 'Silkscreen', monospace;
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translateX(-50%);
+    z-index: 46;
+    white-space: nowrap;
+    text-transform: uppercase;
+    box-shadow: 2px 2px 0 rgba(17, 20, 6, 1);
+    animation: pizza-tip-fall var(--tip-fall-ms, 3s) linear forwards;
+}
+
+.pizza-tip-btn:hover,
+.pizza-tip-btn:active {
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
+}
+
+@keyframes pizza-tip-fall {
+    0% { top: 4%; }
+    100% { top: 82%; }
+}
+
+@keyframes pizza-belt-scroll-v {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-50%); }
+}
+
 /* Job scene backgrounds */
 .scene-pizza {
-    background:
-        repeating-linear-gradient(90deg, rgba(17, 20, 6, 0.05) 0, rgba(17, 20, 6, 0.05) 8px, transparent 8px, transparent 16px),
-        rgba(17, 20, 6, 0.03);
+    background: rgba(17, 20, 6, 0.02);
+    overflow: visible;
+}
+
+.scene-pizza .shift-workzone-label {
+    z-index: 2;
+}
+
+.scene-pizza .shift-workzone-grid,
+.scene-pizza .shift-workzone-scanline {
+    display: none;
 }
 
 .scene-sink {
@@ -522,8 +797,12 @@ body {
 }
 
 .shift-timer-urgent {
-    animation: blink 0.5s infinite;
-    color: var(--lcd-pixel);
+    animation: timer-urgent-blink 0.5s infinite;
+    color: var(--lcd-bg);
+}
+
+.shift-hud-cell-highlight .shift-timer-urgent {
+    color: var(--lcd-bg);
 }
 
 .shift-hud-pulse {

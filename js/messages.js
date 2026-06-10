@@ -418,8 +418,9 @@ function sendBossShiftFeedback(manual, shiftEarned) {
     }
 }
 
-function notifySkillUnlocked(skillName) {
-    addMessage('SKILLS', `NEW SKILL: ${skillName}. Open MY CV to equip it.`);
+function notifySkillUnlocked(skillId) {
+    const id = normalizeSkillId(skillId);
+    addMessage('SKILLS', `NEW SKILL: ${getSkillName(id)}. Open MY CV to equip it.`);
 }
 
 function notifyJobHired(jobTitle, wage) {

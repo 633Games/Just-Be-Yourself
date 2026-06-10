@@ -4,7 +4,7 @@ A Nokia-style browser game about working shifts, paying rent, and surviving the 
 
 ## Run locally
 
-Open `index.html` in your browser, or serve the folder:
+Serve the folder (required — game data is loaded from JSON via `fetch`, which does not work when opening `index.html` directly as `file://`):
 
 ```bash
 python3 -m http.server 8000
@@ -17,10 +17,14 @@ Then visit [http://localhost:8000](http://localhost:8000).
 ```
 the-rent-is-due/
 ├── index.html
+├── data/
+│   ├── jobs.json   # Job pay, bonuses, CV requirements (editable)
+│   └── skills.json # Skill names and award descriptions (editable)
 ├── css/
 │   └── styles.css
 └── js/
-    ├── state.js    # Game state and data
+    ├── data.js     # Loads JSON and lookup helpers
+    ├── state.js    # Game state
     ├── ui.js       # HUD, views, toasts
     ├── messages.js # Messages app and notifications
     ├── jobs.js     # Job search, interviews, CV

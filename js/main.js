@@ -17,7 +17,14 @@ function submitPlayerName() {
     switchView('home-view');
 }
 
-window.onload = () => {
+window.onload = async () => {
+    try {
+        await loadGameData();
+    } catch (err) {
+        document.body.innerHTML = '<p style="font-family:monospace;padding:2rem;">Failed to load game data. Serve this folder with a local server (see README):<br><code>python3 -m http.server 8000</code></p>';
+        return;
+    }
+    setupCVListeners();
     updateHUD();
     switchView('name-setup-view');
     document.getElementById('player-name-input')?.focus();

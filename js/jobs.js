@@ -1,19 +1,20 @@
 function calculateMatch(jobReqs) {
-    // If the job has no requirements, anyone can do it!
     if (!jobReqs || jobReqs.length === 0) return 100;
-    
+
+    const equipped = getEquippedSkillIds();
     let matches = 0;
     jobReqs.forEach(req => {
-        if (state.equippedCV.includes(req)) matches++;
+        const reqId = normalizeSkillId(req);
+        if (reqId !== null && equipped.includes(reqId)) matches++;
     });
-    
+
     return Math.floor((matches / jobReqs.length) * 100);
 }
 
 function generateJobs() {
     state.availableJobs = [];
     // Copy and shuffle the database
-    let pool = [...JOB_DB].sort(() => Math.random() - 0.5);
+    let pool = [...getSearchableJobs()].sort(() => Math.random() - 0.5);
 
     // 1. Find a job with partial qualification (50% to 99%)
     let jobPartialIndex = pool.findIndex(j => calculateMatch(j.req) >= 50 && calculateMatch(j.req) < 100);
@@ -60,7 +61,7 @@ function renderJobSearcher() {
                     <span>${job.title}</span>
                     <span>$${job.pay.toFixed(2)}/s</span>
                 </div>
-                <div class="text-[8px] opacity-90 leading-tight">REQ: ${job.req.join(', ')}</div>
+                <div class="text-[8px] opacity-90 leading-tight">REQ: ${formatSkillReqs(job.req)}</div>
                 <div class="flex justify-between items-center mt-1 border-t border-dashed border-[var(--lcd-pixel)] pt-1">
                     <span class="text-[9px] ${match >= 50 ? 'font-bold' : ''}">MATCH: ${match}%</span>
                     <button onclick="applyForJob('${job.id}')" class="nokia-btn-outline px-2 py-[2px] text-[9px] w-auto">
@@ -73,7 +74,7 @@ function renderJobSearcher() {
 }
 
 function applyForJob(jobId) {
-    const job = JOB_DB.find(j => j.id === jobId);
+    const job = getJobById(jobId);
     const match = calculateMatch(job.req);
     
     startInterview(job, match);
@@ -206,57 +207,80 @@ function openCV() {
         showToast('CV APP LOCKED');
         return;
     }
+    setupCVListeners();
     renderCV();
     switchView('cv-view');
+}
+
+function renderCVSkillButton(skillId, equipped) {
+    const id = normalizeSkillId(skillId);
+    const name = getSkillName(id);
+    const description = getSkillDescription(id);
+    const marker = equipped ? '[*]' : '[ ]';
+    const borderClass = equipped ? ' border border-[var(--lcd-pixel)] mb-1' : '';
+    const descHtml = description
+        ? `<span class="text-[8px] opacity-80 block leading-tight mt-[2px]">${description}</span>`
+        : '';
+
+    return `
+        <button data-skill-id="${id}" class="cv-skill-btn nokia-btn text-[9px]${borderClass} text-left w-full">
+            <span>${marker} ${name}</span>
+            ${descHtml}
+        </button>
+    `;
 }
 
 function renderCV() {
     const container = document.getElementById('cv-content');
     container.innerHTML = '<div class="text-[10px] mb-1 font-bold">EQUIPPED SKILLS:</div>';
     
-    // Render Equipped Items
     if (state.equippedCV.length === 0) {
         container.innerHTML += '<div class="text-[9px] opacity-70 mb-2 px-2">- EMPTY SLOT -</div>';
     } else {
-        state.equippedCV.forEach(ach => {
-            container.innerHTML += `
-                <button onclick="toggleCV('${ach}')" class="nokia-btn text-[9px] border border-[var(--lcd-pixel)] mb-1">
-                    <span>[*] ${ach}</span>
-                </button>
-            `;
+        state.equippedCV.forEach(skillId => {
+            container.innerHTML += renderCVSkillButton(skillId, true);
         });
     }
 
     container.innerHTML += '<div class="text-[10px] mt-2 mb-1 font-bold border-t-2 border-dashed border-[var(--lcd-pixel)] pt-2">AVAILABLE:</div>';
     
-    // Render Available (Unequipped) Items
-    const available = state.achievements.filter(a => !state.equippedCV.includes(a));
+    const equipped = getEquippedSkillIds();
+    const available = state.achievements
+        .map(normalizeSkillId)
+        .filter(id => id !== null && !equipped.includes(id));
     if (available.length === 0) {
         container.innerHTML += '<div class="text-[9px] opacity-70 px-2">- NONE -</div>';
     } else {
-        available.forEach(ach => {
-            container.innerHTML += `
-                <button onclick="toggleCV('${ach}')" class="nokia-btn text-[9px]">
-                    <span>[ ] ${ach}</span>
-                </button>
-            `;
+        available.forEach(skillId => {
+            container.innerHTML += renderCVSkillButton(skillId, false);
         });
     }
     
     document.getElementById('cv-equipped-count').innerText = `${state.equippedCV.length}/${state.maxCVSlots}`;
 }
 
-function toggleCV(ach) {
-    if (state.equippedCV.includes(ach)) {
-        // Unequip
-        state.equippedCV = state.equippedCV.filter(a => a !== ach);
+function toggleCV(skillId) {
+    const id = normalizeSkillId(skillId);
+    if (id === null) return;
+
+    if (state.equippedCV.some(s => normalizeSkillId(s) === id)) {
+        state.equippedCV = state.equippedCV.filter(s => normalizeSkillId(s) !== id);
     } else {
-        // Equip
         if (state.equippedCV.length >= state.maxCVSlots) {
             showToast('CV FULL!');
             return;
         }
-        state.equippedCV.push(ach);
+        state.equippedCV.push(id);
     }
-    renderCV(); // Refresh the list
+    renderCV();
+}
+
+function setupCVListeners() {
+    const container = document.getElementById('cv-content');
+    if (!container || container.dataset.cvBound) return;
+    container.dataset.cvBound = 'true';
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-skill-id]');
+        if (btn) toggleCV(btn.dataset.skillId);
+    });
 }

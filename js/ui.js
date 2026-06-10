@@ -51,15 +51,20 @@ function switchView(viewId) {
 
 function showToast(message) {
     const container = document.getElementById('toast-container');
-    container.innerHTML = ''; // Clear previous
-    
+    container.innerHTML = '';
+
     const toast = document.createElement('div');
-    // Full-screen takeover alert style like old feature phones
-    toast.className = `bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] border-2 border-[var(--lcd-bg)] p-4 text-center w-full shadow-[0_0_0_4px_var(--lcd-pixel)] pointer-events-auto z-[100]`;
-    toast.innerHTML = `<span class="blinking block mb-2">! ALERT !</span><span>${message}</span>`;
-    
+    toast.className = 'toast-alert bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] border-b-2 border-[var(--lcd-bg)] px-2 py-2 text-center w-full pointer-events-auto text-[10px]';
+    toast.innerHTML = `<span class="blinking inline mr-1">!</span><span>${message}</span>`;
+
     container.appendChild(toast);
-    setTimeout(() => { toast.remove(); }, 3000);
+    requestAnimationFrame(() => toast.classList.add('toast-alert-visible'));
+
+    setTimeout(() => {
+        toast.classList.remove('toast-alert-visible');
+        toast.classList.add('toast-alert-hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
 
 function openCasino() {
