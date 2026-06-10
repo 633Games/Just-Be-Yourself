@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Rent is Due (Y2K Edition)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Silkscreen for that classic Y2K pixel LCD look -->
+    <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --lcd-bg: #8cac24; /* Iconic Nokia green backlight */
+            --lcd-pixel: #111406; /* Dark green/black LCD pixel */
+            --phone-body: #2a2a2e; /* Dark plastic casing */
+            --phone-accent: #71717a; /* Silver plastic accents */
+        }
+
+        body {
+            font-family: 'Silkscreen', monospace;
+            background-color: #121214;
+            color: var(--lcd-pixel);
+            overflow: hidden;
+            text-transform: uppercase;
+            font-size: 14px; /* Smaller base size for the "phone" screen */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .nokia-screen {
+            background-color: var(--lcd-bg);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        /* Subtle dot matrix grid overlay */
+        .nokia-screen::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(17, 20, 6, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(17, 20, 6, 0.05) 1px, transparent 1px);
+            background-size: 2px 2px;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .nokia-border {
+            border: 3px solid var(--lcd-pixel);
+        }
+
+        /* Interactive Menu Items */
+        .nokia-btn {
+            background: transparent;
+            color: var(--lcd-pixel);
+            border: 2px solid transparent;
+            transition: none;
+            cursor: pointer;
+            text-align: left;
+            padding: 4px 8px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .nokia-btn:hover, .nokia-btn:active {
+            background-color: var(--lcd-pixel);
+            color: var(--lcd-bg);
+        }
+
+        .nokia-btn-outline {
+            border: 2px solid var(--lcd-pixel);
+            background-color: transparent;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .nokia-btn-outline:hover {
+            background-color: var(--lcd-pixel);
+            color: var(--lcd-bg);
+        }
+
+        /* Custom scrollbar for tiny screen */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background-color: var(--lcd-pixel); }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        .blinking { animation: blink 1s infinite; }
+    </style>
+</head>
+<body>
+
+    <!-- The Physical Phone Casing -->
+    <div class="relative w-full max-w-[360px] h-[85vh] max-h-[750px] bg-[var(--phone-body)] rounded-[3rem] p-4 shadow-[15px_15px_30px_rgba(0,0,0,0.5),inset_-5px_-5px_15px_rgba(255,255,255,0.1)] flex flex-col border border-zinc-700">
+        
+        <!-- Earpiece -->
+        <div class="w-16 h-2 bg-zinc-900 rounded-full mx-auto mt-2 mb-6 shadow-inner"></div>
+        
+        <!-- Brand -->
+        <div class="text-center text-zinc-500 text-[10px] tracking-[0.3em] mb-1 font-sans font-bold">N O K I A</div>
+
+        <!-- The Screen Hardware Bezel -->
+        <div class="p-2 bg-zinc-900 rounded-xl flex-1 flex flex-col shadow-inner relative">
+            
+            <!-- THE ACTUAL SOFTWARE SCREEN -->
+            <div class="flex-1 nokia-screen rounded-lg flex flex-col overflow-hidden relative border-[3px] border-[#6b8519]">
+                
+                <!-- OS Header Bar -->
+                <header class="flex justify-between items-end p-2 border-b-2 border-[var(--lcd-pixel)] shrink-0 z-20 relative">
+                    <div class="flex items-end gap-1 text-[10px]">
+                        <span class="inline-block w-1 h-3 bg-[var(--lcd-pixel)]"></span>
+                        <span class="inline-block w-1 h-4 bg-[var(--lcd-pixel)]"></span>
+                        <span class="inline-block w-1 h-5 bg-[var(--lcd-pixel)]"></span>
+                        <span class="inline-block w-1 h-5 border border-[var(--lcd-pixel)]"></span>
+                    </div>
+                    
+                    <div class="text-center leading-none">
+                        <div id="ui-cash" class="text-lg">$0.00</div>
+                    </div>
+                    
+                    <div class="flex items-center gap-1 text-[10px]">
+                        <span id="ui-rent-timer">D3</span>
+                        <div class="w-6 h-3 border-2 border-[var(--lcd-pixel)] p-[1px] flex gap-[1px]">
+                            <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
+                            <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
+                            <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
+                        </div>
+                    </div>
+                </header>
+
+                <main class="flex-1 relative flex flex-col z-20">
+                    
+                    <!-- === HOME MENU VIEW === -->
+                    <div id="home-view" class="w-full h-full flex flex-col">
+                        
+                        <!-- SMS Inbox (Top Half) -->
+                        <div class="h-1/2 border-b-2 border-[var(--lcd-pixel)] flex flex-col">
+                            <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between">
+                                <span>INBOX</span>
+                                <span class="blinking">_</span>
+                            </div>
+                            <div id="message-log" class="flex-1 p-2 overflow-y-auto flex flex-col justify-end gap-2 text-[11px] leading-tight pb-4">
+                                <!-- Messages injected here -->
+                            </div>
+                        </div>
+
+                        <!-- Main Menu (Bottom Half) -->
+                        <div class="flex-1 flex flex-col p-2 gap-1 justify-center">
+                            <div class="text-[10px] mb-1">SELECT APP:</div>
+                            
+                            <button onclick="switchView('job-view')" class="nokia-btn">
+                                <span id="ui-menu-job-btn">1- PIZZA SHIFT</span>
+                                <span>></span>
+                            </button>
+                            
+                            <button id="btn-app-cv" onclick="openCV()" class="nokia-btn opacity-60">
+                                <span>2- MY CV [LOCKED]</span>
+                                <span class="text-[10px]">[]</span>
+                            </button>
+
+                            <button id="btn-app-jobs" onclick="openJobSearcher()" class="nokia-btn">
+                                <span>3- JOB SEARCHER</span>
+                                <span>></span>
+                            </button>
+
+                            <button id="btn-app-casino" onclick="switchView('gamble-menu-view')" class="nokia-btn">
+                                <span>4- CASINO</span>
+                                <span>></span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === JOB VIEW === -->
+                    <div id="job-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span id="ui-current-job-title">PIZZA SHIFT</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col p-2 justify-center relative overflow-hidden">
+                            <!-- Start UI -->
+                            <div id="shift-start-ui" class="flex flex-col items-center gap-2">
+                                <button onclick="startPizzaShift()" class="nokia-btn nokia-btn-outline w-full py-4 text-[12px] font-bold text-center justify-center">
+                                    START SHIFT
+                                </button>
+                                <button onclick="switchView('home-view')" class="nokia-btn text-center justify-center text-[10px]">
+                                    [ CANCEL ]
+                                </button>
+                            </div>
+                            
+                            <!-- Active UI -->
+                            <div id="shift-active-ui" class="hidden flex-col h-full w-full relative">
+                                <div class="flex justify-between text-[10px] mb-1">
+                                    <span>TIME: <span id="ui-shift-timer">00:00</span></span>
+                                    <span>EARN: <span id="ui-shift-earned">$0.00</span></span>
+                                </div>
+                                <div class="w-full h-2 border-2 border-[var(--lcd-pixel)] p-[1px] mb-2 shrink-0">
+                                    <div id="ui-shift-progress" class="h-full bg-[var(--lcd-pixel)]" style="width: 0%;"></div>
+                                </div>
+                                
+                                <!-- Tips spawn here -->
+                                <div id="tip-container" class="flex-1 relative border border-dashed border-[var(--lcd-pixel)] opacity-80 overflow-hidden">
+                                    <div class="absolute inset-0 flex items-center justify-center text-[10px] opacity-30 pointer-events-none text-center">
+                                        WORKING...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] hidden" id="btn-end-shift">
+                            <button onclick="endPizzaShift(true)" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ CLOCK OUT ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === CV VIEW === -->
+                    <div id="cv-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>MY CV</span>
+                            <span id="cv-equipped-count">0/2</span>
+                        </div>
+                        <div id="cv-content" class="flex-1 overflow-y-auto p-2 flex flex-col pb-4">
+                            <!-- JS injects CV items here -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === JOB SEARCHER VIEW === -->
+                    <div id="job-searcher-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>JOB SEARCHER</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="job-list-content" class="flex-1 overflow-y-auto p-2 flex flex-col gap-2 pb-6">
+                            <!-- JS injects Jobs here -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] bg-[var(--lcd-bg)] z-10">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === GAMBLE MENU VIEW === -->
+                    <div id="gamble-menu-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>WEB: CASINO</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col p-2 gap-2 justify-center">
+                            <button onclick="initScratch()" class="nokia-btn">
+                                <span>1- SCRATCH ($1)</span>
+                                <span>></span>
+                            </button>
+                            <button onclick="initBlackjack()" class="nokia-btn">
+                                <span>2- BLACKJACK</span>
+                                <span>></span>
+                            </button>
+                        </div>
+
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === SCRATCH VIEW === -->
+                    <div id="scratch-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>SCRATCH-O</span>
+                            <span>WIN $5</span>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col items-center justify-center p-2 gap-4">
+                            <div class="text-[10px] text-center">FIND THE [$] TO WIN!</div>
+                            
+                            <div class="flex gap-2 w-full justify-center" id="scratch-boxes">
+                                <!-- Generated by JS -->
+                            </div>
+
+                            <button id="btn-buy-scratch" onclick="buyScratch()" class="nokia-btn nokia-btn-outline w-full py-2">
+                                BUY TICKET (-$1.00)
+                            </button>
+                        </div>
+
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('gamble-menu-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ LEAVE ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === BLACKJACK VIEW === -->
+                    <div id="blackjack-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>BLACKJACK</span>
+                            <span id="bj-status">BET</span>
+                        </div>
+                        
+                        <!-- Betting Screen -->
+                        <div id="bj-bet-screen" class="flex-1 flex flex-col items-center justify-center p-2 gap-2">
+                            <div class="text-[10px]">WAGER:</div>
+                            <div class="text-xl border-b-2 border-[var(--lcd-pixel)] mb-2" id="bj-bet-amount">$1.00</div>
+                            <div class="flex gap-2 w-full">
+                                <button onclick="changeBjBet(-1)" class="nokia-btn nokia-btn-outline flex-1 py-1">[-$1]</button>
+                                <button onclick="changeBjBet(1)" class="nokia-btn nokia-btn-outline flex-1 py-1">[+$1]</button>
+                            </div>
+                            <button onclick="changeBjBet('max')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] opacity-80">[ MAX BET ]</button>
+                            
+                            <button onclick="startBjDeal()" class="nokia-btn w-full py-2 border-2 border-[var(--lcd-pixel)] mt-2 font-bold text-center justify-center">
+                                DEAL CARDS
+                            </button>
+                        </div>
+
+                        <!-- Active Game Screen -->
+                        <div id="bj-active-screen" class="hidden flex-1 flex flex-col p-2 gap-2">
+                            <div class="border-2 border-[var(--lcd-pixel)] p-1 flex-1 relative">
+                                <div class="absolute top-1 left-1 text-[9px] opacity-70">DLR <span id="bj-dlr-val"></span></div>
+                                <div id="bj-dlr-cards" class="flex justify-center items-center h-10 gap-1 mt-2 text-sm tracking-widest">
+                                    <!-- Cards -->
+                                </div>
+                            </div>
+                            
+                            <div class="border-2 border-[var(--lcd-pixel)] p-1 flex-1 relative">
+                                <div class="absolute top-1 left-1 text-[9px] opacity-70">YOU <span id="bj-plr-val"></span></div>
+                                <div id="bj-plr-cards" class="flex justify-center items-center h-10 gap-1 mt-2 text-sm tracking-widest">
+                                    <!-- Cards -->
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2 shrink-0 mt-1" id="bj-actions">
+                                <button onclick="bjHit()" class="nokia-btn nokia-btn-outline flex-1 py-2 font-bold text-center justify-center">HIT</button>
+                                <button onclick="bjStand()" class="nokia-btn nokia-btn-outline flex-1 py-2 font-bold text-center justify-center">STAND</button>
+                            </div>
+                        </div>
+
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('gamble-menu-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ LEAVE TABLE ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === INTERVIEW VIEW === -->
+                    <div id="interview-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span class="blinking">INTERVIEW</span>
+                            <span id="interview-timer">00.0</span>
+                        </div>
+                        
+                        <div class="flex-1 flex flex-col p-4 gap-4 justify-center relative overflow-hidden">
+                            <div id="interview-q" class="text-[11px] font-bold text-center min-h-[40px] flex items-center justify-center">
+                                QUESTION
+                            </div>
+                            
+                            <div id="interview-answers" class="flex flex-col gap-2 relative">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </main>
+
+                <!-- Toast Overlay (Centered on Screen) -->
+                <div id="toast-container" class="absolute inset-0 pointer-events-none z-50 flex items-center justify-center p-4"></div>
+            </div>
+        </div>
+
+        <!-- Physical Keypad Area (Aesthetic) -->
+        <div class="mt-6 flex flex-col gap-2 px-2">
+            <div class="flex justify-between">
+                <div class="w-10 h-6 bg-zinc-700 rounded-full shadow-md border-b-2 border-zinc-900"></div>
+                <div class="w-16 h-8 bg-zinc-700 rounded-lg shadow-md border-b-2 border-zinc-900 mx-auto"></div>
+                <div class="w-10 h-6 bg-zinc-700 rounded-full shadow-md border-b-2 border-zinc-900"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-3 mt-4">
+                <div class="h-6 bg-zinc-700 rounded-full shadow-sm border-b-2 border-zinc-900"></div>
+                <div class="h-6 bg-zinc-700 rounded-full shadow-sm border-b-2 border-zinc-900"></div>
+                <div class="h-6 bg-zinc-700 rounded-full shadow-sm border-b-2 border-zinc-900"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            cash: 0.00,
+            shiftsCompleted: 0,
+            day: 1,
+            rentDueDay: 3,
+            isShiftActive: false,
+            shiftEarned: 0,
+            shiftTimeElapsed: 0,
+            shiftMaxTime: 60,
+            baseWagePerSec: 0.50,
+            shiftInterval: null,
+            tipSpawnerInterval: null,
+            // New CV State variables
+            achievements: [],
+            equippedCV: [],
+            maxCVSlots: 2,
+            availableJobs: [],
+            // Interview State
+            currentJobTitle: "PIZZA SHIFT",
+            interview: null,
+            // Casino State
+            scratch: { active: false, boxes: [], won: false },
+            bj: { bet: 1, deck: [], player: [], dealer: [], state: 'bet' } // bet, play, over
+        };
+
+        const elCash = document.getElementById('ui-cash');
+        const elRentTimer = document.getElementById('ui-rent-timer');
+        const elMessageLog = document.getElementById('message-log');
+        
+        // Master Database of all possible jobs in the game
+        const JOB_DB = [
+            { id: 'j1', title: 'DISHWASHER', pay: 0.80, req: ['NO-LIFE'] },
+            { id: 'j2', title: 'BURGER FLIP', pay: 1.20, req: ['NO-LIFE', 'FAST-HANDS'] },
+            { id: 'j3', title: 'CASHIER', pay: 1.50, req: ['MATH-WIZ'] },
+            { id: 'j4', title: 'MANAGER', pay: 3.00, req: ['NO-LIFE', 'MATH-WIZ', 'YELLING'] },
+            { id: 'j5', title: 'CEO', pay: 50.00, req: ['NEPOTISM', 'GOLF'] },
+            { id: 'j6', title: 'SIGN SPINNER', pay: 1.00, req: ['NO-SHAME'] },
+            { id: 'j7', title: 'DATA ENTRY', pay: 1.80, req: ['NO-LIFE', 'TYPING'] },
+            { id: 'j8', title: 'DAY TRADER', pay: 12.00, req: ['RISK-TAKER'] }
+        ];
+
+        function updateHUD() {
+            elCash.innerText = `$${state.cash.toFixed(2)}`;
+            elRentTimer.innerText = `D${state.rentDueDay}`;
+        }
+
+        function switchView(viewId) {
+            if (state.isShiftActive && viewId !== 'job-view') {
+                showToast("CANNOT ABORT");
+                return;
+            }
+
+            const targetView = document.getElementById(viewId);
+            if (!targetView) {
+                showToast("SYSTEM ERROR");
+                return;
+            }
+
+            ['home-view', 'job-view', 'cv-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.classList.add('hidden');
+                    el.classList.remove('flex');
+                }
+            });
+            
+            targetView.classList.remove('hidden');
+            targetView.classList.add('flex');
+        }
+
+        function calculateMatch(jobReqs) {
+            // If the job has no requirements, anyone can do it!
+            if (!jobReqs || jobReqs.length === 0) return 100;
+            
+            let matches = 0;
+            jobReqs.forEach(req => {
+                if (state.equippedCV.includes(req)) matches++;
+            });
+            
+            return Math.floor((matches / jobReqs.length) * 100);
+        }
+
+        function generateJobs() {
+            state.availableJobs = [];
+            // Copy and shuffle the database
+            let pool = [...JOB_DB].sort(() => Math.random() - 0.5);
+
+            // 1. Find a job with partial qualification (50% to 99%)
+            let jobPartialIndex = pool.findIndex(j => calculateMatch(j.req) >= 50 && calculateMatch(j.req) < 100);
+            if (jobPartialIndex === -1) jobPartialIndex = 0; // Fallback if none exist
+            state.availableJobs.push(pool.splice(jobPartialIndex, 1)[0]);
+
+            // 2. Find a job you are 100% qualified for
+            let job100Index = pool.findIndex(j => calculateMatch(j.req) === 100);
+            if (job100Index === -1) job100Index = 0; 
+            state.availableJobs.push(pool.splice(job100Index, 1)[0]);
+
+            // 3. The Wildcard (20% chance for a completely unqualified job 0%, otherwise random)
+            let rareChance = Math.random();
+            let jobWildIndex = 0;
+            if (rareChance < 0.2) {
+                jobWildIndex = pool.findIndex(j => calculateMatch(j.req) === 0);
+                if (jobWildIndex === -1) jobWildIndex = 0;
+            }
+            state.availableJobs.push(pool.splice(jobWildIndex, 1)[0]);
+            
+            // Shuffle final display order so the 100% job isn't always in the exact same spot
+            state.availableJobs.sort(() => Math.random() - 0.5);
+        }
+
+        function openJobSearcher() {
+            generateJobs();
+            renderJobSearcher();
+            switchView('job-searcher-view');
+        }
+
+        function renderJobSearcher() {
+            const container = document.getElementById('job-list-content');
+            container.innerHTML = '<div class="text-[9px] mb-1 font-bold">AVAILABLE LISTINGS:</div>';
+            
+            state.availableJobs.forEach(job => {
+                const match = calculateMatch(job.req);
+                container.innerHTML += `
+                    <div class="border-2 border-[var(--lcd-pixel)] p-1 flex flex-col gap-1 bg-transparent">
+                        <div class="flex justify-between font-bold text-[10px]">
+                            <span>${job.title}</span>
+                            <span>$${job.pay.toFixed(2)}/s</span>
+                        </div>
+                        <div class="text-[8px] opacity-90 leading-tight">REQ: ${job.req.join(', ')}</div>
+                        <div class="flex justify-between items-center mt-1 border-t border-dashed border-[var(--lcd-pixel)] pt-1">
+                            <span class="text-[9px] ${match >= 50 ? 'font-bold' : ''}">MATCH: ${match}%</span>
+                            <button onclick="applyForJob('${job.id}')" class="nokia-btn-outline px-2 py-[2px] text-[9px] w-auto">
+                                APPLY
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function applyForJob(jobId) {
+            const job = JOB_DB.find(j => j.id === jobId);
+            const match = calculateMatch(job.req);
+            
+            startInterview(job, match);
+        }
+
+        const QUIZ_DB = {
+            100: [
+                { q: "WHAT COLOR IS A FIRE TRUCK?", a: ["RED", "BLUE", "TRIANGLE"], correct: 0 },
+                { q: "SPELL 'GREEN'", a: ["G-R-E-E-N", "B-L-U-E", "7"], correct: 0 },
+                { q: "WHAT IS 1 + 1?", a: ["2", "ELEPHANT", "11"], correct: 0 }
+            ],
+            50: [
+                { q: "SOLVE: 4X + 12 = 36", a: ["X = 6", "X = 12", "X = 4"], correct: 0 },
+                { q: "QUARTERS IN $3.50?", a: ["14", "12", "16"], correct: 0 },
+                { q: "IF A=1, Z=26, FIND C+D", a: ["7", "6", "8"], correct: 0 }
+            ]
+        };
+
+        function startInterview(job, match) {
+            let qPool = [];
+            let timerMax = 10;
+            
+            if (match === 100) {
+                qPool = [...QUIZ_DB[100]].sort(() => Math.random() - 0.5);
+                timerMax = 15;
+            } else if (match > 0) {
+                qPool = [...QUIZ_DB[50]].sort(() => Math.random() - 0.5);
+                timerMax = 8;
+            } else {
+                // 0% Match
+                qPool = [ { q: "ERROR", a: ["A", "B", "C"], correct: -1 } ]; // Unwinnable
+                timerMax = 2;
+            }
+
+            state.interview = {
+                job: job,
+                match: match,
+                question: qPool[0], // 1 question per interview to keep it punchy
+                timeLeft: timerMax,
+                interval: null,
+                scrambleInterval: null
+            };
+
+            switchView('interview-view');
+            renderInterview();
+
+            // Run the timer
+            state.interview.interval = setInterval(() => {
+                state.interview.timeLeft -= 0.1;
+                document.getElementById('interview-timer').innerText = Math.max(0, state.interview.timeLeft).toFixed(1);
+                
+                if (state.interview.timeLeft <= 0) {
+                    endInterview(false, "TIME UP!");
+                }
+            }, 100);
+
+            // Turn on the glitch text if underqualified
+            if (match === 0) {
+                state.interview.scrambleInterval = setInterval(scrambleInterviewUI, 50);
+            }
+        }
+
+        function renderInterview() {
+            const qData = state.interview.question;
+            document.getElementById('interview-q').innerText = qData.q;
+            
+            const ansContainer = document.getElementById('interview-answers');
+            ansContainer.innerHTML = '';
+            
+            // Shuffle answers but remember which one was originally correct
+            let answers = qData.a.map((text, idx) => ({text, isCorrect: idx === qData.correct}));
+            answers.sort(() => Math.random() - 0.5);
+
+            answers.forEach(ans => {
+                const btn = document.createElement('button');
+                btn.className = "nokia-btn nokia-btn-outline w-full py-2 text-[10px] interview-ans-btn transition-transform";
+                btn.innerText = ans.text;
+                btn.onclick = () => endInterview(ans.isCorrect, ans.isCorrect ? "HIRED!" : "INCORRECT!");
+                
+                // Evade cursor if 0%
+                if (state.interview.match === 0) {
+                    btn.onmouseenter = () => {
+                        btn.style.transform = `translate(${Math.random()*30 - 15}px, ${Math.random()*15 - 7.5}px)`;
+                    };
+                }
+                
+                ansContainer.appendChild(btn);
+            });
+        }
+
+        function scrambleInterviewUI() {
+            const chars = 'ᔑʖᓵ↸ᒷ⎓⊣⍑╎⋮ꖌꖎᒲリ𝙹!¡ᑑ∷ᓭℸ⚍⍊∴S||⨅'; // Approximation of standard galactic alphabet
+            
+            const getScramble = (len) => {
+                let res = '';
+                for(let i=0; i<len; i++) res += chars.charAt(Math.floor(Math.random() * chars.length));
+                return res;
+            };
+
+            document.getElementById('interview-q').innerText = getScramble(15);
+            document.querySelectorAll('.interview-ans-btn').forEach(btn => {
+                btn.innerText = getScramble(8);
+            });
+        }
+
+        function endInterview(isCorrect, reason) {
+            clearInterval(state.interview.interval);
+            clearInterval(state.interview.scrambleInterval);
+            
+            if (isCorrect && state.interview.match > 0) {
+                // Hired! Apply new wage and update UI titles
+                state.currentJobTitle = state.interview.job.title;
+                state.baseWagePerSec = state.interview.job.pay;
+                
+                document.getElementById('ui-menu-job-btn').innerText = `1- WORK (${state.currentJobTitle})`;
+                document.getElementById('ui-current-job-title').innerText = state.currentJobTitle;
+                
+                showToast(`${reason}<br>NEW WAGE: $${state.baseWagePerSec.toFixed(2)}/s`);
+            } else {
+                // Failed
+                showToast(`REJECTED:<br>${reason}`);
+            }
+            
+            switchView('home-view');
+            state.interview = null;
+        }
+
+        function openCV() {
+            if (state.shiftsCompleted < 2) {
+                showToast('REQ: 2 SHIFTS');
+                return;
+            }
+            renderCV();
+            switchView('cv-view');
+        }
+
+        function renderCV() {
+            const container = document.getElementById('cv-content');
+            container.innerHTML = '<div class="text-[10px] mb-1 font-bold">EQUIPPED SKILLS:</div>';
+            
+            // Render Equipped Items
+            if (state.equippedCV.length === 0) {
+                container.innerHTML += '<div class="text-[9px] opacity-70 mb-2 px-2">- EMPTY SLOT -</div>';
+            } else {
+                state.equippedCV.forEach(ach => {
+                    container.innerHTML += `
+                        <button onclick="toggleCV('${ach}')" class="nokia-btn text-[9px] border border-[var(--lcd-pixel)] mb-1">
+                            <span>[*] ${ach}</span>
+                        </button>
+                    `;
+                });
+            }
+
+            container.innerHTML += '<div class="text-[10px] mt-2 mb-1 font-bold border-t-2 border-dashed border-[var(--lcd-pixel)] pt-2">AVAILABLE:</div>';
+            
+            // Render Available (Unequipped) Items
+            const available = state.achievements.filter(a => !state.equippedCV.includes(a));
+            if (available.length === 0) {
+                container.innerHTML += '<div class="text-[9px] opacity-70 px-2">- NONE -</div>';
+            } else {
+                available.forEach(ach => {
+                    container.innerHTML += `
+                        <button onclick="toggleCV('${ach}')" class="nokia-btn text-[9px]">
+                            <span>[ ] ${ach}</span>
+                        </button>
+                    `;
+                });
+            }
+            
+            document.getElementById('cv-equipped-count').innerText = `${state.equippedCV.length}/${state.maxCVSlots}`;
+        }
+
+        function toggleCV(ach) {
+            if (state.equippedCV.includes(ach)) {
+                // Unequip
+                state.equippedCV = state.equippedCV.filter(a => a !== ach);
+            } else {
+                // Equip
+                if (state.equippedCV.length >= state.maxCVSlots) {
+                    showToast('CV FULL!');
+                    return;
+                }
+                state.equippedCV.push(ach);
+            }
+            renderCV(); // Refresh the list
+        }
+
+        function addMessage(sender, text) {
+            const msgDiv = document.createElement('div');
+            
+            // Y2K SMS Styling
+            msgDiv.className = "border-b border-dashed border-[var(--lcd-pixel)] pb-1 opacity-90";
+            msgDiv.innerHTML = `
+                <div class="text-[9px] mb-[2px]">FR: ${sender.toUpperCase()}</div>
+                <p>${text}</p>
+            `;
+
+            elMessageLog.appendChild(msgDiv);
+            setTimeout(() => elMessageLog.scrollTop = elMessageLog.scrollHeight, 50);
+        }
+
+        function startPizzaShift() {
+            state.isShiftActive = true;
+            state.shiftTimeElapsed = 0;
+            state.shiftEarned = 0;
+            
+            document.getElementById('shift-start-ui').classList.add('hidden');
+            document.getElementById('shift-active-ui').classList.remove('hidden');
+            document.getElementById('btn-end-shift').classList.remove('hidden');
+            document.getElementById('ui-shift-earned').innerText = "$0.00";
+            
+            state.shiftInterval = setInterval(processShiftTick, 100);
+            scheduleNextTip();
+        }
+
+        function processShiftTick() {
+            const tickLength = 0.1;
+            state.shiftTimeElapsed += tickLength;
+            
+            const earnedThisTick = state.baseWagePerSec * tickLength;
+            state.shiftEarned += earnedThisTick;
+            state.cash += earnedThisTick;
+            
+            updateHUD();
+            
+            const timeLeft = Math.max(0, state.shiftMaxTime - state.shiftTimeElapsed);
+            const seconds = Math.floor(timeLeft % 60);
+            document.getElementById('ui-shift-timer').innerText = `00:${seconds < 10 ? '0' : ''}${seconds}`;
+            document.getElementById('ui-shift-earned').innerText = `$${state.shiftEarned.toFixed(2)}`;
+            
+            const percent = (state.shiftTimeElapsed / state.shiftMaxTime) * 100;
+            document.getElementById('ui-shift-progress').style.width = `${percent}%`;
+
+            if (state.shiftTimeElapsed >= state.shiftMaxTime) {
+                endPizzaShift(false);
+            }
+        }
+
+        function scheduleNextTip() {
+            if (!state.isShiftActive) return;
+            const nextTipIn = Math.random() * 3000 + 1000; // Faster for smaller screen
+            state.tipSpawnerInterval = setTimeout(() => {
+                spawnTip();
+                scheduleNextTip();
+            }, nextTipIn);
+        }
+
+        function spawnTip() {
+            const container = document.getElementById('tip-container');
+            const btn = document.createElement('button');
+            
+            // Constrain coordinates so they don't spawn off the tiny screen
+            const top = Math.random() * 70 + 10;
+            const left = Math.random() * 60 + 10;
+            
+            // Y2K Blocky button style
+            btn.className = "absolute border-2 border-[var(--lcd-pixel)] bg-[var(--lcd-bg)] text-[var(--lcd-pixel)] px-2 py-1 text-[10px] font-bold pointer-events-auto z-30 cursor-pointer shadow-[2px_2px_0_rgba(17,20,6,1)]";
+            btn.style.top = `${top}%`;
+            btn.style.left = `${left}%`;
+            btn.innerHTML = `+$1`;
+            
+            // Hover effect managed by JS since absolute elements can be finicky
+            btn.onmouseenter = () => {
+                btn.style.backgroundColor = 'var(--lcd-pixel)';
+                btn.style.color = 'var(--lcd-bg)';
+            };
+            btn.onmouseleave = () => {
+                btn.style.backgroundColor = 'var(--lcd-bg)';
+                btn.style.color = 'var(--lcd-pixel)';
+            };
+
+            btn.onclick = function() {
+                state.cash += 1.00;
+                state.shiftEarned += 1.00;
+                updateHUD();
+                
+                this.innerHTML = "OK";
+                this.style.backgroundColor = 'var(--lcd-pixel)';
+                this.style.color = 'var(--lcd-bg)';
+                this.style.boxShadow = 'none';
+                this.style.pointerEvents = 'none';
+                setTimeout(() => this.remove(), 400);
+            };
+
+            container.appendChild(btn);
+            setTimeout(() => { if(btn.parentNode) btn.remove(); }, 1500);
+        }
+
+        function endPizzaShift(manual) {
+            state.isShiftActive = false;
+            clearInterval(state.shiftInterval);
+            clearTimeout(state.tipSpawnerInterval);
+            document.getElementById('tip-container').innerHTML = '';
+            
+            state.shiftsCompleted++;
+            
+            document.getElementById('shift-start-ui').classList.remove('hidden');
+            document.getElementById('shift-active-ui').classList.add('hidden');
+            document.getElementById('btn-end-shift').classList.add('hidden');
+            
+            document.getElementById('ui-shift-progress').style.width = '0%';
+            document.getElementById('ui-shift-timer').innerText = "00:00";
+            
+            showToast(`DONE: $${state.shiftEarned.toFixed(2)}`);
+            
+            switchView('home-view');
+            
+            // Check for CV Unlock (Lowered to 2 shifts for testing)
+            if (state.shiftsCompleted === 2 && !state.achievements.includes('NO-LIFE')) {
+                state.achievements.push('NO-LIFE');
+                
+                // Update the Menu Button visual state
+                const cvBtn = document.getElementById('btn-app-cv');
+                cvBtn.classList.remove('opacity-60');
+                cvBtn.innerHTML = `<span>2- MY CV</span><span>></span>`;
+                
+                // Send unlock text messages
+                setTimeout(() => addMessage("SYS", "ACHV: NO-LIFE UNLOCKED"), 1000);
+                setTimeout(() => addMessage("SYS", "APP: CV UNLOCKED"), 2500);
+            }
+            
+            if (state.shiftsCompleted === 1) {
+                setTimeout(() => addMessage("Mom", "Rent is 50. Due in 3 days. Get to work."), 2000);
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            container.innerHTML = ''; // Clear previous
+            
+            const toast = document.createElement('div');
+            // Full-screen takeover alert style like old feature phones
+            toast.className = `bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] border-2 border-[var(--lcd-bg)] p-4 text-center w-full shadow-[0_0_0_4px_var(--lcd-pixel)] pointer-events-auto z-[100]`;
+            toast.innerHTML = `<span class="blinking block mb-2">! ALERT !</span><span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 3000);
+        }
+
+        function initScratch() {
+            state.scratch.active = false;
+            document.getElementById('btn-buy-scratch').classList.remove('hidden');
+            document.getElementById('scratch-boxes').innerHTML = `
+                <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
+                <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
+                <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
+            `;
+            switchView('scratch-view');
+        }
+
+        function buyScratch() {
+            if (state.cash < 1.00) {
+                showToast("BROKE.");
+                return;
+            }
+            state.cash -= 1.00;
+            updateHUD();
+
+            state.scratch.active = true;
+            state.scratch.won = false;
+            document.getElementById('btn-buy-scratch').classList.add('hidden');
+
+            // 15% chance to win $5
+            const isWinner = Math.random() < 0.15;
+            state.scratch.boxes = ['X', 'X', 'X'];
+            
+            if (isWinner) {
+                const winIndex = Math.floor(Math.random() * 3);
+                state.scratch.boxes[winIndex] = '$';
+            }
+
+            renderScratchBoxes();
+        }
+
+        function renderScratchBoxes() {
+            const container = document.getElementById('scratch-boxes');
+            container.innerHTML = '';
+            
+            state.scratch.boxes.forEach((val, index) => {
+                const btn = document.createElement('button');
+                btn.className = "w-10 h-10 border-2 border-[var(--lcd-pixel)] bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] flex items-center justify-center font-bold text-lg hover:bg-transparent hover:text-[var(--lcd-pixel)]";
+                btn.innerText = "?";
+                btn.onclick = () => revealScratch(index, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function revealScratch(index, btnElement) {
+            if (!state.scratch.active) return;
+
+            const val = state.scratch.boxes[index];
+            btnElement.className = "w-10 h-10 border-2 border-[var(--lcd-pixel)] bg-transparent text-[var(--lcd-pixel)] flex items-center justify-center font-bold text-lg";
+            btnElement.innerText = val;
+            btnElement.onclick = null; // Disable click
+
+            if (val === '$') {
+                state.scratch.won = true;
+                state.scratch.active = false;
+                state.cash += 5.00;
+                updateHUD();
+                showToast("JACKPOT! +$5.00");
+                setTimeout(initScratch, 2000);
+            } else {
+                // Check if all revealed
+                const allRevealed = Array.from(document.getElementById('scratch-boxes').children)
+                                         .every(el => el.innerText !== '?');
+                if (allRevealed && !state.scratch.won) {
+                    state.scratch.active = false;
+                    showToast("YOU LOSE.");
+                    setTimeout(initScratch, 2000);
+                }
+            }
+        }
+
+        function initBlackjack() {
+            state.bj.state = 'bet';
+            state.bj.bet = 1;
+            if(state.bj.bet > state.cash) state.bj.bet = Math.max(0, state.cash);
+            
+            document.getElementById('bj-bet-screen').classList.remove('hidden');
+            document.getElementById('bj-active-screen').classList.add('hidden');
+            updateBjBetUI();
+            
+            switchView('blackjack-view');
+        }
+
+        function updateBjBetUI() {
+            document.getElementById('bj-bet-amount').innerText = `$${state.bj.bet.toFixed(2)}`;
+            document.getElementById('bj-status').innerText = 'BET';
+        }
+
+        function changeBjBet(amount) {
+            if (amount === 'max') {
+                state.bj.bet = state.cash; // Grab the exact amount, including cents
+            } else {
+                // If they use +/- buttons, snap it back to a clean whole number
+                state.bj.bet = Math.floor(state.bj.bet) + amount;
+            }
+            
+            // Handle betting constraints
+            if (state.bj.bet < 1 && state.cash >= 1) state.bj.bet = 1;
+            else if (state.cash < 1) state.bj.bet = state.cash; // Allow sub-$1 bets if you are super broke
+            
+            if (state.bj.bet > state.cash) state.bj.bet = state.cash;
+            
+            updateBjBetUI();
+        }
+
+        function getDeck() {
+            const values = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+            let deck = [];
+            for(let i=0; i<4; i++) { // 4 suits
+                for(let v of values) deck.push(v);
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        function getHandValue(hand) {
+            let val = 0;
+            let aces = 0;
+            for(let c of hand) {
+                if(['J','Q','K'].includes(c)) val += 10;
+                else if(c === 'A') { val += 11; aces += 1; }
+                else val += parseInt(c);
+            }
+            while(val > 21 && aces > 0) { val -= 10; aces -= 1; }
+            return val;
+        }
+
+        function startBjDeal() {
+            if (state.cash < state.bj.bet) {
+                showToast("NOT ENOUGH CASH");
+                return;
+            }
+            
+            state.cash -= state.bj.bet;
+            updateHUD();
+
+            state.bj.state = 'play';
+            state.bj.deck = getDeck();
+            state.bj.player = [state.bj.deck.pop(), state.bj.deck.pop()];
+            state.bj.dealer = [state.bj.deck.pop(), state.bj.deck.pop()];
+
+            document.getElementById('bj-bet-screen').classList.add('hidden');
+            document.getElementById('bj-active-screen').classList.remove('hidden');
+            document.getElementById('bj-actions').classList.remove('hidden');
+            
+            renderBj();
+            
+            if (getHandValue(state.bj.player) === 21) endBj('bj');
+        }
+
+        function renderBj() {
+            const pVal = getHandValue(state.bj.player);
+            document.getElementById('bj-plr-val').innerText = `(${pVal})`;
+            document.getElementById('bj-plr-cards').innerText = state.bj.player.map(c => `[${c}]`).join(' ');
+
+            if (state.bj.state === 'play') {
+                document.getElementById('bj-dlr-val').innerText = `(?)`;
+                document.getElementById('bj-dlr-cards').innerText = `[?] [${state.bj.dealer[1]}]`;
+            } else {
+                const dVal = getHandValue(state.bj.dealer);
+                document.getElementById('bj-dlr-val').innerText = `(${dVal})`;
+                document.getElementById('bj-dlr-cards').innerText = state.bj.dealer.map(c => `[${c}]`).join(' ');
+            }
+        }
+
+        function bjHit() {
+            if (state.bj.state !== 'play') return;
+            state.bj.player.push(state.bj.deck.pop());
+            renderBj();
+            
+            if (getHandValue(state.bj.player) > 21) {
+                endBj('bust');
+            }
+        }
+
+        function bjStand() {
+            if (state.bj.state !== 'play') return;
+            state.bj.state = 'over';
+            document.getElementById('bj-actions').classList.add('hidden');
+            
+            // Dealer logic
+            let dVal = getHandValue(state.bj.dealer);
+            while (dVal < 17) {
+                state.bj.dealer.push(state.bj.deck.pop());
+                dVal = getHandValue(state.bj.dealer);
+            }
+            
+            renderBj();
+            
+            const pVal = getHandValue(state.bj.player);
+            
+            if (dVal > 21) endBj('win');
+            else if (pVal > dVal) endBj('win');
+            else if (pVal < dVal) endBj('lose');
+            else endBj('push');
+        }
+
+        function endBj(result) {
+            state.bj.state = 'over';
+            document.getElementById('bj-actions').classList.add('hidden');
+            renderBj();
+            
+            setTimeout(() => {
+                let lostHugeAmount = false;
+
+                if (result === 'bj') {
+                    const win = state.bj.bet * 2.5; // Blackjack pays 3:2
+                    state.cash += win;
+                    showToast(`BLACKJACK! +$${win.toFixed(2)}`);
+                } else if (result === 'win') {
+                    const win = state.bj.bet * 2;
+                    state.cash += win;
+                    showToast(`YOU WIN! +$${win.toFixed(2)}`);
+                } else if (result === 'push') {
+                    state.cash += state.bj.bet;
+                    showToast("PUSH. MONEY RETURNED.");
+                } else {
+                    // Check if they lost >= 90% of their total wealth
+                    const totalBeforeBet = state.cash + state.bj.bet;
+                    if (totalBeforeBet > 0 && (state.bj.bet / totalBeforeBet) >= 0.9) {
+                        lostHugeAmount = true;
+                    }
+                    showToast(`YOU LOSE $${state.bj.bet.toFixed(2)}`);
+                }
+                updateHUD();
+
+                // Grant Risk-Taker Achievement on devastating losses
+                if (lostHugeAmount && !state.achievements.includes('RISK-TAKER')) {
+                    state.achievements.push('RISK-TAKER');
+                    setTimeout(() => addMessage("SYS", "ACHV: RISK-TAKER UNLOCKED"), 1500);
+                }
+
+                setTimeout(initBlackjack, 2500);
+            }, 1000);
+        }
+
+        window.onload = () => {
+            updateHUD();
+            addMessage("Mom", "You finished school. Get a job. I need rent.");
+        };
+    </script>
+</body>
+</html>
