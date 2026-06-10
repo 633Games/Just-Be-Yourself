@@ -143,6 +143,7 @@ function updateAppMenu() {
 function updateWorkAppLabel() {
     const title = document.getElementById('ui-current-job-title');
     if (title) title.innerText = state.currentJobTitle;
+    if (typeof updateShiftBriefing === 'function') updateShiftBriefing();
     updateAppMenu();
 }
 
@@ -364,14 +365,19 @@ function sendPlayerReply() {
 
 function resetJobToPizzaShift() {
     state.currentJobTitle = 'PIZZA SHIFT';
-    state.baseWagePerSec = 0.50;
+    state.baseWagePerSec = 0.30;
     state.bossStrikes = 0;
     updateWorkAppLabel();
 }
 
 function firePlayer() {
     const oldJob = state.currentJobTitle;
-    resetJobToPizzaShift();
+    state.firedFromJob = oldJob;
+    state.isUnemployed = true;
+    state.currentJobTitle = 'UNEMPLOYED';
+    state.baseWagePerSec = 0;
+    state.bossStrikes = 0;
+    updateWorkAppLabel();
     addMessage('BOSS', `You're fired from ${oldJob}. Don't come back.`);
     setTimeout(() => {
         addMessage('MOM', 'You lost your job again? Rent does not wait.');
@@ -399,9 +405,13 @@ function sendBossShiftFeedback(manual, shiftEarned) {
         ? ` ${state.shiftTipsCollected} tip${state.shiftTipsCollected === 1 ? '' : 's'} collected.`
         : '';
 
-    if (shiftEarned >= 35) {
+    const base = state.baseWagePerSec * state.shiftMaxTime;
+    const strong = base * 1.15;
+    const decent = base * 0.85;
+
+    if (shiftEarned >= strong) {
         addMessage('BOSS', `Strong shift at ${job}. $${shiftEarned.toFixed(2)} earned.${tipNote} Keep it up.`);
-    } else if (shiftEarned >= 20) {
+    } else if (shiftEarned >= decent) {
         addMessage('BOSS', `Decent work at ${job}.${tipNote} Try to earn more next shift.`);
     } else {
         addMessage('BOSS', `Slow shift at ${job}. Pick up the pace or customers stop tipping.`);

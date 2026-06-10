@@ -12,7 +12,7 @@ const state = {
     shiftEarned: 0,
     shiftTimeElapsed: 0,
     shiftMaxTime: 60,
-    baseWagePerSec: 0.50,
+    baseWagePerSec: 0.30,
     shiftInterval: null,
     tipSpawnerInterval: null,
     // New CV State variables
@@ -30,7 +30,15 @@ const state = {
     messages: [],
     messagesUnread: 0,
     bossStrikes: 0,
+    isUnemployed: false,
+    firedFromJob: null,
     shiftTipsCollected: 0,
+    shiftCombo: 0,
+    shiftBonusEarned: 0,
+    shiftBonusRaw: 0,
+    shiftComboBonus: 0,
+    shiftArchetypeTimer: null,
+    shiftManualEnd: false,
     playerName: '',
     messagesFlash: false,
     unlockedApps: {
@@ -54,14 +62,14 @@ const MESSAGE_SENDERS = {
 
 // Master Database of all possible jobs in the game
 const JOB_DB = [
-    { id: 'j1', title: 'DISHWASHER', pay: 0.80, req: ['NO-LIFE'] },
-    { id: 'j2', title: 'BURGER FLIP', pay: 1.20, req: ['NO-LIFE', 'FAST-HANDS'] },
-    { id: 'j3', title: 'CASHIER', pay: 1.50, req: ['MATH-WIZ'] },
-    { id: 'j4', title: 'MANAGER', pay: 3.00, req: ['NO-LIFE', 'MATH-WIZ', 'YELLING'] },
-    { id: 'j5', title: 'CEO', pay: 50.00, req: ['NEPOTISM', 'GOLF'] },
-    { id: 'j6', title: 'SIGN SPINNER', pay: 1.00, req: ['NO-SHAME'] },
-    { id: 'j7', title: 'DATA ENTRY', pay: 1.80, req: ['NO-LIFE', 'TYPING'] },
-    { id: 'j8', title: 'DAY TRADER', pay: 12.00, req: ['RISK-TAKER'] }
+    { id: 'j1', title: 'DISHWASHER', pay: 0.48, req: ['NO-LIFE'] },
+    { id: 'j2', title: 'BURGER FLIP', pay: 0.72, req: ['NO-LIFE', 'FAST-HANDS'] },
+    { id: 'j3', title: 'CASHIER', pay: 0.90, req: ['MATH-WIZ'] },
+    { id: 'j4', title: 'MANAGER', pay: 1.80, req: ['NO-LIFE', 'MATH-WIZ', 'YELLING'] },
+    { id: 'j5', title: 'CEO', pay: 30.00, req: ['NEPOTISM', 'GOLF'] },
+    { id: 'j6', title: 'SIGN SPINNER', pay: 0.60, req: ['NO-SHAME'] },
+    { id: 'j7', title: 'DATA ENTRY', pay: 1.08, req: ['NO-LIFE', 'TYPING'] },
+    { id: 'j8', title: 'DAY TRADER', pay: 7.20, req: ['RISK-TAKER'] }
 ];
 
 function getWeeklyRent() {

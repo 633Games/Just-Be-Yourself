@@ -220,3 +220,399 @@ body {
     justify-content: center;
     align-items: center;
 }
+
+/* === Work Shift UI === */
+.shift-ticket {
+    position: relative;
+    padding-top: 14px !important;
+}
+
+.shift-ticket-perforation {
+    position: absolute;
+    top: 4px;
+    left: 8px;
+    right: 8px;
+    height: 6px;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--lcd-pixel) 0,
+        var(--lcd-pixel) 4px,
+        transparent 4px,
+        transparent 8px
+    );
+    opacity: 0.4;
+}
+
+.shift-scene-preview {
+    border: 2px dashed var(--lcd-pixel);
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.shift-scene-glyph {
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 2;
+}
+
+.shift-briefing {
+    background: rgba(17, 20, 6, 0.04);
+    box-shadow: 2px 2px 0 rgba(17, 20, 6, 0.15);
+}
+
+.shift-badge {
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
+    letter-spacing: 0.05em;
+}
+
+.shift-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.shift-stat-label {
+    font-size: 8px;
+    opacity: 0.65;
+    letter-spacing: 0.08em;
+}
+
+.shift-stat-value {
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1.1;
+}
+
+.shift-start-btn {
+    box-shadow: 3px 3px 0 rgba(17, 20, 6, 0.35);
+}
+
+.shift-start-btn:hover,
+.shift-start-btn:active {
+    box-shadow: 1px 1px 0 rgba(17, 20, 6, 0.35);
+    transform: translate(2px, 2px);
+}
+
+.shift-hud-cell {
+    border: 2px solid var(--lcd-pixel);
+    padding: 4px 2px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.shift-hud-cell-highlight {
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
+}
+
+.shift-hud-label {
+    font-size: 7px;
+    opacity: 0.75;
+    letter-spacing: 0.06em;
+}
+
+.shift-hud-cell-highlight .shift-hud-label {
+    opacity: 0.85;
+}
+
+.shift-hud-value {
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.shift-progress-track {
+    width: 100%;
+    height: 10px;
+    border: 2px solid var(--lcd-pixel);
+    padding: 2px;
+    background: transparent;
+}
+
+.shift-progress-fill {
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--lcd-pixel) 0,
+        var(--lcd-pixel) 6px,
+        transparent 6px,
+        transparent 8px
+    );
+    transition: width 0.1s linear;
+}
+
+.shift-workzone {
+    border: 2px solid var(--lcd-pixel);
+    background: rgba(17, 20, 6, 0.03);
+    box-shadow: inset 2px 2px 0 rgba(17, 20, 6, 0.08);
+}
+
+.shift-workzone-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(17, 20, 6, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 20, 6, 0.06) 1px, transparent 1px);
+    background-size: 12px 12px;
+    pointer-events: none;
+}
+
+.shift-workzone-label {
+    position: absolute;
+    bottom: 6px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 8px;
+    opacity: 0.35;
+    pointer-events: none;
+    letter-spacing: 0.15em;
+}
+
+.tip-btn {
+    position: absolute;
+    border: 2px solid var(--lcd-pixel);
+    background: var(--lcd-bg);
+    color: var(--lcd-pixel);
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    font-family: 'Silkscreen', monospace;
+    cursor: pointer;
+    z-index: 30;
+    box-shadow: 2px 2px 0 rgba(17, 20, 6, 1);
+    animation: tip-pop 0.25s ease-out;
+    text-transform: uppercase;
+}
+
+.tip-btn:hover,
+.tip-btn:active {
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0 rgba(17, 20, 6, 1);
+}
+
+.tip-btn-collected {
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
+    box-shadow: none;
+    pointer-events: none;
+    animation: none;
+}
+
+@keyframes tip-pop {
+    0% { transform: scale(0.6); opacity: 0; }
+    70% { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* Job scene backgrounds */
+.scene-pizza {
+    background:
+        repeating-linear-gradient(90deg, rgba(17, 20, 6, 0.05) 0, rgba(17, 20, 6, 0.05) 8px, transparent 8px, transparent 16px),
+        rgba(17, 20, 6, 0.03);
+}
+
+.scene-sink {
+    background:
+        repeating-linear-gradient(0deg, rgba(17, 20, 6, 0.08) 0, rgba(17, 20, 6, 0.08) 6px, transparent 6px, transparent 12px),
+        rgba(17, 20, 6, 0.02);
+}
+
+.scene-register {
+    background:
+        linear-gradient(90deg, transparent 70%, rgba(17, 20, 6, 0.1) 70%, rgba(17, 20, 6, 0.1) 72%, transparent 72%),
+        rgba(17, 20, 6, 0.03);
+}
+
+.scene-grill {
+    background:
+        repeating-linear-gradient(90deg, rgba(17, 20, 6, 0.12) 0, rgba(17, 20, 6, 0.12) 3px, transparent 3px, transparent 10px),
+        rgba(17, 20, 6, 0.04);
+}
+
+.scene-sign {
+    background:
+        linear-gradient(135deg, rgba(17, 20, 6, 0.06) 25%, transparent 25%, transparent 50%, rgba(17, 20, 6, 0.06) 50%, rgba(17, 20, 6, 0.06) 75%, transparent 75%);
+    background-size: 16px 16px;
+}
+
+.scene-desk {
+    background:
+        linear-gradient(rgba(17, 20, 6, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(17, 20, 6, 0.04) 1px, transparent 1px);
+    background-size: 8px 8px;
+}
+
+.scene-ticker {
+    background:
+        repeating-linear-gradient(0deg, rgba(17, 20, 6, 0.1) 0, rgba(17, 20, 6, 0.1) 1px, transparent 1px, transparent 6px),
+        rgba(17, 20, 6, 0.02);
+}
+
+.scene-office {
+    background:
+        linear-gradient(90deg, rgba(17, 20, 6, 0.08) 0, rgba(17, 20, 6, 0.08) 4px, transparent 4px),
+        rgba(17, 20, 6, 0.02);
+}
+
+.scene-corner {
+    background:
+        linear-gradient(180deg, rgba(17, 20, 6, 0.06) 0, transparent 40%),
+        repeating-linear-gradient(90deg, rgba(17, 20, 6, 0.04) 0, rgba(17, 20, 6, 0.04) 20px, transparent 20px, transparent 40px);
+}
+
+.shift-workzone-live {
+    animation: workzone-pulse 2s ease-in-out infinite;
+}
+
+@keyframes workzone-pulse {
+    0%, 100% { box-shadow: inset 2px 2px 0 rgba(17, 20, 6, 0.08); }
+    50% { box-shadow: inset 2px 2px 0 rgba(17, 20, 6, 0.14); }
+}
+
+.shift-workzone-scanline {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        rgba(17, 20, 6, 0.04) 50%,
+        transparent 100%
+    );
+    background-size: 100% 8px;
+    animation: scanline-sweep 3s linear infinite;
+    pointer-events: none;
+    z-index: 5;
+}
+
+@keyframes scanline-sweep {
+    0% { background-position: 0 -8px; }
+    100% { background-position: 0 100%; }
+}
+
+.shift-float-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 40;
+}
+
+.shift-float-text {
+    position: absolute;
+    font-size: 10px;
+    font-weight: bold;
+    color: var(--lcd-pixel);
+    animation: float-up 0.7s ease-out forwards;
+    transform: translateX(-50%);
+}
+
+@keyframes float-up {
+    0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-24px); }
+}
+
+.shift-timer-urgent {
+    animation: blink 0.5s infinite;
+    color: var(--lcd-pixel);
+}
+
+.shift-hud-pulse {
+    animation: hud-pulse 0.3s ease-out;
+}
+
+@keyframes hud-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+}
+
+.shift-hud-earned-cell {
+    transition: none;
+}
+
+.shift-action-rail {
+    border: 2px solid var(--lcd-pixel);
+    padding: 4px;
+    background: rgba(17, 20, 6, 0.03);
+}
+
+.shift-timing-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.shift-timing-track {
+    position: relative;
+    height: 14px;
+    border: 2px solid var(--lcd-pixel);
+    background: rgba(17, 20, 6, 0.05);
+    overflow: hidden;
+}
+
+.shift-timing-zone {
+    position: absolute;
+    top: 1px;
+    height: 10px;
+    background: rgba(17, 20, 6, 0.25);
+    border: 1px solid var(--lcd-pixel);
+    pointer-events: none;
+    z-index: 2;
+}
+
+.shift-timing-cursor {
+    position: absolute;
+    top: 1px;
+    width: 4px;
+    height: 10px;
+    background: var(--lcd-pixel);
+    transform: translateX(-50%);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.shift-timing-btn {
+    margin-top: 0;
+}
+
+.shift-key-rail .nokia-btn {
+    min-height: 28px;
+}
+
+.tip-btn-exec {
+    font-size: 9px;
+    padding: 6px 10px;
+    letter-spacing: 0.08em;
+}
+
+.shift-summary-card {
+    background: rgba(17, 20, 6, 0.04);
+    box-shadow: 2px 2px 0 rgba(17, 20, 6, 0.15);
+}
+
+.shift-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    padding: 2px 0;
+    border-bottom: 1px dotted rgba(17, 20, 6, 0.2);
+}
+
+.shift-summary-total {
+    font-size: 11px;
+    font-weight: bold;
+    border-bottom: none;
+    border-top: 2px dashed var(--lcd-pixel);
+    padding-top: 6px;
+    margin-top: 2px;
+}

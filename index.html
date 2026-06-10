@@ -160,43 +160,156 @@
                     <div id="job-view" class="w-full h-full hidden flex-col relative">
                         <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
                             <span id="ui-current-job-title">PIZZA SHIFT</span>
-                            <span class="blinking">_</span>
+                            <span id="ui-shift-status" class="text-[8px] opacity-80">READY</span>
                         </div>
                         
-                        <div class="flex-1 flex flex-col p-2 justify-center relative overflow-hidden">
-                            <!-- Start UI -->
-                            <div id="shift-start-ui" class="flex flex-col items-center gap-2">
-                                <button onclick="startPizzaShift()" class="nokia-btn nokia-btn-outline w-full py-4 text-[12px] font-bold text-center justify-center">
-                                    START SHIFT
-                                </button>
-                                <button onclick="switchView('home-view')" class="nokia-btn text-center justify-center text-[10px]">
-                                    [ CANCEL ]
-                                </button>
+                        <div class="flex-1 flex flex-col p-2 relative overflow-hidden min-h-0">
+                            <!-- Briefing UI -->
+                            <div id="shift-briefing-ui" class="flex flex-col h-full gap-2">
+                                <div class="shift-ticket shift-briefing flex flex-col gap-2 p-2 border-2 border-[var(--lcd-pixel)]">
+                                    <div class="shift-ticket-perforation" aria-hidden="true"></div>
+                                    <div class="flex justify-between items-start gap-2">
+                                        <div class="flex flex-col gap-1 min-w-0">
+                                            <span class="text-[8px] opacity-70">ROLE</span>
+                                            <span id="ui-shift-role" class="text-[11px] font-bold leading-tight">PIZZA SHIFT</span>
+                                        </div>
+                                        <div id="ui-shift-badge" class="shift-badge shrink-0 text-[8px] px-1 py-[2px] border border-[var(--lcd-pixel)]">
+                                            ON CALL
+                                        </div>
+                                    </div>
+
+                                    <div id="shift-scene-preview" class="shift-scene-preview">
+                                        <span id="shift-scene-glyph" class="shift-scene-glyph">[□]</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-2 border-t border-dashed border-[var(--lcd-pixel)] pt-2">
+                                        <div class="shift-stat">
+                                            <span class="shift-stat-label">WAGE</span>
+                                            <span id="ui-shift-wage" class="shift-stat-value">$0.30/s</span>
+                                        </div>
+                                        <div class="shift-stat">
+                                            <span class="shift-stat-label">LENGTH</span>
+                                            <span id="ui-shift-length" class="shift-stat-value">60s</span>
+                                        </div>
+                                        <div class="shift-stat">
+                                            <span class="shift-stat-label">BONUS</span>
+                                            <span id="ui-shift-bonus-range" class="shift-stat-value">+$0.50</span>
+                                        </div>
+                                        <div class="shift-stat">
+                                            <span class="shift-stat-label">PAYOUT</span>
+                                            <span id="ui-shift-estimate" class="shift-stat-value">~$18</span>
+                                        </div>
+                                    </div>
+
+                                    <p id="ui-shift-instructions" class="text-[8px] opacity-80 leading-tight border-t border-dashed border-[var(--lcd-pixel)] pt-2 normal-case">
+                                        Tap tips as they pop up. Clock out early if you need to — boss is watching.
+                                    </p>
+                                </div>
+
+                                <div class="flex-1 flex flex-col justify-end gap-2">
+                                    <button id="btn-start-shift" onclick="startShift()" class="nokia-btn nokia-btn-outline w-full py-3 text-[12px] font-bold text-center justify-center shift-start-btn">
+                                        ▶ START SHIFT
+                                    </button>
+                                    <button id="btn-beg-for-job" onclick="begForJobBack()" class="nokia-btn nokia-btn-outline w-full py-3 text-[12px] font-bold text-center justify-center shift-start-btn hidden">
+                                        [ BEG FOR JOB BACK ]
+                                    </button>
+                                    <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] text-center justify-center opacity-80">
+                                        [ BACK ]
+                                    </button>
+                                </div>
                             </div>
                             
                             <!-- Active UI -->
-                            <div id="shift-active-ui" class="hidden flex-col h-full w-full relative">
-                                <div class="flex justify-between text-[10px] mb-1">
-                                    <span>TIME: <span id="ui-shift-timer">00:00</span></span>
-                                    <span>EARN: <span id="ui-shift-earned">$0.00</span></span>
-                                </div>
-                                <div class="w-full h-2 border-2 border-[var(--lcd-pixel)] p-[1px] mb-2 shrink-0">
-                                    <div id="ui-shift-progress" class="h-full bg-[var(--lcd-pixel)]" style="width: 0%;"></div>
-                                </div>
-                                
-                                <!-- Tips spawn here -->
-                                <div id="tip-container" class="flex-1 relative border border-dashed border-[var(--lcd-pixel)] opacity-80 overflow-hidden">
-                                    <div class="absolute inset-0 flex items-center justify-center text-[10px] opacity-30 pointer-events-none text-center">
-                                        WORKING...
+                            <div id="shift-active-ui" class="hidden flex-col h-full w-full gap-1 min-h-0">
+                                <div class="shift-hud-slim grid grid-cols-3 gap-1 shrink-0">
+                                    <div class="shift-hud-cell">
+                                        <span class="shift-hud-label">COMBO</span>
+                                        <span id="ui-shift-combo" class="shift-hud-value">x1</span>
+                                    </div>
+                                    <div class="shift-hud-cell shift-hud-cell-highlight">
+                                        <span class="shift-hud-label">TIME</span>
+                                        <span id="ui-shift-timer" class="shift-hud-value shift-timer-value">00:60</span>
+                                    </div>
+                                    <div class="shift-hud-cell shift-hud-earned-cell">
+                                        <span class="shift-hud-label">EARNED</span>
+                                        <span id="ui-shift-earned" class="shift-hud-value">$0.00</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] hidden" id="btn-end-shift">
-                            <button onclick="endPizzaShift(true)" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
-                                [ CLOCK OUT ]
-                            </button>
+                                <div class="shift-progress-wrap shrink-0">
+                                    <div class="flex justify-between text-[8px] opacity-70 mb-[2px]">
+                                        <span id="ui-shift-verb">WORKING</span>
+                                        <span id="ui-shift-percent">0%</span>
+                                    </div>
+                                    <div class="shift-progress-track">
+                                        <div id="ui-shift-progress" class="shift-progress-fill" style="width: 0%;"></div>
+                                    </div>
+                                </div>
+                                
+                                <div id="tip-container" class="shift-workzone shift-workzone-live flex-1 relative overflow-hidden min-h-0">
+                                    <div class="shift-workzone-grid" aria-hidden="true"></div>
+                                    <div class="shift-workzone-scanline" aria-hidden="true"></div>
+                                    <div id="shift-float-layer" class="shift-float-layer"></div>
+                                    <div class="shift-workzone-label">
+                                        <span class="blinking">█</span> <span id="ui-shift-verb-label">WORKING</span> <span class="blinking">█</span>
+                                    </div>
+                                </div>
+
+                                <div id="shift-action-rail" class="shift-action-rail shrink-0 hidden flex-col gap-1">
+                                    <div id="shift-timing-bar" class="shift-timing-bar hidden">
+                                        <div class="shift-timing-track">
+                                            <div class="shift-timing-zone"></div>
+                                            <div id="shift-timing-cursor" class="shift-timing-cursor"></div>
+                                        </div>
+                                        <button id="btn-timing-hit" onclick="handleTimingHit()" class="shift-timing-btn nokia-btn nokia-btn-outline w-full py-1 text-[9px] text-center justify-center">
+                                            [ HIT ]
+                                        </button>
+                                    </div>
+                                    <div id="shift-key-rail" class="shift-key-rail hidden flex-col gap-1">
+                                        <div id="ui-key-prompt" class="text-[9px] text-center font-bold">TYPE: A</div>
+                                        <div id="shift-key-buttons" class="grid grid-cols-3 gap-1"></div>
+                                    </div>
+                                </div>
+
+                                <div class="shrink-0 flex justify-between items-center text-[8px] opacity-70 px-1">
+                                    <span>BONUSES: <span id="ui-shift-tips">0</span></span>
+                                </div>
+
+                                <div id="btn-end-shift" class="shrink-0">
+                                    <button onclick="endShift(true)" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] text-center justify-center">
+                                        [ CLOCK OUT ]
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Summary UI -->
+                            <div id="shift-summary-ui" class="hidden flex-col h-full gap-2 justify-center">
+                                <div class="shift-summary-card border-2 border-[var(--lcd-pixel)] p-2 flex flex-col gap-2">
+                                    <div class="text-[10px] font-bold text-center border-b border-dashed border-[var(--lcd-pixel)] pb-1">SHIFT RECEIPT</div>
+                                    <div class="shift-summary-row">
+                                        <span>BASE PAY</span>
+                                        <span id="ui-summary-base">$0.00</span>
+                                    </div>
+                                    <div class="shift-summary-row">
+                                        <span>BONUSES</span>
+                                        <span id="ui-summary-bonus">$0.00</span>
+                                    </div>
+                                    <div class="shift-summary-row">
+                                        <span>COMBO BONUS</span>
+                                        <span id="ui-summary-combo">$0.00</span>
+                                    </div>
+                                    <div class="shift-summary-row shift-summary-total">
+                                        <span>TOTAL</span>
+                                        <span id="ui-summary-total">$0.00</span>
+                                    </div>
+                                    <div class="text-[9px] text-center border-t border-dashed border-[var(--lcd-pixel)] pt-2">
+                                        BOSS RATING: <span id="ui-summary-mood" class="font-bold">DECENT</span>
+                                    </div>
+                                </div>
+                                <button onclick="finishShiftSummary()" class="nokia-btn nokia-btn-outline w-full py-2 text-[10px] text-center justify-center font-bold">
+                                    [ CONTINUE ]
+                                </button>
+                            </div>
                         </div>
                     </div>
 

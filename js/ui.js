@@ -43,6 +43,10 @@ function switchView(viewId) {
     
     targetView.classList.remove('hidden');
     targetView.classList.add('flex');
+
+    if (viewId === 'job-view' && typeof updateShiftBriefing === 'function') {
+        updateShiftBriefing();
+    }
 }
 
 function showToast(message) {
