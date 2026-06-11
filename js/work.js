@@ -82,113 +82,216 @@ const SHIFT_PROFILES = {
 
 const DEFAULT_SHIFT_PROFILE = SHIFT_PROFILES['PIZZA SHIFT'];
 
-const PIZZA_BAND_PATTERNS = [
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: [null, null, null, null], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', null, null], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', null, null] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: [null, null, 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+const PIZZA_TIP_RING = [
+    { id: 'N', top: 8, left: 50 },
+    { id: 'NE', top: 14, left: 78 },
+    { id: 'E', top: 44, left: 84 },
+    { id: 'SE', top: 70, left: 78 },
+    { id: 'S', top: 76, left: 50 },
+    { id: 'SW', top: 70, left: 22 },
+    { id: 'W', top: 44, left: 16 },
+    { id: 'NW', top: 14, left: 22 },
 ];
 
-function buildPizzaSlot(type) {
-    if (!type) return '<span class="pizza-slot pizza-slot--empty"></span>';
-    const isHouse = type === 'house';
-    const symbol = isHouse ? '⌂' : '♣';
-    const cls = isHouse ? 'pizza-house' : 'pizza-tree';
-    return `<span class="pizza-slot ${cls}">${symbol}</span>`;
+let pizzaTipBusySlots = new Set();
+let pizzaArtAnimTimer = null;
+
+const PIZZA_ASCII_REGIONS = [
+    {
+        id: 'exhaust',
+        ranges: [
+            { rows: [0, 1], minCol: 75, maxCol: 79 },
+            { rows: [2], minCol: 72, maxCol: 78 },
+            { rows: [3], minCol: 71, maxCol: 74 },
+        ],
+        interval: 180,
+        chars: ['~', '^', '`', "'", 'J', 'U', 'X', 'Y', 'c', 'y', 'z', 'v', '^', '"'],
+    },
+    {
+        id: 'smoke',
+        ranges: [
+            { rows: [4], minCol: 71, maxCol: 76 },
+            { rows: [5], minCol: 72, maxCol: 78 },
+            { rows: [6], minCol: 77, maxCol: 79 },
+            { rows: [7], minCol: 76, maxCol: 79 },
+            { rows: [8], minCol: 75, maxCol: 77 },
+            { rows: [9], minCol: 77, maxCol: 79 },
+            { rows: [10], minCol: 76, maxCol: 79 },
+            { rows: [11], minCol: 76, maxCol: 76 },
+        ],
+        interval: 340,
+        chars: ['~', '^', '`', "'", '"', 'Y', 'U', 'v', 'z', 'J', 'f', 'u', 'L', '|'],
+    },
+    {
+        id: 'road',
+        rows: [17, 18, 19, 20, 21, 22, 23],
+        minCol: 0,
+        maxCol: 85,
+        match: 'oO0QdDpPmM',
+        interval: 880,
+        chars: ['o', 'O', '0', 'Q', 'd', 'D', 'p', 'P', 'm', 'M'],
+    },
+];
+
+function cellMatchesRegionRange(row, col, region) {
+    if (region.ranges) {
+        return region.ranges.some(range =>
+            range.rows.includes(row) && col >= range.minCol && col <= range.maxCol
+        );
+    }
+    if (!region.rows.includes(row)) return false;
+    if (col < (region.minCol ?? 0)) return false;
+    if (region.maxCol != null && col > region.maxCol) return false;
+    return true;
 }
 
-function buildPizzaLotGrid(items) {
-    const slots = [...items];
-    while (slots.length < 4) slots.push(null);
-    return slots.slice(0, 4).map(buildPizzaSlot).join('');
+function escapeAsciiHtml(ch) {
+    if (ch === '&') return '&amp;';
+    if (ch === '<') return '&lt;';
+    if (ch === '>') return '&gt;';
+    return ch;
 }
 
-function buildPizzaPaveBlock() {
-    return '<div class="pizza-pave"><span>▒▒</span><span>▒▒</span></div>';
+function getPizzaAnimRegion(row, col, ch) {
+    if (ch === ' ') return null;
+    for (const region of PIZZA_ASCII_REGIONS) {
+        if (!cellMatchesRegionRange(row, col, region)) continue;
+        if (region.match && !region.match.includes(ch)) continue;
+        return region;
+    }
+    return null;
 }
 
-function buildPizzaStreetBand(pattern) {
-    return `<div class="pizza-street-band">
-        <div class="pizza-side pizza-side--left">
-            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.left)}</div>
-            ${buildPizzaPaveBlock()}
-        </div>
-        <div class="pizza-road-spacer"></div>
-        <div class="pizza-side pizza-side--right">
-            ${buildPizzaPaveBlock()}
-            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.right)}</div>
-        </div>
-    </div>`;
+function buildPizzaArtHtml() {
+    const lines = (PIZZA_PLAYER_ASCII || '').split('\n');
+    return lines.map((line, row) => {
+        let html = '';
+        for (let col = 0; col < line.length; col++) {
+            const ch = line[col];
+            const region = getPizzaAnimRegion(row, col, ch);
+            if (region) {
+                html += `<span class="ascii-ch ascii-ch--${region.id}" data-r="${row}" data-c="${col}" data-region="${region.id}">${escapeAsciiHtml(ch)}</span>`;
+            } else {
+                html += escapeAsciiHtml(ch);
+            }
+        }
+        return html;
+    }).join('\n');
 }
 
-function buildPizzaScenerySegment() {
-    return PIZZA_BAND_PATTERNS.map(buildPizzaStreetBand).join('');
+function stopPizzaArtAnimation() {
+    if (pizzaArtAnimTimer) {
+        clearInterval(pizzaArtAnimTimer);
+        pizzaArtAnimTimer = null;
+    }
 }
 
-function getPizzaRoadOverlay() {
-    return `<div class="pizza-road-fixed">
-        <div class="pizza-road-edge pizza-road-edge--left"></div>
-        <div class="pizza-road-center">
-            <span class="pizza-car">♦</span>
-        </div>
-        <div class="pizza-road-edge pizza-road-edge--right"></div>
-    </div>`;
+function startPizzaArtAnimation(pre) {
+    stopPizzaArtAnimation();
+    if (!pre) return;
+
+    const cells = pre.querySelectorAll('.ascii-ch');
+    if (!cells.length) return;
+
+    const cellState = new Map();
+    cells.forEach((el) => {
+        const region = PIZZA_ASCII_REGIONS.find(r => r.id === el.dataset.region);
+        if (!region) return;
+        cellState.set(el, {
+            region,
+            idx: Math.floor(Math.random() * region.chars.length),
+            nextAt: performance.now() + Math.random() * region.interval,
+        });
+    });
+
+    pizzaArtAnimTimer = setInterval(() => {
+        const now = performance.now();
+        cellState.forEach((state, el) => {
+            if (now < state.nextAt) return;
+            state.idx = (state.idx + 1) % state.region.chars.length;
+            el.textContent = state.region.chars[state.idx];
+            state.nextAt = now + state.region.interval + Math.random() * 120;
+        });
+    }, 80);
 }
 
-function getPizzaDriveSceneHtml(variant) {
-    const segment = buildPizzaScenerySegment();
-    const previewBands = PIZZA_BAND_PATTERNS.slice(0, 2).map(buildPizzaStreetBand).join('');
-    const trackClass = variant === 'preview' ? 'pizza-scenery-track pizza-scenery-track--static' : 'pizza-scenery-track';
-    const segmentHtml = variant === 'preview' ? previewBands : segment;
-    const duplicateSegment = variant === 'preview' ? '' : `<div class="pizza-scenery-segment" aria-hidden="true">${segment}</div>`;
+function resetPizzaTipRing() {
+    pizzaTipBusySlots.clear();
+    const ring = document.getElementById('shift-tip-ring');
+    if (ring) ring.innerHTML = '';
+}
 
-    return `<div class="pizza-drive-scene${variant === 'preview' ? ' pizza-drive-scene--preview' : ''}">
+function getPizzaPlayerSceneShell(variant) {
+    const previewCls = variant === 'preview' ? ' pizza-player-scene--preview' : '';
+    return `<div class="pizza-player-scene${previewCls}">
         <div class="pizza-scene-frame">
-            <div class="pizza-scenery-belt">
-                <div class="${trackClass}" id="pizza-scenery-track">
-                    <div class="pizza-scenery-segment">${segmentHtml}</div>
-                    ${duplicateSegment}
+            <div class="pizza-player-art-wrap">
+                <div class="pizza-player-art-inner">
+                    <pre class="shift-ascii-player" aria-hidden="true"></pre>
                 </div>
             </div>
-            ${getPizzaRoadOverlay()}
         </div>
     </div>`;
 }
 
-let pizzaTipLeftPct = null;
-let pizzaTipRightPct = null;
+function mountPizzaPlayerArt(container, animate = true) {
+    const pre = container?.querySelector('.shift-ascii-player');
+    if (!pre) return;
 
-function getPizzaTipOffset(side) {
-    const cached = side === 'left' ? pizzaTipLeftPct : pizzaTipRightPct;
-    if (cached != null) return cached;
+    stopPizzaArtAnimation();
+    pre.innerHTML = buildPizzaArtHtml();
 
-    const container = document.getElementById('tip-container');
-    const selector = side === 'left'
-        ? '.pizza-side--left .pizza-lot-grid'
-        : '.pizza-side--right .pizza-lot-grid';
-    const grid = container?.querySelector(selector);
-    const fallback = side === 'left' ? 24 : 76;
-
-    if (grid && container) {
-        const g = grid.getBoundingClientRect();
-        const c = container.getBoundingClientRect();
-        const pct = (((g.left + g.right) / 2 - c.left) / c.width) * 100;
-        if (side === 'left') pizzaTipLeftPct = pct;
-        else pizzaTipRightPct = pct;
-        return pct;
-    }
-    return fallback;
+    requestAnimationFrame(() => {
+        fitPizzaPlayerArt(container);
+        requestAnimationFrame(() => {
+            fitPizzaPlayerArt(container);
+            if (animate) startPizzaArtAnimation(pre);
+        });
+    });
+    setTimeout(() => fitPizzaPlayerArt(container), 50);
 }
 
-function resetPizzaTipLane() {
-    pizzaTipLeftPct = null;
-    pizzaTipRightPct = null;
-    const lane = document.getElementById('pizza-tip-lane');
-    if (lane) lane.innerHTML = '';
+function fitPizzaPlayerArt(container) {
+    const wrap = container?.querySelector('.pizza-player-art-wrap');
+    const pre = container?.querySelector('.shift-ascii-player');
+    if (!wrap || !pre || !pre.innerHTML) return;
+
+    pre.style.setProperty('--pizza-scale', '1');
+    const maxW = wrap.clientWidth * 0.95;
+    const maxH = wrap.clientHeight * 0.88;
+    if (maxW <= 0 || maxH <= 0) return;
+
+    const scale = Math.min(maxW / pre.scrollWidth, maxH / pre.scrollHeight, 1.15);
+    pre.style.setProperty('--pizza-scale', String(scale));
+}
+
+function pickPizzaTipSlot() {
+    const free = PIZZA_TIP_RING.filter(slot => !pizzaTipBusySlots.has(slot.id));
+    const pool = free.length ? free : PIZZA_TIP_RING;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function releasePizzaTipSlot(slotId) {
+    pizzaTipBusySlots.delete(slotId);
+}
+
+function rollPizzaTipAmount() {
+    const roll = Math.random();
+    let amount;
+
+    if (roll < 0.006) {
+        amount = 3.85 + Math.random() * 0.15;
+    } else if (roll < 0.04) {
+        amount = 2.5 + Math.random() * 1.34;
+    } else if (roll < 0.18) {
+        amount = 1.25 + Math.random() * 1.24;
+    } else if (roll < 0.5) {
+        amount = 0.75 + Math.random() * 0.49;
+    } else {
+        amount = 0.5 + Math.random() * 0.24;
+    }
+
+    return Math.min(4, Math.round(amount * 100) / 100);
 }
 
 const KEY_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -243,21 +346,23 @@ function renderJobScene(profile, containerId) {
     const isPizza = profile.sceneClass === 'scene-pizza';
 
     if (container.id === 'tip-container') {
-        if (isPizza) resetPizzaTipLane();
+        if (isPizza) resetPizzaTipRing();
         container.classList.add(profile.sceneClass);
         container.innerHTML = `
-            ${isPizza ? getPizzaDriveSceneHtml('live') : ''}
+            ${isPizza ? getPizzaPlayerSceneShell('live') : ''}
             <div class="shift-workzone-grid" aria-hidden="true"></div>
             <div class="shift-workzone-scanline" aria-hidden="true"></div>
             <div id="shift-float-layer" class="shift-float-layer"></div>
-            ${isPizza ? '<div id="pizza-tip-lane" class="pizza-tip-lane"></div>' : ''}
+            ${isPizza ? '<div id="shift-tip-ring" class="shift-tip-ring"></div>' : ''}
             <div class="shift-workzone-label">
                 <span class="blinking">█</span> <span id="ui-shift-verb-label">${profile.verb}</span> <span class="blinking">█</span>
             </div>`;
+        if (isPizza) mountPizzaPlayerArt(container, state.isShiftActive);
     } else {
         container.classList.add(profile.sceneClass);
         if (isPizza) {
-            container.innerHTML = getPizzaDriveSceneHtml('preview');
+            container.innerHTML = getPizzaPlayerSceneShell('preview');
+            mountPizzaPlayerArt(container, false);
         } else {
             container.innerHTML = `<span id="shift-scene-glyph" class="shift-scene-glyph">${profile.glyph}</span>`;
         }
@@ -285,7 +390,10 @@ function updateShiftBriefing() {
     if (wageEl) wageEl.innerText = unemployed ? `$${pizzaWage.toFixed(2)}/s` : `$${state.baseWagePerSec.toFixed(2)}/s`;
     if (lengthEl) lengthEl.innerText = `${length}s`;
     if (estimateEl) estimateEl.innerText = `~$${baseEstimate.toFixed(0)}+`;
-    if (bonusEl) bonusEl.innerText = `+$${profile.bonusBase.toFixed(2)}`;
+    if (bonusEl) {
+        const isPizza = (unemployed ? 'PIZZA SHIFT' : state.currentJobTitle) === 'PIZZA SHIFT';
+        bonusEl.innerText = isPizza ? '+$0.50-$4' : `+$${profile.bonusBase.toFixed(2)}`;
+    }
 
     if (unemployed) {
         const fromPizza = state.firedFromJob === 'PIZZA SHIFT';
@@ -450,55 +558,37 @@ function spawnTapTask() {
 function spawnPizzaTip() {
     const profile = getShiftProfile();
     const container = document.getElementById('tip-container');
-    let lane = document.getElementById('pizza-tip-lane');
-    if (!container) return;
-    if (!lane) {
-        lane = document.createElement('div');
-        lane.id = 'pizza-tip-lane';
-        lane.className = 'pizza-tip-lane';
-        container.appendChild(lane);
-    }
+    const ring = document.getElementById('shift-tip-ring');
+    if (!container || !ring) return;
 
-    const amount = profile.bonusBase;
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const leftPct = getPizzaTipOffset(side);
-    const fallMs = profile.taskTimeout + 2000;
-    const cRect = container.getBoundingClientRect();
+    const slot = pickPizzaTipSlot();
+    const amount = rollPizzaTipAmount();
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'pizza-tip-btn';
-    btn.style.left = `${leftPct}%`;
-    btn.style.setProperty('--tip-fall-ms', `${fallMs}ms`);
-    btn.innerHTML = `+$${amount.toFixed(2)}`;
+    btn.className = 'tip-btn tip-btn-ring pointer-events-auto';
+    btn.style.top = `${slot.top}%`;
+    btn.style.left = `${slot.left}%`;
+    btn.dataset.slotId = slot.id;
+    btn.innerHTML = '[TIP]';
 
-    let done = false;
+    pizzaTipBusySlots.add(slot.id);
 
-    const removeTip = () => {
+    const removeTip = (missed) => {
+        releasePizzaTipSlot(slot.id);
         if (btn.parentNode) btn.remove();
-    };
-
-    const finish = (missed) => {
-        if (done) return;
-        done = true;
-        clearTimeout(expireTimer);
-        btn.removeEventListener('animationend', onFallEnd);
         if (missed) resetCombo();
-        removeTip();
     };
-
-    const onFallEnd = () => finish(true);
-    const expireTimer = setTimeout(onFallEnd, fallMs);
 
     btn.onclick = function () {
-        const r = btn.getBoundingClientRect();
-        const topPct = ((r.top + r.height / 2 - cRect.top) / cRect.height) * 100;
-        awardBonus(amount, topPct, leftPct);
-        finish(false);
+        awardBonus(amount, slot.top, slot.left);
+        removeTip(false);
     };
 
-    btn.addEventListener('animationend', onFallEnd);
-    lane.appendChild(btn);
+    ring.appendChild(btn);
+    setTimeout(() => {
+        if (btn.parentNode) removeTip(true);
+    }, profile.taskTimeout);
 }
 
 function spawnTapTaskGeneric(profile) {
@@ -776,6 +866,7 @@ function cleanupArchetypeEngine() {
     timingBarState = null;
     keyMatchState = null;
     shiftOccupiedZones = [];
+    stopPizzaArtAnimation();
 
     cleanupTimingBar();
     cleanupKeyMatch();
@@ -813,15 +904,6 @@ function startShift() {
 
     renderJobScene(profile, 'tip-container');
     updateShiftHUD();
-
-    if (profile.sceneClass === 'scene-pizza') {
-        requestAnimationFrame(() => {
-            pizzaTipLeftPct = null;
-            pizzaTipRightPct = null;
-            getPizzaTipOffset('left');
-            getPizzaTipOffset('right');
-        });
-    }
 
     state.shiftInterval = setInterval(processShiftTick, 100);
     startArchetypeEngine();

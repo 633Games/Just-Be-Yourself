@@ -1102,3 +1102,144 @@ html.mobile-native .nokia-input,
 html.mobile-native .nokia-input-reply {
     font-size: 16px;
 }
+
+/* Pizza player ASCII scene */
+.pizza-player-scene {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    overflow: hidden;
+}
+
+.pizza-player-scene--preview {
+    position: relative;
+    min-height: 72px;
+}
+
+.pizza-player-scene .pizza-scene-frame {
+    position: absolute;
+    inset: 4px;
+    border: 3px double var(--lcd-pixel);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pizza-player-scene--preview .pizza-scene-frame {
+    position: relative;
+    inset: auto;
+    min-height: 68px;
+}
+
+.pizza-player-art-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.pizza-player-art-inner {
+    transform-origin: center center;
+    animation: pizza-car-idle 4.5s ease-in-out infinite;
+}
+
+@keyframes pizza-car-idle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-0.6px); }
+}
+
+.shift-ascii-player {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--lcd-pixel);
+    font-family: ui-monospace, 'Courier New', Courier, monospace;
+    font-size: 4px;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: pre;
+    transform: scale(var(--pizza-scale, 1));
+    transform-origin: center center;
+    pointer-events: none;
+    user-select: none;
+    display: block;
+}
+
+.ascii-ch--exhaust {
+    animation: ascii-exhaust-flicker 0.55s ease-in-out infinite alternate;
+}
+
+.ascii-ch--smoke {
+    animation: ascii-smoke-drift 1.1s ease-in-out infinite alternate;
+}
+
+.ascii-ch--road {
+    animation: ascii-road-shimmer 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes ascii-exhaust-flicker {
+    0% { opacity: 0.5; transform: translateY(0.4px); }
+    100% { opacity: 1; transform: translateY(-0.4px); }
+}
+
+@keyframes ascii-smoke-drift {
+    0% { opacity: 0.45; transform: translate(0, 0.3px); }
+    100% { opacity: 0.95; transform: translate(0.3px, -0.5px); }
+}
+
+@keyframes ascii-road-shimmer {
+    0% { opacity: 0.82; }
+    100% { opacity: 1; }
+}
+
+.shift-tip-ring {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 25;
+}
+
+.tip-btn-ring {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 9px;
+    padding: 3px 6px;
+    z-index: 26;
+    pointer-events: auto;
+    animation: tip-pop-ring 0.25s ease-out;
+}
+
+.tip-btn-ring:hover,
+.tip-btn-ring:active {
+    transform: translate(calc(-50% + 1px), calc(-50% + 1px)) scale(1);
+}
+
+@keyframes tip-pop-ring {
+    0% {
+        transform: translate(-50%, -50%) scale(0.6);
+        opacity: 0;
+    }
+    70% {
+        transform: translate(-50%, -50%) scale(1.08);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+.scene-pizza .shift-workzone-scanline {
+    display: block;
+    z-index: 4;
+    opacity: 0.35;
+}
+
+.scene-pizza .shift-workzone-label {
+    z-index: 30;
+}
