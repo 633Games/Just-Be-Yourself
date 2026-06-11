@@ -1,0 +1,104 @@
+{
+  "contacts": {
+    "MOM": {
+      "random": [
+        "Ok son",
+        "Busy. Ill read this later",
+        "Love you x",
+        "Stop texting me at work",
+        "Ok love",
+        "Ill talk to you tonight",
+        "Fine. But rent still due"
+      ],
+      "keywords": [
+        {
+          "match": ["got", "job"],
+          "replies": [
+            "Finally love! Proud of you. Rent still due though x",
+            "About time son. Dont blow it this time"
+          ]
+        },
+        {
+          "match": ["rent"],
+          "replies": [
+            "Use the pay button in our chat love. Dont make me chase you",
+            "Rent doesnt pay itself son"
+          ]
+        },
+        {
+          "match": ["love", "you"],
+          "replies": [
+            "Love you too son x",
+            "Aw love you too. Now go earn some money"
+          ]
+        }
+      ]
+    },
+    "SUSAN": {
+      "random": [
+        "Aw thats nice love",
+        "Ha ha youre a card",
+        "Text your mam not me",
+        "Lovely to hear from you x",
+        "Youre sweet love",
+        "Ha ha ok love"
+      ],
+      "keywords": [
+        {
+          "match": ["got", "job"],
+          "replies": [
+            "See I told you the CV would help! Well done love x",
+            "Brilliant news love! Mam will be thrilled"
+          ]
+        },
+        {
+          "match": ["cv"],
+          "replies": [
+            "Open MY CV and pick a few skills love. Less is more",
+            "Remember BE YOURSELF on that CV love"
+          ]
+        },
+        {
+          "match": ["help"],
+          "replies": [
+            "Im always here love. Text your mam too she worries",
+            "Course I can help love. What do you need?"
+          ]
+        }
+      ]
+    },
+    "BOSS": {
+      "random": [
+        "Have you finished your work yet {name}? Sort it out or youre sacked",
+        "Less chatting more working {name}",
+        "This isnt a social club. Get back to it",
+        "Clocks ticking {name}. Move",
+        "Sort it out or youre sacked",
+        "Save it for break time {name}"
+      ],
+      "keywords": [
+        {
+          "match": ["sick", "day"],
+          "replies": [
+            "No sick days. Get in or youre sacked {name}",
+            "Everyone's sick. Still need you on shift {name}"
+          ]
+        },
+        {
+          "match": ["quit"],
+          "replies": [
+            "You quit you dont come back {name}. Think about it",
+            "Door's that way {name}. Clock out first though"
+          ]
+        },
+        {
+          "match": ["raise", "pay"],
+          "replies": [
+            "Raises come after you stop slacking {name}",
+            "Do a few more shifts then well talk {name}"
+          ]
+        }
+      ]
+    }
+  }
+}
