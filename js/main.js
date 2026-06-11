@@ -1,14 +1,31 @@
 const PHONE_DESIGN_WIDTH = 360;
 const PHONE_DESIGN_HEIGHT = 750;
 
+function isMobileNative() {
+    return window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+}
+
+function applyMobileNativeClass() {
+    document.documentElement.classList.toggle('mobile-native', isMobileNative());
+}
+
 function fitPhoneToWindow() {
     const wrapper = document.getElementById('phone-scale-wrapper');
     if (!wrapper) return;
+    if (isMobileNative()) {
+        wrapper.style.transform = '';
+        return;
+    }
     const scale = Math.min(
         window.innerHeight / PHONE_DESIGN_HEIGHT,
         window.innerWidth / PHONE_DESIGN_WIDTH
     );
     wrapper.style.transform = `scale(${scale})`;
+}
+
+function handleViewportChange() {
+    applyMobileNativeClass();
+    fitPhoneToWindow();
 }
 
 function submitPlayerName() {
@@ -31,8 +48,9 @@ function submitPlayerName() {
     switchView('home-view');
 }
 
-fitPhoneToWindow();
-window.addEventListener('resize', fitPhoneToWindow);
+handleViewportChange();
+window.addEventListener('resize', handleViewportChange);
+window.addEventListener('orientationchange', handleViewportChange);
 
 window.onload = async () => {
     try {
@@ -41,7 +59,7 @@ window.onload = async () => {
         document.body.innerHTML = '<p style="font-family:monospace;padding:2rem;">Failed to load game data. Serve this folder with a local server (see README):<br><code>python3 -m http.server 8000</code></p>';
         return;
     }
-    fitPhoneToWindow();
+    handleViewportChange();
     ensureStatsState();
     setupCVListeners();
     updateHUD();
