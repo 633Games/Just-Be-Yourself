@@ -903,6 +903,10 @@ function endShift(manual) {
     clearInterval(state.shiftInterval);
     cleanupArchetypeEngine();
 
+    const earned = state.shiftEarned;
+    recordJobEarnings(earned);
+    recordShiftCompleted();
+
     state.shiftsCompleted++;
     advanceDay();
 

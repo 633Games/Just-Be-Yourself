@@ -7,6 +7,7 @@ function normalizeSender(sender) {
     if (key === 'MOM' || key === 'MAM') return 'MOM';
     if (key === 'BOSS' || key === 'SUSAN' || key === 'SKILLS') return key;
     if (key === 'SYS') return 'SKILLS';
+    if (MESSAGE_SENDERS[key]) return key;
     return 'MOM';
 }
 
@@ -41,7 +42,8 @@ function addMessage(sender, text, options = {}) {
         text,
         html: Boolean(options.html),
         read: markRead,
-        outgoing
+        outgoing,
+        eventInstanceId: options.eventInstanceId || null
     });
     if (!outgoing && !markRead) {
         state.messagesUnread++;
@@ -86,14 +88,14 @@ function updateMessagesBadge() {
 
 function updateAppMenu() {
     const menuItems = [
-        { btnId: 'btn-app-messages', labelId: 'ui-menu-messages-label', key: 'messages', label: 'MESSAGES' },
-        { btnId: 'btn-app-work', labelId: 'ui-menu-job-btn', key: 'work', label: () => `[WORK] ${state.currentJobTitle}` },
-        { btnId: 'btn-app-cv', labelId: 'ui-menu-cv-label', key: 'cv', label: 'MY CV' },
-        { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', label: 'JOB SEARCHER' },
-        { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', label: 'CASINO' }
+        { btnId: 'btn-app-messages', labelId: 'ui-menu-messages-label', key: 'messages', slot: 1, label: 'MESSAGES' },
+        { btnId: 'btn-app-work', labelId: 'ui-menu-job-btn', key: 'work', slot: 2, label: () => `[WORK] ${state.currentJobTitle}` },
+        { btnId: 'btn-app-cv', labelId: 'ui-menu-cv-label', key: 'cv', slot: 3, label: 'MY CV' },
+        { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', slot: 4, label: 'JOB SEARCHER' },
+        { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', slot: 5, label: 'CASINO' },
+        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', slot: 6, label: 'STATS' }
     ];
 
-    let slot = 1;
     menuItems.forEach(item => {
         const btn = document.getElementById(item.btnId);
         const label = document.getElementById(item.labelId);
@@ -104,10 +106,15 @@ function updateAppMenu() {
 
         if (unlocked) {
             const text = typeof item.label === 'function' ? item.label() : item.label;
-            label.innerText = `${slot}- ${text}`;
-            slot++;
+            label.innerText = `${item.slot}- ${text}`;
         }
     });
+
+    const debugBtn = document.getElementById('btn-app-debug');
+    const debugLabel = document.getElementById('ui-menu-debug-label');
+    const showDebug = typeof isDebugMode === 'function' && isDebugMode();
+    if (debugBtn) debugBtn.classList.toggle('hidden', !showDebug);
+    if (debugLabel && showDebug) debugLabel.innerText = '7- DEBUG';
 
     updateMessagesBadge();
 }
@@ -129,6 +136,7 @@ function unlockCVApp() {
     state.unlockedApps.cv = true;
     state.unlockedApps.jobs = true;
     state.unlockedApps.casino = true;
+    state.unlockedApps.stats = true;
 
     const msg = `Hey ${state.playerName}, Mam said you needed help doing your CV ive sent you an app that will help you write your cv with all your skills in, dont put too much in, employers dont normally like that and remember to <strong class="glitch-text">BE YOURSELF</strong>`;
     addMessage('SUSAN', msg, { html: true });
@@ -215,9 +223,17 @@ function renderThreadFooter(from) {
     const payAmount = document.getElementById('rent-pay-amount');
     const replyRow = document.getElementById('message-reply-row');
     const replyInput = document.getElementById('message-reply-input');
+    const pendingEvent = typeof getPendingEventForContact === 'function'
+        ? getPendingEventForContact(from)
+        : null;
+
+    if (typeof renderEventActions === 'function') {
+        renderEventActions(from);
+    }
 
     if (replyRow) {
-        replyRow.classList.toggle('hidden', !REPLYABLE_CONTACTS.includes(from));
+        const canReply = REPLYABLE_CONTACTS.includes(from) && !pendingEvent;
+        replyRow.classList.toggle('hidden', !canReply);
     }
     if (replyInput) {
         replyInput.value = '';
@@ -291,6 +307,7 @@ function payWeeklyRent() {
 
     state.cash -= amount;
     state.rentPaidThisWeek = true;
+    recordRentPaid(amount);
     updateHUD();
     addMessage('MOM', `Got your $${amount.toFixed(2)}. Rent sorted for week ${state.rentWeek}. Cheers love.`);
     renderMessageThread('MOM');
@@ -361,6 +378,7 @@ function sendPlayerReply() {
     const text = input.value.trim();
     if (!text) return;
     if (!REPLYABLE_CONTACTS.includes(state.activeThread)) return;
+    if (typeof getPendingEventForContact === 'function' && getPendingEventForContact(state.activeThread)) return;
     if (text.length > REPLY_MAX_CHARS) return;
 
     addMessage(state.activeThread, text, { outgoing: true });

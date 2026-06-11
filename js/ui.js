@@ -4,9 +4,16 @@ function updateHUD() {
 }
 
 function advanceDay() {
+    const prevDate = new Date(state.gameDateMs);
+    const prevMonth = prevDate.getMonth();
+
+    processEventDeadlines();
+
     const date = new Date(state.gameDateMs);
     date.setDate(date.getDate() + 1);
     state.gameDateMs = date.getTime();
+
+    const monthChanged = date.getMonth() !== prevMonth;
 
     if (state.shiftsCompleted > 0 && state.shiftsCompleted % 7 === 0) {
         state.rentWeek++;
@@ -18,6 +25,8 @@ function advanceDay() {
             updateMessagesBadge();
         }, 800);
     }
+
+    tryRollRandomEvents({ monthChanged });
     updateHUD();
 }
 
@@ -33,7 +42,7 @@ function switchView(viewId) {
         return;
     }
 
-    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view'].forEach(id => {
+    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'debug-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('hidden');
@@ -46,6 +55,10 @@ function switchView(viewId) {
 
     if (viewId === 'job-view' && typeof updateShiftBriefing === 'function') {
         updateShiftBriefing();
+    }
+
+    if (viewId === 'stats-view' && typeof renderStats === 'function') {
+        renderStats();
     }
 }
 
