@@ -35,8 +35,8 @@ const SHIFT_PROFILES = {
         verb: 'FLIPPING',
         sceneClass: 'scene-grill',
         glyph: '[#]',
-        zoneWidth: 0.18,
-        sweepMs: 1200,
+        passZoneWidth: 0.2,
+        sweepMs: 1100,
     },
     'SIGN SPINNER': {
         archetype: 'timing_bar',
@@ -294,6 +294,335 @@ function rollPizzaTipAmount() {
     return Math.min(4, Math.round(amount * 100) / 100);
 }
 
+function getBurgerGrillSceneShell(variant) {
+    const previewCls = variant === 'preview' ? ' burger-grill-scene--preview' : '';
+    const disabledAttr = variant === 'preview' ? ' disabled' : '';
+    return `<div class="burger-grill-scene${previewCls}">
+        <div class="burger-scene-frame">
+            <div class="burger-art-wrap">
+                <div class="burger-art-inner">
+                    <pre class="shift-ascii-burger" aria-hidden="true"></pre>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function mountBurgerGrillArt(container, animate = true) {
+    const pre = container?.querySelector('.shift-ascii-burger');
+    if (!pre) return;
+
+    stopBurgerArtAnimation();
+    pre.innerHTML = buildBurgerArtHtml();
+
+    requestAnimationFrame(() => {
+        fitBurgerGrillArt(container);
+        requestAnimationFrame(() => {
+            fitBurgerGrillArt(container);
+            wireBurgerFlipButton();
+            if (state.isShiftActive && isBurgerFlipJob()) {
+                startBurgerFlipBar();
+            } else {
+                setupBurgerFlipPreview();
+            }
+            if (animate) startBurgerArtAnimation(pre);
+        });
+    });
+    setTimeout(() => fitBurgerGrillArt(container), 50);
+}
+
+function fitBurgerGrillArt(container) {
+    const wrap = container?.querySelector('.burger-art-wrap');
+    const pre = container?.querySelector('.shift-ascii-burger');
+    if (!wrap || !pre || !pre.textContent) return;
+
+    pre.style.setProperty('--burger-scale', '1');
+    const maxW = wrap.clientWidth * 0.99;
+    const maxH = wrap.clientHeight * 0.99;
+    if (maxW <= 0 || maxH <= 0) return;
+
+    const rawW = pre.scrollWidth;
+    const rawH = pre.scrollHeight;
+    if (rawW <= 0 || rawH <= 0) return;
+
+    const scale = Math.min(maxW / rawW, maxH / rawH);
+    pre.style.setProperty('--burger-scale', String(scale));
+}
+
+function isBurgerFlipJob(profile = getShiftProfile()) {
+    return profile.sceneClass === 'scene-grill';
+}
+
+// Sizzle band: ASCII file lines 15–29 (0-indexed rows 14–28)
+const BURGER_SIZZLE_ROW_START = 14;
+const BURGER_SIZZLE_ROW_END = 28;
+
+const BURGER_ANIM_REGIONS = {
+    pattySizzle: {
+        id: 'patty-sizzle',
+        interval: 520,
+        boldPulse: true,
+        animateChars: false,
+    },
+};
+
+let burgerArtAnimTimer = null;
+let burgerSizzleBoostUntil = 0;
+
+function burgerCellHash(row, col) {
+    let n = row * 7919 + col * 6151 + 9341;
+    n = (n ^ (n >>> 13)) * 1274126177;
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
+
+function getBurgerSizzleWeight(row, col, lineLength) {
+    const rowCenter = (BURGER_SIZZLE_ROW_START + BURGER_SIZZLE_ROW_END) / 2;
+    const rowSpan = (BURGER_SIZZLE_ROW_END - BURGER_SIZZLE_ROW_START) / 2 + 0.5;
+    const rowT = Math.abs(row - rowCenter) / rowSpan;
+    const rowFeather = Math.max(0, 1 - rowT * rowT);
+
+    const colCenter = lineLength * 0.5;
+    const colSpan = lineLength * 0.34;
+    const colT = Math.abs(col - colCenter) / colSpan;
+    const colFeather = Math.max(0, 1 - colT * colT);
+
+    return rowFeather * colFeather;
+}
+
+function getBurgerAnimRegion(row, col, ch, lineLength) {
+    if (ch === ' ') return null;
+    if (row < BURGER_SIZZLE_ROW_START || row > BURGER_SIZZLE_ROW_END) return null;
+
+    const weight = getBurgerSizzleWeight(row, col, lineLength);
+    const density = 0.34 + weight * 0.38;
+    if (burgerCellHash(row, col) > density) return null;
+
+    return {
+        ...BURGER_ANIM_REGIONS.pattySizzle,
+        weight,
+        soft: weight < 0.45,
+    };
+}
+
+function buildBurgerArtHtml() {
+    const lines = (BURGER_GRILL_ASCII || '').split('\n');
+    return lines.map((line, row) => {
+        let html = '';
+        for (let col = 0; col < line.length; col++) {
+            const ch = line[col];
+            const region = getBurgerAnimRegion(row, col, ch, line.length);
+            if (region) {
+                const softCls = region.soft ? ' ascii-ch--patty-sizzle-soft' : '';
+                html += `<span class="ascii-ch ascii-ch--${region.id}${softCls}" data-r="${row}" data-c="${col}" data-region="${region.id}" data-weight="${region.weight.toFixed(3)}">${escapeAsciiHtml(ch)}</span>`;
+            } else {
+                html += escapeAsciiHtml(ch);
+            }
+        }
+        return html;
+    }).join('\n');
+}
+
+function stopBurgerArtAnimation() {
+    if (burgerArtAnimTimer) {
+        clearInterval(burgerArtAnimTimer);
+        burgerArtAnimTimer = null;
+    }
+}
+
+function startBurgerArtAnimation(pre) {
+    stopBurgerArtAnimation();
+    if (!pre) return;
+
+    const cells = pre.querySelectorAll('.ascii-ch');
+    if (!cells.length) return;
+
+    const cellState = new Map();
+    cells.forEach((el) => {
+        const weight = parseFloat(el.dataset.weight || '0.5');
+        cellState.set(el, {
+            weight,
+            lit: false,
+            nextAt: performance.now() + Math.random() * 900,
+        });
+    });
+
+    burgerArtAnimTimer = setInterval(() => {
+        const now = performance.now();
+        cellState.forEach((state, el) => {
+            if (now < state.nextAt) return;
+
+            if (Math.random() > (isBurgerSizzleBoosted() ? 0.18 : 0.35) + state.weight * (isBurgerSizzleBoosted() ? 0.25 : 0.45)) {
+                state.nextAt = now + 120 + Math.random() * 280;
+                return;
+            }
+
+            state.lit = !state.lit;
+            el.classList.toggle('ascii-burger-sizzle-lit', state.lit);
+            el.classList.toggle('ascii-burger-bold', state.lit && Math.random() < (isBurgerSizzleBoosted() ? 0.55 : 0.25) + state.weight * 0.35);
+
+            const boostMul = isBurgerSizzleBoosted() ? 0.5 : 1;
+            const pace = (320 + (1 - state.weight) * 520) * boostMul;
+            state.nextAt = now + pace + Math.random() * ((480 + state.weight * 420) * boostMul);
+        });
+    }, 90);
+}
+
+function isBurgerSizzleBoosted() {
+    return performance.now() < burgerSizzleBoostUntil;
+}
+
+function boostBurgerSizzle(ms = 1500) {
+    burgerSizzleBoostUntil = performance.now() + ms;
+    const pre = document.querySelector('.shift-ascii-burger');
+    if (pre) pre.classList.add('burger-sizzle-boost');
+    setTimeout(() => {
+        if (!isBurgerSizzleBoosted()) {
+            document.querySelector('.shift-ascii-burger')?.classList.remove('burger-sizzle-boost');
+        }
+    }, ms + 30);
+}
+
+function pulseBurgerCookFlash() {
+    const pre = document.querySelector('.shift-ascii-burger');
+    if (!pre) return;
+    pre.classList.remove('burger-cook-flash');
+    void pre.offsetWidth;
+    pre.classList.add('burger-cook-flash');
+    setTimeout(() => pre.classList.remove('burger-cook-flash'), 180);
+}
+
+// === Burger flip bar ===
+let burgerFlipState = null;
+
+function getBurgerFlipEls() {
+    return {
+        action: document.getElementById('burger-flip-action'),
+        track:  document.getElementById('burger-flip-track'),
+        zone:   document.getElementById('burger-flip-zone'),
+        slider: document.getElementById('burger-flip-slider'),
+        btn:    document.getElementById('btn-burger-flip'),
+    };
+}
+
+function wireBurgerFlipButton() {
+    const { btn } = getBurgerFlipEls();
+    if (!btn) return;
+    btn.onclick = handleBurgerFlipPress;
+}
+
+function setupBurgerFlipPreview() {
+    // nothing needed — bar lives outside the scene, only shown during live shift
+}
+
+function startBurgerFlipBar() {
+    stopBurgerFlipBar();
+
+    const { action, track, zone, slider, btn } = getBurgerFlipEls();
+    if (!action || !track) return;
+
+    const profile = getShiftProfile();
+    const zoneWidthPct = (profile.passZoneWidth ?? 0.22) * 100;
+    const passLeft = Math.random() * (100 - zoneWidthPct);
+
+    burgerFlipState = {
+        sliderPos: 0,
+        direction: 1,
+        sweepMs: profile.sweepMs ?? 1000,
+        lastTick: performance.now(),
+        passLeft,
+        zoneWidthPct,
+    };
+
+    if (zone) {
+        zone.style.width  = `${zoneWidthPct}%`;
+        zone.style.left   = `${passLeft}%`;
+    }
+    if (slider) slider.style.left = '0%';
+    if (btn)    btn.disabled = false;
+
+    action.classList.remove('hidden');
+    action.classList.add('flex');
+
+    burgerFlipState.timer = setInterval(burgerFlipBarTick, 16);
+}
+
+function burgerFlipBarTick() {
+    if (!state.isShiftActive || !burgerFlipState) return;
+
+    const now = performance.now();
+    const dt  = now - burgerFlipState.lastTick;
+    burgerFlipState.lastTick = now;
+
+    burgerFlipState.sliderPos += (dt / burgerFlipState.sweepMs) * burgerFlipState.direction;
+
+    if (burgerFlipState.sliderPos >= 1) {
+        burgerFlipState.sliderPos = 1;
+        burgerFlipState.direction = -1;
+    } else if (burgerFlipState.sliderPos <= 0) {
+        burgerFlipState.sliderPos = 0;
+        burgerFlipState.direction = 1;
+    }
+
+    const { slider, track, zone } = getBurgerFlipEls();
+    if (slider) slider.style.left = `${burgerFlipState.sliderPos * 100}%`;
+
+    // highlight slider green when inside zone
+    if (track && zone && slider) {
+        const zl = burgerFlipState.passLeft;
+        const zr = zl + burgerFlipState.zoneWidthPct;
+        const pos = burgerFlipState.sliderPos * 100;
+        slider.classList.toggle('burger-flip-slider--hot', pos >= zl && pos <= zr);
+    }
+}
+
+function handleBurgerFlipPress() {
+    if (!state.isShiftActive || !burgerFlipState) return;
+
+    const profile = getShiftProfile();
+    const pos  = burgerFlipState.sliderPos * 100;
+    const zl   = burgerFlipState.passLeft;
+    const zr   = zl + burgerFlipState.zoneWidthPct;
+    const hit  = pos >= zl && pos <= zr;
+
+    const { zone, btn } = getBurgerFlipEls();
+
+    if (hit) {
+        awardBonus(profile.bonusBase, 50, 50);
+        pulseBurgerCookFlash();
+        boostBurgerSizzle(1500);
+        if (btn) { btn.textContent = '✓ FLIPPED!'; setTimeout(() => { if (btn) btn.textContent = '[ FLIP ]'; }, 600); }
+    } else {
+        resetCombo();
+        if (btn) { btn.textContent = '✗ MISS'; setTimeout(() => { if (btn) btn.textContent = '[ FLIP ]'; }, 500); }
+    }
+
+    // move zone to new random spot
+    const newLeft = Math.random() * (100 - burgerFlipState.zoneWidthPct);
+    burgerFlipState.passLeft = newLeft;
+    if (zone) zone.style.left = `${newLeft}%`;
+}
+
+function stopBurgerFlipBar() {
+    if (burgerFlipState?.timer) clearInterval(burgerFlipState.timer);
+    burgerFlipState = null;
+    burgerSizzleBoostUntil = 0;
+
+    const { action, btn } = getBurgerFlipEls();
+    if (action) { action.classList.add('hidden'); action.classList.remove('flex'); }
+    if (btn)    btn.disabled = true;
+    document.querySelector('.shift-ascii-burger')?.classList.remove('burger-sizzle-boost');
+}
+
+function getTimingBarElements() {
+    const bar = document.getElementById('shift-timing-bar');
+    return {
+        bar,
+        cursor: document.getElementById('shift-timing-cursor'),
+        zone: bar?.querySelector('.shift-timing-zone'),
+        usesRail: true,
+    };
+}
+
 const KEY_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 const TRADER_KEYS = ['BUY', 'SELL', 'HOLD'];
 
@@ -344,25 +673,31 @@ function renderJobScene(profile, containerId) {
         : 'shift-workzone shift-workzone-live flex-1 relative overflow-hidden min-h-0';
 
     const isPizza = profile.sceneClass === 'scene-pizza';
+    const isBurger = isBurgerFlipJob(profile);
 
     if (container.id === 'tip-container') {
         if (isPizza) resetPizzaTipRing();
         container.classList.add(profile.sceneClass);
         container.innerHTML = `
             ${isPizza ? getPizzaPlayerSceneShell('live') : ''}
+            ${isBurger ? getBurgerGrillSceneShell('live') : ''}
             <div class="shift-workzone-grid" aria-hidden="true"></div>
             <div class="shift-workzone-scanline" aria-hidden="true"></div>
             <div id="shift-float-layer" class="shift-float-layer"></div>
             ${isPizza ? '<div id="shift-tip-ring" class="shift-tip-ring"></div>' : ''}
-            <div class="shift-workzone-label">
+            ${isBurger ? '' : `<div class="shift-workzone-label">
                 <span class="blinking">█</span> <span id="ui-shift-verb-label">${profile.verb}</span> <span class="blinking">█</span>
-            </div>`;
+            </div>`}`;
         if (isPizza) mountPizzaPlayerArt(container, state.isShiftActive);
+        if (isBurger) mountBurgerGrillArt(container, state.isShiftActive);
     } else {
         container.classList.add(profile.sceneClass);
         if (isPizza) {
             container.innerHTML = getPizzaPlayerSceneShell('preview');
             mountPizzaPlayerArt(container, false);
+        } else if (isBurger) {
+            container.innerHTML = getBurgerGrillSceneShell('preview');
+            mountBurgerGrillArt(container, false);
         } else {
             container.innerHTML = `<span id="shift-scene-glyph" class="shift-scene-glyph">${profile.glyph}</span>`;
         }
@@ -461,7 +796,7 @@ function updateShiftHUD() {
     if (earnedEl) earnedEl.innerText = `$${state.shiftEarned.toFixed(2)}`;
     if (comboEl) comboEl.innerText = `x${getComboMultiplier().toFixed(1)}`;
     if (tipsEl) tipsEl.innerText = `${state.shiftTipsCollected}`;
-    if (verbEl) verbEl.innerText = profile.verb;
+    if (verbEl) verbEl.innerText = isBurgerFlipJob(profile) ? '' : profile.verb;
     if (verbLabel) verbLabel.innerText = profile.verb;
 
     const percent = (state.shiftTimeElapsed / state.shiftMaxTime) * 100;
@@ -624,19 +959,32 @@ function spawnTapTaskGeneric(profile) {
 }
 
 // === Archetype: timing_bar ===
+function placeTimingZone(zone, profile) {
+    if (!zone) return;
+    const widthPct = (profile.zoneWidth || 0.18) * 100;
+    zone.style.width = `${widthPct}%`;
+    zone.style.left = `${Math.random() * (100 - widthPct)}%`;
+}
+
+function setupTimingBarPreview(profile) {
+    const { zone, cursor } = getTimingBarElements();
+    placeTimingZone(zone, profile);
+    if (cursor) cursor.style.left = '0%';
+}
+
 function initTimingBar() {
     const profile = getShiftProfile();
-    const rail = document.getElementById('shift-action-rail');
-    const bar = document.getElementById('shift-timing-bar');
-    if (rail) rail.classList.remove('hidden');
-    if (bar) bar.classList.remove('hidden');
+    const { bar, zone, usesRail } = getTimingBarElements();
 
-    const zone = bar?.querySelector('.shift-timing-zone');
-    if (zone) {
-        const widthPct = (profile.zoneWidth || 0.18) * 100;
-        zone.style.width = `${widthPct}%`;
-        zone.style.left = `${Math.random() * (100 - widthPct)}%`;
+    if (usesRail) {
+        const rail = document.getElementById('shift-action-rail');
+        if (rail) rail.classList.remove('hidden');
+        if (bar) bar.classList.remove('hidden');
+        const hitBtn = document.getElementById('btn-timing-hit');
+        if (hitBtn) hitBtn.innerText = '[ HIT ]';
     }
+
+    placeTimingZone(zone, profile);
 
     timingBarState = {
         position: 0,
@@ -645,7 +993,15 @@ function initTimingBar() {
         lastTick: performance.now(),
     };
 
+    syncTimingBarCursor();
     state.shiftArchetypeTimer = setInterval(timingBarTick, 16);
+}
+
+function syncTimingBarCursor() {
+    const { cursor } = getTimingBarElements();
+    if (cursor && timingBarState) {
+        cursor.style.left = `${timingBarState.position * 100}%`;
+    }
 }
 
 function timingBarTick() {
@@ -665,15 +1021,14 @@ function timingBarTick() {
         timingBarState.direction = 1;
     }
 
-    const cursor = document.getElementById('shift-timing-cursor');
-    if (cursor) cursor.style.left = `${timingBarState.position * 100}%`;
+    syncTimingBarCursor();
 }
 
 function handleTimingHit() {
     if (!state.isShiftActive || !timingBarState) return;
+
     const profile = getShiftProfile();
-    const bar = document.getElementById('shift-timing-bar');
-    const zone = bar?.querySelector('.shift-timing-zone');
+    const { zone } = getTimingBarElements();
     if (!zone) return;
 
     const zoneLeft = parseFloat(zone.style.left) / 100;
@@ -683,19 +1038,19 @@ function handleTimingHit() {
 
     if (hit) {
         awardBonus(profile.bonusBase, 50, 50);
-        const widthPct = parseFloat(zone.style.width) || 18;
-        zone.style.left = `${Math.random() * (100 - widthPct)}%`;
     } else {
         resetCombo();
     }
+
+    placeTimingZone(zone, profile);
 }
 
 function cleanupTimingBar() {
     clearInterval(state.shiftArchetypeTimer);
     state.shiftArchetypeTimer = null;
     timingBarState = null;
-    const bar = document.getElementById('shift-timing-bar');
     const rail = document.getElementById('shift-action-rail');
+    const bar = document.getElementById('shift-timing-bar');
     if (bar) bar.classList.add('hidden');
     if (rail) rail.classList.add('hidden');
 }
@@ -845,12 +1200,12 @@ function spawnExecutiveEvent() {
 
 function startArchetypeEngine() {
     const profile = getShiftProfile();
-    cleanupArchetypeEngine();
+    clearArchetypeTimers();
 
     if (profile.archetype === 'spawn_tap') {
         scheduleSpawnTap();
     } else if (profile.archetype === 'timing_bar') {
-        initTimingBar();
+        if (!isBurgerFlipJob(profile)) initTimingBar();
     } else if (profile.archetype === 'key_match') {
         initKeyMatch();
     } else if (profile.archetype === 'executive') {
@@ -858,15 +1213,21 @@ function startArchetypeEngine() {
     }
 }
 
-function cleanupArchetypeEngine() {
+function clearArchetypeTimers() {
     clearInterval(state.shiftArchetypeTimer);
     clearTimeout(state.tipSpawnerInterval);
     state.shiftArchetypeTimer = null;
     state.tipSpawnerInterval = null;
-    timingBarState = null;
     keyMatchState = null;
     shiftOccupiedZones = [];
+}
+
+function cleanupArchetypeEngine() {
+    clearArchetypeTimers();
+    timingBarState = null;
     stopPizzaArtAnimation();
+    stopBurgerArtAnimation();
+    stopBurgerFlipBar();
 
     cleanupTimingBar();
     cleanupKeyMatch();

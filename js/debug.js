@@ -156,6 +156,7 @@ function renderDebugMenu() {
     });
 
     renderDebugSkills(container);
+    renderDebugJobs(container);
 
     const eventsHeader = document.createElement('div');
     eventsHeader.className = 'text-[9px] mb-1 font-bold border-t border-dashed border-[var(--lcd-pixel)] pt-2';
@@ -204,4 +205,64 @@ function debugGiveMoneyFromInput() {
     if (!input) return;
     debugGiveMoney(input.value);
     input.value = '';
+}
+
+function renderDebugJobs(container) {
+    const header = document.createElement('div');
+    header.className = 'text-[9px] mb-1 font-bold border-t border-dashed border-[var(--lcd-pixel)] pt-2';
+    header.innerText = 'LAUNCH JOB MINIGAME';
+    container.appendChild(header);
+
+    if (!JOB_DB.length) {
+        const empty = document.createElement('div');
+        empty.className = 'text-[9px] opacity-70 mb-3';
+        empty.innerText = 'NO JOBS LOADED';
+        container.appendChild(empty);
+        return;
+    }
+
+    const list = document.createElement('div');
+    list.className = 'flex flex-col gap-1 mb-3';
+    container.appendChild(list);
+
+    JOB_DB.forEach(job => {
+        const btn = document.createElement('button');
+        btn.className = 'nokia-btn nokia-btn-outline w-full py-1 text-[10px] mb-0 normal-case';
+        btn.innerHTML = `
+            <span class="flex flex-col gap-[2px] items-start">
+                <span class="font-bold">${escapeHtml(job.title)}</span>
+                <span class="text-[8px] opacity-80">$${job.pay.toFixed(2)}/s · ${escapeHtml(job.id)}</span>
+            </span>
+            <span>></span>
+        `;
+        btn.onclick = () => debugLaunchJobShift(job.title);
+        list.appendChild(btn);
+    });
+}
+
+function debugLaunchJobShift(jobTitle) {
+    if (!isDebugMode()) return;
+
+    if (state.isShiftActive) {
+        showToast('END SHIFT FIRST');
+        return;
+    }
+
+    const job = getJobByTitle(jobTitle);
+    if (!job) {
+        showToast('JOB NOT FOUND');
+        return;
+    }
+
+    state.isUnemployed = false;
+    state.firedFromJob = null;
+    state.currentJobTitle = job.title;
+    state.baseWagePerSec = job.pay;
+    state.bossStrikes = 0;
+
+    updateWorkAppLabel();
+    switchView('job-view');
+    updateShiftBriefing();
+    startShift();
+    showToast(`${job.title} SHIFT`);
 }

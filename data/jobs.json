@@ -24,7 +24,7 @@
       "pay": 0.72,
       "req": [1, 4],
       "bonusBase": 1.00,
-      "instructions": "Hit [HIT] when the cursor lands in the green zone. Chain hits for combos.",
+      "instructions": "Slide the bar into the pass zone and hit [FLIP] for a bonus tip. Sizzle picks up when you nail it.",
       "searchable": true
     },
     {
