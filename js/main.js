@@ -21,6 +21,7 @@ function submitPlayerName() {
 
     state.playerName = name;
     state.unlockedApps.messages = true;
+    applyDebugBootstrap();
     addMessage(
         'MOM',
         `Youve finished school either get a job or get out of my house. Carlos said you can use his car to deliver pizzas until you get on your feet. DONT muck this up ${name}. Love Mam xx`
@@ -41,6 +42,7 @@ window.onload = async () => {
         return;
     }
     fitPhoneToWindow();
+    ensureStatsState();
     setupCVListeners();
     updateHUD();
     switchView('name-setup-view');

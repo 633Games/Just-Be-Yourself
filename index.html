@@ -104,6 +104,16 @@
                                 <span id="ui-menu-casino-label">5- CASINO</span>
                                 <span>></span>
                             </button>
+
+                            <button id="btn-app-stats" onclick="openStats()" class="nokia-btn hidden">
+                                <span id="ui-menu-stats-label">6- STATS</span>
+                                <span>></span>
+                            </button>
+
+                            <button id="btn-app-debug" onclick="openDebugMenu()" class="nokia-btn hidden">
+                                <span id="ui-menu-debug-label">7- DEBUG</span>
+                                <span>></span>
+                            </button>
                         </div>
                     </div>
 
@@ -136,6 +146,7 @@
                             <button id="btn-pay-rent" onclick="payWeeklyRent()" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] hidden">
                                 [ PAY WEEKLY RENT $<span id="rent-pay-amount">50.00</span> ]
                             </button>
+                            <div id="message-event-actions" class="flex flex-col gap-1 hidden"></div>
                             <div id="message-reply-row" class="flex flex-col gap-1">
                                 <div class="flex gap-1 items-stretch">
                                     <input
@@ -450,6 +461,38 @@
                         </div>
                     </div>
 
+                    <!-- === STATS VIEW === -->
+                    <div id="stats-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>STATS</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="stats-content" class="thread-scroll p-2 flex flex-col text-[10px] leading-tight">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === DEBUG VIEW === -->
+                    <div id="debug-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>DEBUG MENU</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="debug-event-list" class="thread-scroll p-2 flex flex-col gap-1">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK ]
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- === INTERVIEW VIEW === -->
                     <div id="interview-view" class="w-full h-full hidden flex-col relative">
                         <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
@@ -484,6 +527,9 @@
     </div>
     <script src="js/data.js"></script>
     <script src="js/state.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/stats.js"></script>
+    <script src="js/debug.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/messages.js"></script>
     <script src="js/jobs.js"></script>

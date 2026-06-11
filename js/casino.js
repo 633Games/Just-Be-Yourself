@@ -58,6 +58,8 @@ function revealScratch(index, btnElement) {
         state.scratch.won = true;
         state.scratch.active = false;
         state.cash += 5.00;
+        recordCasinoWin(5.00);
+        recordScratchJackpot();
         updateHUD();
         showToast("JACKPOT! +$5.00");
         setTimeout(initScratch, 2000);
@@ -209,10 +211,12 @@ function endBj(result) {
         if (result === 'bj') {
             const win = state.bj.bet * 2.5; // Blackjack pays 3:2
             state.cash += win;
+            recordCasinoWin(win);
             showToast(`BLACKJACK! +$${win.toFixed(2)}`);
         } else if (result === 'win') {
             const win = state.bj.bet * 2;
             state.cash += win;
+            recordCasinoWin(win);
             showToast(`YOU WIN! +$${win.toFixed(2)}`);
         } else if (result === 'push') {
             state.cash += state.bj.bet;

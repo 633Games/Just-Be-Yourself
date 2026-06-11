@@ -1,0 +1,156 @@
+{
+  "contacts": [
+    {
+      "id": "STEVE",
+      "label": "UNCLE STEVE",
+      "preview": "Family favours"
+    }
+  ],
+  "events": [
+    {
+      "id": "steve_car_crash",
+      "contact": "STEVE",
+      "enabled": true,
+      "schedule": {
+        "type": "daily_chance",
+        "chance": 0.08,
+        "cooldownDays": 14,
+        "maxOccurrences": 2,
+        "weight": 3
+      },
+      "conditions": {
+        "minShifts": 5,
+        "minCash": 20,
+        "requiresApps": ["messages", "work"],
+        "onePerContact": true
+      },
+      "opening": {
+        "text": "Uncle Steve here. Crashed the car. Can you lend me ${amount}? I'll pay you back. Promise."
+      },
+      "amount": {
+        "type": "range",
+        "min": 15,
+        "max": 60,
+        "roundTo": 5
+      },
+      "deadlineDays": 3,
+      "escalation": {
+        "multiplier": 1.5,
+        "minExtra": 10,
+        "forcedMessage": "Insurance needs ${amount} NOW. Dont ignore your uncle.",
+        "deductEvenIfBroke": true
+      },
+      "choices": [
+        {
+          "id": "lend",
+          "label": "LEND ${amount}",
+          "reply": "Legend. Cheers nephew.",
+          "effect": { "type": "deduct_cash", "refundable": false }
+        },
+        {
+          "id": "refuse",
+          "label": "SORRY NO",
+          "reply": "Some nephew you are.",
+          "effect": { "type": "close" }
+        }
+      ],
+      "tags": ["money_sink", "family"]
+    },
+    {
+      "id": "mom_grocery_help",
+      "contact": "MOM",
+      "enabled": true,
+      "schedule": {
+        "type": "weekly_chance",
+        "chance": 0.25,
+        "cooldownDays": 7,
+        "weight": 2
+      },
+      "conditions": {
+        "minShifts": 3,
+        "minCash": 10,
+        "requiresApps": ["messages", "work"],
+        "onePerContact": true
+      },
+      "opening": {
+        "text": "Shop was dear this week love. Could you spare ${amount} for groceries? Reply in ${deadlineDays} days."
+      },
+      "amount": {
+        "type": "range",
+        "min": 8,
+        "max": 25,
+        "roundTo": 1
+      },
+      "deadlineDays": 2,
+      "escalation": {
+        "forcedMessage": "Fine. I'll manage. But dont expect a roast on Sunday.",
+        "deductEvenIfBroke": false
+      },
+      "choices": [
+        {
+          "id": "help",
+          "label": "SEND ${amount}",
+          "reply": "Thanks love. You're a good lad.",
+          "effect": { "type": "deduct_cash", "refundable": false }
+        },
+        {
+          "id": "refuse",
+          "label": "CANT AFFORD IT",
+          "reply": "Ok. Rent still due though.",
+          "effect": { "type": "close" }
+        }
+      ],
+      "tags": ["money_sink", "family"]
+    },
+    {
+      "id": "lottery_scam",
+      "contact": "STEVE",
+      "enabled": true,
+      "schedule": {
+        "type": "monthly_chance",
+        "chance": 0.4,
+        "cooldownDays": 28,
+        "maxOccurrences": 3,
+        "weight": 1
+      },
+      "conditions": {
+        "minShifts": 10,
+        "minCash": 100,
+        "requiresApps": ["messages", "work", "casino"],
+        "onePerContact": true
+      },
+      "opening": {
+        "text": "Nephew! Won the lottery but need ${amount} processing fee upfront. Wire it today. Uncle Steve never steers you wrong."
+      },
+      "amount": {
+        "type": "percent_cash",
+        "percent": 0.15,
+        "min": 30,
+        "max": 80,
+        "roundTo": 5
+      },
+      "deadlineDays": 2,
+      "escalation": {
+        "multiplier": 1.0,
+        "minExtra": 20,
+        "forcedMessage": "Bank flagged your account. Pay ${amount} release fee or lose the jackpot.",
+        "deductEvenIfBroke": true
+      },
+      "choices": [
+        {
+          "id": "pay_fee",
+          "label": "PAY ${amount}",
+          "reply": "Processing... hang on.",
+          "effect": { "type": "deduct_cash", "refundable": false }
+        },
+        {
+          "id": "refuse",
+          "label": "THIS IS A SCAM",
+          "reply": "Your loss nephew. Millions gone.",
+          "effect": { "type": "close" }
+        }
+      ],
+      "tags": ["money_sink", "scam"]
+    }
+  ]
+}

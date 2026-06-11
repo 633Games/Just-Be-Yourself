@@ -8,7 +8,7 @@
     { "id": 6, "key": "YELLING", "name": "YELLING", "description": "" },
     { "id": 7, "key": "NEPOTISM", "name": "NEPOTISM", "description": "" },
     { "id": 8, "key": "GOLF", "name": "GOLF", "description": "" },
-    { "id": 9, "key": "NO_SHAME", "name": "NO-SHAME", "description": "" },
+    { "id": 9, "key": "NO_SHAME", "name": "NO-SHAME", "description": "Gave away $150+ to family and strangers who definitely wont pay you back." },
     { "id": 10, "key": "TYPING", "name": "TYPING", "description": "" }
   ]
 }

@@ -46,9 +46,31 @@ const state = {
         work: false,
         cv: false,
         jobs: false,
-        casino: false
+        casino: false,
+        stats: false
+    },
+    happiness: 5,
+    eventHistory: {},
+    activeEvents: [],
+    eventStats: {
+        moneyGiven: 0,
+        moneyForced: 0,
+        eventsAccepted: 0,
+        eventsRefused: 0
+    },
+    historyStats: {
+        jobEarnings: 0,
+        casinoEarnings: 0,
+        scratchJackpots: 0,
+        rentSpent: 0,
+        eventMoneyGiven: 0,
+        interviewsTotal: 0,
+        interviewsPassed: 0,
+        interviewsFailed: 0
     }
 };
+
+const DEBUG_PLAYER_NAME = 'Debug633';
 
 const elCash = document.getElementById('ui-cash');
 const elRentTimer = document.getElementById('ui-rent-timer');

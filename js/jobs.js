@@ -118,6 +118,7 @@ function startInterview(job, match) {
         scrambleInterval: null
     };
 
+    recordInterviewStarted();
     switchView('interview-view');
     renderInterview();
 
@@ -190,11 +191,13 @@ function endInterview(isCorrect, reason) {
         state.baseWagePerSec = state.interview.job.pay;
         
         updateWorkAppLabel();
+        recordInterviewPassed();
+        recordNewJob();
         
         showToast(`${reason}<br>NEW WAGE: $${state.baseWagePerSec.toFixed(2)}/s`);
         notifyJobHired(state.interview.job.title, state.interview.job.pay);
     } else {
-        // Failed
+        recordInterviewFailed();
         showToast(`REJECTED:<br>${reason}`);
     }
     

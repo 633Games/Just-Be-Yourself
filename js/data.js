@@ -8,21 +8,26 @@ function normalizeSkillId(id) {
 }
 
 async function loadGameData() {
-    const [skillsRes, jobsRes] = await Promise.all([
+    const [skillsRes, jobsRes, eventsRes] = await Promise.all([
         fetch('data/skills.json'),
         fetch('data/jobs.json'),
+        fetch('data/events.json'),
     ]);
 
-    if (!skillsRes.ok || !jobsRes.ok) {
+    if (!skillsRes.ok || !jobsRes.ok || !eventsRes.ok) {
         throw new Error('Failed to load game data JSON files');
     }
 
     const skillsData = await skillsRes.json();
     const jobsData = await jobsRes.json();
+    const eventsData = await eventsRes.json();
 
     SKILLS_DB = skillsData.skills;
     JOB_DB = jobsData.jobs;
+    EVENTS_DB = eventsData.events || [];
+    EVENT_CONTACTS = eventsData.contacts || [];
     buildSkillsMap();
+    registerEventContacts();
 }
 
 function buildSkillsMap() {
