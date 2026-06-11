@@ -1,31 +1,3 @@
-const REPLY_POOLS = {
-    MOM: [
-        'Ok son',
-        'Busy. Ill read this later',
-        'Love you x',
-        'Stop texting me at work',
-        'Ok love',
-        'Ill talk to you tonight',
-        'Fine. But rent still due'
-    ],
-    SUSAN: [
-        'Aw thats nice love',
-        'Ha ha youre a card',
-        'Text your mam not me',
-        'Lovely to hear from you x',
-        'Youre sweet love',
-        'Ha ha ok love'
-    ],
-    BOSS: [
-        'Have you finished your work yet {name}? Sort it out or youre sacked',
-        'Less chatting more working {name}',
-        'This isnt a social club. Get back to it',
-        'Clocks ticking {name}. Move',
-        'Sort it out or youre sacked',
-        'Save it for break time {name}'
-    ]
-};
-
 const REPLYABLE_CONTACTS = ['MOM', 'BOSS', 'SUSAN'];
 const REPLY_MAX_CHARS = 100;
 const pendingReadContacts = new Set();
@@ -325,14 +297,50 @@ function payWeeklyRent() {
     showToast(`RENT PAID: $${amount.toFixed(2)}`);
 }
 
-function queueContactReply(contact) {
-    const pool = REPLY_POOLS[contact];
-    if (!pool) return;
+function getContactReplyConfig(contact) {
+    return REPLIES_DB.contacts?.[contact] || null;
+}
+
+function messageMatchesKeywords(messageText, keywords) {
+    const normalized = messageText.toLowerCase();
+    return keywords.every(keyword => normalized.includes(keyword.toLowerCase()));
+}
+
+function pickRandomReply(replies) {
+    if (!replies || replies.length === 0) return null;
+    return replies[Math.floor(Math.random() * replies.length)];
+}
+
+function getContactReply(contact, playerText) {
+    const config = getContactReplyConfig(contact);
+    if (!config) return null;
+
+    const keywordRules = config.keywords || [];
+    for (const rule of keywordRules) {
+        const keywords = rule.match || [];
+        const replies = rule.replies || [];
+        if (keywords.length > 0 && messageMatchesKeywords(playerText, keywords)) {
+            const reply = pickRandomReply(replies);
+            if (reply) return reply;
+        }
+    }
+
+    return pickRandomReply(config.random);
+}
+
+function formatContactReply(reply) {
+    return reply.replace(/\{name\}/gi, state.playerName);
+}
+
+function queueContactReply(contact, playerText) {
+    const config = getContactReplyConfig(contact);
+    if (!config) return;
 
     setTimeout(() => {
-        let reply = pool[Math.floor(Math.random() * pool.length)];
-        reply = reply.replace(/\{name\}/gi, state.playerName);
-        addMessage(contact, reply);
+        const reply = getContactReply(contact, playerText);
+        if (!reply) return;
+
+        addMessage(contact, formatContactReply(reply));
         if (state.activeThread === contact) {
             renderMessageThread(contact);
         }
@@ -360,7 +368,7 @@ function sendPlayerReply() {
     input.value = '';
     updateReplyCharCount();
     renderMessageThread(state.activeThread);
-    queueContactReply(state.activeThread);
+    queueContactReply(state.activeThread, text);
 }
 
 function resetJobToPizzaShift() {
