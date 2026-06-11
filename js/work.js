@@ -10,48 +10,13 @@ const SHIFT_PROFILES = {
         spawnMax: 3500,
         taskTimeout: 2500,
     },
-    'DISHWASHER': {
-        archetype: 'spawn_tap',
-        verb: 'SCRUBBING',
-        sceneClass: 'scene-sink',
-        glyph: '[=]',
-        taskLabel: 'PLATE',
-        spawnMin: 2200,
-        spawnMax: 5000,
-        taskTimeout: 1400,
-    },
-    'CASHIER': {
-        archetype: 'spawn_tap',
-        verb: 'SCANNING',
-        sceneClass: 'scene-register',
-        glyph: '[$]',
-        taskLabel: 'SALE',
-        spawnMin: 2400,
-        spawnMax: 5200,
-        taskTimeout: 1600,
-    },
     'BURGER FLIP': {
         archetype: 'timing_bar',
         verb: 'FLIPPING',
         sceneClass: 'scene-grill',
         glyph: '[#]',
-        zoneWidth: 0.18,
-        sweepMs: 1200,
-    },
-    'SIGN SPINNER': {
-        archetype: 'timing_bar',
-        verb: 'SPINNING',
-        sceneClass: 'scene-sign',
-        glyph: '[/]',
-        zoneWidth: 0.22,
-        sweepMs: 1000,
-    },
-    'DATA ENTRY': {
-        archetype: 'key_match',
-        verb: 'TYPING',
-        sceneClass: 'scene-desk',
-        glyph: '[A]',
-        roundMs: 2500,
+        passZoneWidth: 0.2,
+        sweepMs: 1100,
     },
     'DAY TRADER': {
         archetype: 'key_match',
@@ -82,113 +47,545 @@ const SHIFT_PROFILES = {
 
 const DEFAULT_SHIFT_PROFILE = SHIFT_PROFILES['PIZZA SHIFT'];
 
-const PIZZA_BAND_PATTERNS = [
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: [null, null, null, null], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', null, null], right: ['house', 'house', 'house', 'house'] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', null, null] },
-    { left: ['tree', 'tree', 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
-    { left: [null, null, 'tree', 'tree'], right: ['house', 'house', 'house', 'house'] },
+const PIZZA_TIP_RING = [
+    { id: 'N', top: 8, left: 50 },
+    { id: 'NE', top: 14, left: 78 },
+    { id: 'E', top: 44, left: 84 },
+    { id: 'SE', top: 70, left: 78 },
+    { id: 'S', top: 76, left: 50 },
+    { id: 'SW', top: 70, left: 22 },
+    { id: 'W', top: 44, left: 16 },
+    { id: 'NW', top: 14, left: 22 },
 ];
 
-function buildPizzaSlot(type) {
-    if (!type) return '<span class="pizza-slot pizza-slot--empty"></span>';
-    const isHouse = type === 'house';
-    const symbol = isHouse ? '⌂' : '♣';
-    const cls = isHouse ? 'pizza-house' : 'pizza-tree';
-    return `<span class="pizza-slot ${cls}">${symbol}</span>`;
+let pizzaTipBusySlots = new Set();
+let pizzaArtAnimTimer = null;
+
+const PIZZA_ASCII_REGIONS = [
+    {
+        id: 'exhaust',
+        ranges: [
+            { rows: [0, 1], minCol: 75, maxCol: 79 },
+            { rows: [2], minCol: 72, maxCol: 78 },
+            { rows: [3], minCol: 71, maxCol: 74 },
+        ],
+        interval: 180,
+        chars: ['~', '^', '`', "'", 'J', 'U', 'X', 'Y', 'c', 'y', 'z', 'v', '^', '"'],
+    },
+    {
+        id: 'smoke',
+        ranges: [
+            { rows: [4], minCol: 71, maxCol: 76 },
+            { rows: [5], minCol: 72, maxCol: 78 },
+            { rows: [6], minCol: 77, maxCol: 79 },
+            { rows: [7], minCol: 76, maxCol: 79 },
+            { rows: [8], minCol: 75, maxCol: 77 },
+            { rows: [9], minCol: 77, maxCol: 79 },
+            { rows: [10], minCol: 76, maxCol: 79 },
+            { rows: [11], minCol: 76, maxCol: 76 },
+        ],
+        interval: 340,
+        chars: ['~', '^', '`', "'", '"', 'Y', 'U', 'v', 'z', 'J', 'f', 'u', 'L', '|'],
+    },
+    {
+        id: 'road',
+        rows: [17, 18, 19, 20, 21, 22, 23],
+        minCol: 0,
+        maxCol: 85,
+        match: 'oO0QdDpPmM',
+        interval: 880,
+        chars: ['o', 'O', '0', 'Q', 'd', 'D', 'p', 'P', 'm', 'M'],
+    },
+];
+
+function cellMatchesRegionRange(row, col, region) {
+    if (region.ranges) {
+        return region.ranges.some(range =>
+            range.rows.includes(row) && col >= range.minCol && col <= range.maxCol
+        );
+    }
+    if (!region.rows.includes(row)) return false;
+    if (col < (region.minCol ?? 0)) return false;
+    if (region.maxCol != null && col > region.maxCol) return false;
+    return true;
 }
 
-function buildPizzaLotGrid(items) {
-    const slots = [...items];
-    while (slots.length < 4) slots.push(null);
-    return slots.slice(0, 4).map(buildPizzaSlot).join('');
+function escapeAsciiHtml(ch) {
+    if (ch === '&') return '&amp;';
+    if (ch === '<') return '&lt;';
+    if (ch === '>') return '&gt;';
+    return ch;
 }
 
-function buildPizzaPaveBlock() {
-    return '<div class="pizza-pave"><span>▒▒</span><span>▒▒</span></div>';
+function getPizzaAnimRegion(row, col, ch) {
+    if (ch === ' ') return null;
+    for (const region of PIZZA_ASCII_REGIONS) {
+        if (!cellMatchesRegionRange(row, col, region)) continue;
+        if (region.match && !region.match.includes(ch)) continue;
+        return region;
+    }
+    return null;
 }
 
-function buildPizzaStreetBand(pattern) {
-    return `<div class="pizza-street-band">
-        <div class="pizza-side pizza-side--left">
-            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.left)}</div>
-            ${buildPizzaPaveBlock()}
-        </div>
-        <div class="pizza-road-spacer"></div>
-        <div class="pizza-side pizza-side--right">
-            ${buildPizzaPaveBlock()}
-            <div class="pizza-lot-grid">${buildPizzaLotGrid(pattern.right)}</div>
-        </div>
-    </div>`;
+function buildPizzaArtHtml() {
+    const lines = (PIZZA_PLAYER_ASCII || '').split('\n');
+    return lines.map((line, row) => {
+        let html = '';
+        for (let col = 0; col < line.length; col++) {
+            const ch = line[col];
+            const region = getPizzaAnimRegion(row, col, ch);
+            if (region) {
+                html += `<span class="ascii-ch ascii-ch--${region.id}" data-r="${row}" data-c="${col}" data-region="${region.id}">${escapeAsciiHtml(ch)}</span>`;
+            } else {
+                html += escapeAsciiHtml(ch);
+            }
+        }
+        return html;
+    }).join('\n');
 }
 
-function buildPizzaScenerySegment() {
-    return PIZZA_BAND_PATTERNS.map(buildPizzaStreetBand).join('');
+function stopPizzaArtAnimation() {
+    if (pizzaArtAnimTimer) {
+        clearInterval(pizzaArtAnimTimer);
+        pizzaArtAnimTimer = null;
+    }
 }
 
-function getPizzaRoadOverlay() {
-    return `<div class="pizza-road-fixed">
-        <div class="pizza-road-edge pizza-road-edge--left"></div>
-        <div class="pizza-road-center">
-            <span class="pizza-car">♦</span>
-        </div>
-        <div class="pizza-road-edge pizza-road-edge--right"></div>
-    </div>`;
+function startPizzaArtAnimation(pre) {
+    stopPizzaArtAnimation();
+    if (!pre) return;
+
+    const cells = pre.querySelectorAll('.ascii-ch');
+    if (!cells.length) return;
+
+    const cellState = new Map();
+    cells.forEach((el) => {
+        const region = PIZZA_ASCII_REGIONS.find(r => r.id === el.dataset.region);
+        if (!region) return;
+        cellState.set(el, {
+            region,
+            idx: Math.floor(Math.random() * region.chars.length),
+            nextAt: performance.now() + Math.random() * region.interval,
+        });
+    });
+
+    pizzaArtAnimTimer = setInterval(() => {
+        const now = performance.now();
+        cellState.forEach((state, el) => {
+            if (now < state.nextAt) return;
+            state.idx = (state.idx + 1) % state.region.chars.length;
+            el.textContent = state.region.chars[state.idx];
+            state.nextAt = now + state.region.interval + Math.random() * 120;
+        });
+    }, 80);
 }
 
-function getPizzaDriveSceneHtml(variant) {
-    const segment = buildPizzaScenerySegment();
-    const previewBands = PIZZA_BAND_PATTERNS.slice(0, 2).map(buildPizzaStreetBand).join('');
-    const trackClass = variant === 'preview' ? 'pizza-scenery-track pizza-scenery-track--static' : 'pizza-scenery-track';
-    const segmentHtml = variant === 'preview' ? previewBands : segment;
-    const duplicateSegment = variant === 'preview' ? '' : `<div class="pizza-scenery-segment" aria-hidden="true">${segment}</div>`;
+function resetPizzaTipRing() {
+    pizzaTipBusySlots.clear();
+    const ring = document.getElementById('shift-tip-ring');
+    if (ring) ring.innerHTML = '';
+}
 
-    return `<div class="pizza-drive-scene${variant === 'preview' ? ' pizza-drive-scene--preview' : ''}">
+function getPizzaPlayerSceneShell(variant) {
+    const previewCls = variant === 'preview' ? ' pizza-player-scene--preview' : '';
+    return `<div class="pizza-player-scene${previewCls}">
         <div class="pizza-scene-frame">
-            <div class="pizza-scenery-belt">
-                <div class="${trackClass}" id="pizza-scenery-track">
-                    <div class="pizza-scenery-segment">${segmentHtml}</div>
-                    ${duplicateSegment}
+            <div class="pizza-player-art-wrap">
+                <div class="pizza-player-art-inner">
+                    <pre class="shift-ascii-player" aria-hidden="true"></pre>
                 </div>
             </div>
-            ${getPizzaRoadOverlay()}
         </div>
     </div>`;
 }
 
-let pizzaTipLeftPct = null;
-let pizzaTipRightPct = null;
+function mountPizzaPlayerArt(container, animate = true) {
+    const pre = container?.querySelector('.shift-ascii-player');
+    if (!pre) return;
 
-function getPizzaTipOffset(side) {
-    const cached = side === 'left' ? pizzaTipLeftPct : pizzaTipRightPct;
-    if (cached != null) return cached;
+    stopPizzaArtAnimation();
+    pre.innerHTML = buildPizzaArtHtml();
 
-    const container = document.getElementById('tip-container');
-    const selector = side === 'left'
-        ? '.pizza-side--left .pizza-lot-grid'
-        : '.pizza-side--right .pizza-lot-grid';
-    const grid = container?.querySelector(selector);
-    const fallback = side === 'left' ? 24 : 76;
-
-    if (grid && container) {
-        const g = grid.getBoundingClientRect();
-        const c = container.getBoundingClientRect();
-        const pct = (((g.left + g.right) / 2 - c.left) / c.width) * 100;
-        if (side === 'left') pizzaTipLeftPct = pct;
-        else pizzaTipRightPct = pct;
-        return pct;
-    }
-    return fallback;
+    requestAnimationFrame(() => {
+        fitPizzaPlayerArt(container);
+        requestAnimationFrame(() => {
+            fitPizzaPlayerArt(container);
+            if (animate) startPizzaArtAnimation(pre);
+        });
+    });
+    setTimeout(() => fitPizzaPlayerArt(container), 50);
 }
 
-function resetPizzaTipLane() {
-    pizzaTipLeftPct = null;
-    pizzaTipRightPct = null;
-    const lane = document.getElementById('pizza-tip-lane');
-    if (lane) lane.innerHTML = '';
+function fitPizzaPlayerArt(container) {
+    const wrap = container?.querySelector('.pizza-player-art-wrap');
+    const pre = container?.querySelector('.shift-ascii-player');
+    if (!wrap || !pre || !pre.innerHTML) return;
+
+    pre.style.setProperty('--pizza-scale', '1');
+    const maxW = wrap.clientWidth * 0.95;
+    const maxH = wrap.clientHeight * 0.88;
+    if (maxW <= 0 || maxH <= 0) return;
+
+    const scale = Math.min(maxW / pre.scrollWidth, maxH / pre.scrollHeight, 1.15);
+    pre.style.setProperty('--pizza-scale', String(scale));
+}
+
+function pickPizzaTipSlot() {
+    const free = PIZZA_TIP_RING.filter(slot => !pizzaTipBusySlots.has(slot.id));
+    const pool = free.length ? free : PIZZA_TIP_RING;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function releasePizzaTipSlot(slotId) {
+    pizzaTipBusySlots.delete(slotId);
+}
+
+function rollPizzaTipAmount() {
+    const roll = Math.random();
+    let amount;
+
+    if (roll < 0.006) {
+        amount = 3.85 + Math.random() * 0.15;
+    } else if (roll < 0.04) {
+        amount = 2.5 + Math.random() * 1.34;
+    } else if (roll < 0.18) {
+        amount = 1.25 + Math.random() * 1.24;
+    } else if (roll < 0.5) {
+        amount = 0.75 + Math.random() * 0.49;
+    } else {
+        amount = 0.5 + Math.random() * 0.24;
+    }
+
+    return Math.min(4, Math.round(amount * 100) / 100);
+}
+
+function getBurgerGrillSceneShell(variant) {
+    const previewCls = variant === 'preview' ? ' burger-grill-scene--preview' : '';
+    const disabledAttr = variant === 'preview' ? ' disabled' : '';
+    return `<div class="burger-grill-scene${previewCls}">
+        <div class="burger-scene-frame">
+            <div class="burger-art-wrap">
+                <div class="burger-art-inner">
+                    <pre class="shift-ascii-burger" aria-hidden="true"></pre>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+function mountBurgerGrillArt(container, animate = true) {
+    const pre = container?.querySelector('.shift-ascii-burger');
+    if (!pre) return;
+
+    stopBurgerArtAnimation();
+    pre.innerHTML = buildBurgerArtHtml();
+
+    requestAnimationFrame(() => {
+        fitBurgerGrillArt(container);
+        requestAnimationFrame(() => {
+            fitBurgerGrillArt(container);
+            wireBurgerFlipButton();
+            if (state.isShiftActive && isBurgerFlipJob()) {
+                startBurgerFlipBar();
+            } else {
+                setupBurgerFlipPreview();
+            }
+            if (animate) startBurgerArtAnimation(pre);
+        });
+    });
+    setTimeout(() => fitBurgerGrillArt(container), 50);
+}
+
+function fitBurgerGrillArt(container) {
+    const wrap = container?.querySelector('.burger-art-wrap');
+    const pre = container?.querySelector('.shift-ascii-burger');
+    if (!wrap || !pre || !pre.textContent) return;
+
+    pre.style.setProperty('--burger-scale', '1');
+    const maxW = wrap.clientWidth * 0.99;
+    const maxH = wrap.clientHeight * 0.99;
+    if (maxW <= 0 || maxH <= 0) return;
+
+    const rawW = pre.scrollWidth;
+    const rawH = pre.scrollHeight;
+    if (rawW <= 0 || rawH <= 0) return;
+
+    const scale = Math.min(maxW / rawW, maxH / rawH);
+    pre.style.setProperty('--burger-scale', String(scale));
+}
+
+function isBurgerFlipJob(profile = getShiftProfile()) {
+    return profile.sceneClass === 'scene-grill';
+}
+
+// Sizzle band: ASCII file lines 15–29 (0-indexed rows 14–28)
+const BURGER_SIZZLE_ROW_START = 14;
+const BURGER_SIZZLE_ROW_END = 28;
+
+const BURGER_ANIM_REGIONS = {
+    pattySizzle: {
+        id: 'patty-sizzle',
+        interval: 520,
+        boldPulse: true,
+        animateChars: false,
+    },
+};
+
+let burgerArtAnimTimer = null;
+let burgerSizzleBoostUntil = 0;
+
+function burgerCellHash(row, col) {
+    let n = row * 7919 + col * 6151 + 9341;
+    n = (n ^ (n >>> 13)) * 1274126177;
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
+}
+
+function getBurgerSizzleWeight(row, col, lineLength) {
+    const rowCenter = (BURGER_SIZZLE_ROW_START + BURGER_SIZZLE_ROW_END) / 2;
+    const rowSpan = (BURGER_SIZZLE_ROW_END - BURGER_SIZZLE_ROW_START) / 2 + 0.5;
+    const rowT = Math.abs(row - rowCenter) / rowSpan;
+    const rowFeather = Math.max(0, 1 - rowT * rowT);
+
+    const colCenter = lineLength * 0.5;
+    const colSpan = lineLength * 0.34;
+    const colT = Math.abs(col - colCenter) / colSpan;
+    const colFeather = Math.max(0, 1 - colT * colT);
+
+    return rowFeather * colFeather;
+}
+
+function getBurgerAnimRegion(row, col, ch, lineLength) {
+    if (ch === ' ') return null;
+    if (row < BURGER_SIZZLE_ROW_START || row > BURGER_SIZZLE_ROW_END) return null;
+
+    const weight = getBurgerSizzleWeight(row, col, lineLength);
+    const density = 0.34 + weight * 0.38;
+    if (burgerCellHash(row, col) > density) return null;
+
+    return {
+        ...BURGER_ANIM_REGIONS.pattySizzle,
+        weight,
+        soft: weight < 0.45,
+    };
+}
+
+function buildBurgerArtHtml() {
+    const lines = (BURGER_GRILL_ASCII || '').split('\n');
+    return lines.map((line, row) => {
+        let html = '';
+        for (let col = 0; col < line.length; col++) {
+            const ch = line[col];
+            const region = getBurgerAnimRegion(row, col, ch, line.length);
+            if (region) {
+                const softCls = region.soft ? ' ascii-ch--patty-sizzle-soft' : '';
+                html += `<span class="ascii-ch ascii-ch--${region.id}${softCls}" data-r="${row}" data-c="${col}" data-region="${region.id}" data-weight="${region.weight.toFixed(3)}">${escapeAsciiHtml(ch)}</span>`;
+            } else {
+                html += escapeAsciiHtml(ch);
+            }
+        }
+        return html;
+    }).join('\n');
+}
+
+function stopBurgerArtAnimation() {
+    if (burgerArtAnimTimer) {
+        clearInterval(burgerArtAnimTimer);
+        burgerArtAnimTimer = null;
+    }
+}
+
+function startBurgerArtAnimation(pre) {
+    stopBurgerArtAnimation();
+    if (!pre) return;
+
+    const cells = pre.querySelectorAll('.ascii-ch');
+    if (!cells.length) return;
+
+    const cellState = new Map();
+    cells.forEach((el) => {
+        const weight = parseFloat(el.dataset.weight || '0.5');
+        cellState.set(el, {
+            weight,
+            lit: false,
+            nextAt: performance.now() + Math.random() * 900,
+        });
+    });
+
+    burgerArtAnimTimer = setInterval(() => {
+        const now = performance.now();
+        cellState.forEach((state, el) => {
+            if (now < state.nextAt) return;
+
+            if (Math.random() > (isBurgerSizzleBoosted() ? 0.18 : 0.35) + state.weight * (isBurgerSizzleBoosted() ? 0.25 : 0.45)) {
+                state.nextAt = now + 120 + Math.random() * 280;
+                return;
+            }
+
+            state.lit = !state.lit;
+            el.classList.toggle('ascii-burger-sizzle-lit', state.lit);
+            el.classList.toggle('ascii-burger-bold', state.lit && Math.random() < (isBurgerSizzleBoosted() ? 0.55 : 0.25) + state.weight * 0.35);
+
+            const boostMul = isBurgerSizzleBoosted() ? 0.5 : 1;
+            const pace = (320 + (1 - state.weight) * 520) * boostMul;
+            state.nextAt = now + pace + Math.random() * ((480 + state.weight * 420) * boostMul);
+        });
+    }, 90);
+}
+
+function isBurgerSizzleBoosted() {
+    return performance.now() < burgerSizzleBoostUntil;
+}
+
+function boostBurgerSizzle(ms = 1500) {
+    burgerSizzleBoostUntil = performance.now() + ms;
+    const pre = document.querySelector('.shift-ascii-burger');
+    if (pre) pre.classList.add('burger-sizzle-boost');
+    setTimeout(() => {
+        if (!isBurgerSizzleBoosted()) {
+            document.querySelector('.shift-ascii-burger')?.classList.remove('burger-sizzle-boost');
+        }
+    }, ms + 30);
+}
+
+function pulseBurgerCookFlash() {
+    const pre = document.querySelector('.shift-ascii-burger');
+    if (!pre) return;
+    pre.classList.remove('burger-cook-flash');
+    void pre.offsetWidth;
+    pre.classList.add('burger-cook-flash');
+    setTimeout(() => pre.classList.remove('burger-cook-flash'), 180);
+}
+
+// === Burger flip bar ===
+let burgerFlipState = null;
+
+function getBurgerFlipEls() {
+    return {
+        action: document.getElementById('burger-flip-action'),
+        track:  document.getElementById('burger-flip-track'),
+        zone:   document.getElementById('burger-flip-zone'),
+        slider: document.getElementById('burger-flip-slider'),
+        btn:    document.getElementById('btn-burger-flip'),
+    };
+}
+
+function wireBurgerFlipButton() {
+    const { btn } = getBurgerFlipEls();
+    if (!btn) return;
+    btn.onclick = handleBurgerFlipPress;
+}
+
+function setupBurgerFlipPreview() {
+    // nothing needed — bar lives outside the scene, only shown during live shift
+}
+
+function startBurgerFlipBar() {
+    stopBurgerFlipBar();
+
+    const { action, track, zone, slider, btn } = getBurgerFlipEls();
+    if (!action || !track) return;
+
+    const profile = getShiftProfile();
+    const zoneWidthPct = (profile.passZoneWidth ?? 0.22) * 100;
+    const passLeft = Math.random() * (100 - zoneWidthPct);
+
+    burgerFlipState = {
+        sliderPos: 0,
+        direction: 1,
+        sweepMs: profile.sweepMs ?? 1000,
+        lastTick: performance.now(),
+        passLeft,
+        zoneWidthPct,
+    };
+
+    if (zone) {
+        zone.style.width  = `${zoneWidthPct}%`;
+        zone.style.left   = `${passLeft}%`;
+    }
+    if (slider) slider.style.left = '0%';
+    if (btn)    btn.disabled = false;
+
+    action.classList.remove('hidden');
+    action.classList.add('flex');
+
+    burgerFlipState.timer = setInterval(burgerFlipBarTick, 16);
+}
+
+function burgerFlipBarTick() {
+    if (!state.isShiftActive || !burgerFlipState) return;
+
+    const now = performance.now();
+    const dt  = now - burgerFlipState.lastTick;
+    burgerFlipState.lastTick = now;
+
+    burgerFlipState.sliderPos += (dt / burgerFlipState.sweepMs) * burgerFlipState.direction;
+
+    if (burgerFlipState.sliderPos >= 1) {
+        burgerFlipState.sliderPos = 1;
+        burgerFlipState.direction = -1;
+    } else if (burgerFlipState.sliderPos <= 0) {
+        burgerFlipState.sliderPos = 0;
+        burgerFlipState.direction = 1;
+    }
+
+    const { slider, track, zone } = getBurgerFlipEls();
+    if (slider) slider.style.left = `${burgerFlipState.sliderPos * 100}%`;
+
+    // highlight slider green when inside zone
+    if (track && zone && slider) {
+        const zl = burgerFlipState.passLeft;
+        const zr = zl + burgerFlipState.zoneWidthPct;
+        const pos = burgerFlipState.sliderPos * 100;
+        slider.classList.toggle('burger-flip-slider--hot', pos >= zl && pos <= zr);
+    }
+}
+
+function handleBurgerFlipPress() {
+    if (!state.isShiftActive || !burgerFlipState) return;
+
+    const profile = getShiftProfile();
+    const pos  = burgerFlipState.sliderPos * 100;
+    const zl   = burgerFlipState.passLeft;
+    const zr   = zl + burgerFlipState.zoneWidthPct;
+    const hit  = pos >= zl && pos <= zr;
+
+    const { zone, btn } = getBurgerFlipEls();
+
+    if (hit) {
+        awardBonus(profile.bonusBase, 50, 50);
+        pulseBurgerCookFlash();
+        boostBurgerSizzle(1500);
+        if (btn) { btn.textContent = '✓ FLIPPED!'; setTimeout(() => { if (btn) btn.textContent = '[ FLIP ]'; }, 600); }
+    } else {
+        resetCombo();
+        if (btn) { btn.textContent = '✗ MISS'; setTimeout(() => { if (btn) btn.textContent = '[ FLIP ]'; }, 500); }
+    }
+
+    // move zone to new random spot
+    const newLeft = Math.random() * (100 - burgerFlipState.zoneWidthPct);
+    burgerFlipState.passLeft = newLeft;
+    if (zone) zone.style.left = `${newLeft}%`;
+}
+
+function stopBurgerFlipBar() {
+    if (burgerFlipState?.timer) clearInterval(burgerFlipState.timer);
+    burgerFlipState = null;
+    burgerSizzleBoostUntil = 0;
+
+    const { action, btn } = getBurgerFlipEls();
+    if (action) { action.classList.add('hidden'); action.classList.remove('flex'); }
+    if (btn)    btn.disabled = true;
+    document.querySelector('.shift-ascii-burger')?.classList.remove('burger-sizzle-boost');
+}
+
+function getTimingBarElements() {
+    const bar = document.getElementById('shift-timing-bar');
+    return {
+        bar,
+        cursor: document.getElementById('shift-timing-cursor'),
+        zone: bar?.querySelector('.shift-timing-zone'),
+        usesRail: true,
+    };
 }
 
 const KEY_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -241,23 +638,31 @@ function renderJobScene(profile, containerId) {
         : 'shift-workzone shift-workzone-live flex-1 relative overflow-hidden min-h-0';
 
     const isPizza = profile.sceneClass === 'scene-pizza';
+    const isBurger = isBurgerFlipJob(profile);
 
     if (container.id === 'tip-container') {
-        if (isPizza) resetPizzaTipLane();
+        if (isPizza) resetPizzaTipRing();
         container.classList.add(profile.sceneClass);
         container.innerHTML = `
-            ${isPizza ? getPizzaDriveSceneHtml('live') : ''}
+            ${isPizza ? getPizzaPlayerSceneShell('live') : ''}
+            ${isBurger ? getBurgerGrillSceneShell('live') : ''}
             <div class="shift-workzone-grid" aria-hidden="true"></div>
             <div class="shift-workzone-scanline" aria-hidden="true"></div>
             <div id="shift-float-layer" class="shift-float-layer"></div>
-            ${isPizza ? '<div id="pizza-tip-lane" class="pizza-tip-lane"></div>' : ''}
-            <div class="shift-workzone-label">
+            ${isPizza ? '<div id="shift-tip-ring" class="shift-tip-ring"></div>' : ''}
+            ${isBurger ? '' : `<div class="shift-workzone-label">
                 <span class="blinking">█</span> <span id="ui-shift-verb-label">${profile.verb}</span> <span class="blinking">█</span>
-            </div>`;
+            </div>`}`;
+        if (isPizza) mountPizzaPlayerArt(container, state.isShiftActive);
+        if (isBurger) mountBurgerGrillArt(container, state.isShiftActive);
     } else {
         container.classList.add(profile.sceneClass);
         if (isPizza) {
-            container.innerHTML = getPizzaDriveSceneHtml('preview');
+            container.innerHTML = getPizzaPlayerSceneShell('preview');
+            mountPizzaPlayerArt(container, false);
+        } else if (isBurger) {
+            container.innerHTML = getBurgerGrillSceneShell('preview');
+            mountBurgerGrillArt(container, false);
         } else {
             container.innerHTML = `<span id="shift-scene-glyph" class="shift-scene-glyph">${profile.glyph}</span>`;
         }
@@ -285,7 +690,10 @@ function updateShiftBriefing() {
     if (wageEl) wageEl.innerText = unemployed ? `$${pizzaWage.toFixed(2)}/s` : `$${state.baseWagePerSec.toFixed(2)}/s`;
     if (lengthEl) lengthEl.innerText = `${length}s`;
     if (estimateEl) estimateEl.innerText = `~$${baseEstimate.toFixed(0)}+`;
-    if (bonusEl) bonusEl.innerText = `+$${profile.bonusBase.toFixed(2)}`;
+    if (bonusEl) {
+        const isPizza = (unemployed ? 'PIZZA SHIFT' : state.currentJobTitle) === 'PIZZA SHIFT';
+        bonusEl.innerText = isPizza ? '+$0.50-$4' : `+$${profile.bonusBase.toFixed(2)}`;
+    }
 
     if (unemployed) {
         const fromPizza = state.firedFromJob === 'PIZZA SHIFT';
@@ -353,7 +761,7 @@ function updateShiftHUD() {
     if (earnedEl) earnedEl.innerText = `$${state.shiftEarned.toFixed(2)}`;
     if (comboEl) comboEl.innerText = `x${getComboMultiplier().toFixed(1)}`;
     if (tipsEl) tipsEl.innerText = `${state.shiftTipsCollected}`;
-    if (verbEl) verbEl.innerText = profile.verb;
+    if (verbEl) verbEl.innerText = isBurgerFlipJob(profile) ? '' : profile.verb;
     if (verbLabel) verbLabel.innerText = profile.verb;
 
     const percent = (state.shiftTimeElapsed / state.shiftMaxTime) * 100;
@@ -450,55 +858,37 @@ function spawnTapTask() {
 function spawnPizzaTip() {
     const profile = getShiftProfile();
     const container = document.getElementById('tip-container');
-    let lane = document.getElementById('pizza-tip-lane');
-    if (!container) return;
-    if (!lane) {
-        lane = document.createElement('div');
-        lane.id = 'pizza-tip-lane';
-        lane.className = 'pizza-tip-lane';
-        container.appendChild(lane);
-    }
+    const ring = document.getElementById('shift-tip-ring');
+    if (!container || !ring) return;
 
-    const amount = profile.bonusBase;
-    const side = Math.random() < 0.5 ? 'left' : 'right';
-    const leftPct = getPizzaTipOffset(side);
-    const fallMs = profile.taskTimeout + 2000;
-    const cRect = container.getBoundingClientRect();
+    const slot = pickPizzaTipSlot();
+    const amount = rollPizzaTipAmount();
 
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'pizza-tip-btn';
-    btn.style.left = `${leftPct}%`;
-    btn.style.setProperty('--tip-fall-ms', `${fallMs}ms`);
-    btn.innerHTML = `+$${amount.toFixed(2)}`;
+    btn.className = 'tip-btn tip-btn-ring pointer-events-auto';
+    btn.style.top = `${slot.top}%`;
+    btn.style.left = `${slot.left}%`;
+    btn.dataset.slotId = slot.id;
+    btn.innerHTML = '[TIP]';
 
-    let done = false;
+    pizzaTipBusySlots.add(slot.id);
 
-    const removeTip = () => {
+    const removeTip = (missed) => {
+        releasePizzaTipSlot(slot.id);
         if (btn.parentNode) btn.remove();
-    };
-
-    const finish = (missed) => {
-        if (done) return;
-        done = true;
-        clearTimeout(expireTimer);
-        btn.removeEventListener('animationend', onFallEnd);
         if (missed) resetCombo();
-        removeTip();
     };
-
-    const onFallEnd = () => finish(true);
-    const expireTimer = setTimeout(onFallEnd, fallMs);
 
     btn.onclick = function () {
-        const r = btn.getBoundingClientRect();
-        const topPct = ((r.top + r.height / 2 - cRect.top) / cRect.height) * 100;
-        awardBonus(amount, topPct, leftPct);
-        finish(false);
+        awardBonus(amount, slot.top, slot.left);
+        removeTip(false);
     };
 
-    btn.addEventListener('animationend', onFallEnd);
-    lane.appendChild(btn);
+    ring.appendChild(btn);
+    setTimeout(() => {
+        if (btn.parentNode) removeTip(true);
+    }, profile.taskTimeout);
 }
 
 function spawnTapTaskGeneric(profile) {
@@ -534,19 +924,32 @@ function spawnTapTaskGeneric(profile) {
 }
 
 // === Archetype: timing_bar ===
+function placeTimingZone(zone, profile) {
+    if (!zone) return;
+    const widthPct = (profile.zoneWidth || 0.18) * 100;
+    zone.style.width = `${widthPct}%`;
+    zone.style.left = `${Math.random() * (100 - widthPct)}%`;
+}
+
+function setupTimingBarPreview(profile) {
+    const { zone, cursor } = getTimingBarElements();
+    placeTimingZone(zone, profile);
+    if (cursor) cursor.style.left = '0%';
+}
+
 function initTimingBar() {
     const profile = getShiftProfile();
-    const rail = document.getElementById('shift-action-rail');
-    const bar = document.getElementById('shift-timing-bar');
-    if (rail) rail.classList.remove('hidden');
-    if (bar) bar.classList.remove('hidden');
+    const { bar, zone, usesRail } = getTimingBarElements();
 
-    const zone = bar?.querySelector('.shift-timing-zone');
-    if (zone) {
-        const widthPct = (profile.zoneWidth || 0.18) * 100;
-        zone.style.width = `${widthPct}%`;
-        zone.style.left = `${Math.random() * (100 - widthPct)}%`;
+    if (usesRail) {
+        const rail = document.getElementById('shift-action-rail');
+        if (rail) rail.classList.remove('hidden');
+        if (bar) bar.classList.remove('hidden');
+        const hitBtn = document.getElementById('btn-timing-hit');
+        if (hitBtn) hitBtn.innerText = '[ HIT ]';
     }
+
+    placeTimingZone(zone, profile);
 
     timingBarState = {
         position: 0,
@@ -555,7 +958,15 @@ function initTimingBar() {
         lastTick: performance.now(),
     };
 
+    syncTimingBarCursor();
     state.shiftArchetypeTimer = setInterval(timingBarTick, 16);
+}
+
+function syncTimingBarCursor() {
+    const { cursor } = getTimingBarElements();
+    if (cursor && timingBarState) {
+        cursor.style.left = `${timingBarState.position * 100}%`;
+    }
 }
 
 function timingBarTick() {
@@ -575,15 +986,14 @@ function timingBarTick() {
         timingBarState.direction = 1;
     }
 
-    const cursor = document.getElementById('shift-timing-cursor');
-    if (cursor) cursor.style.left = `${timingBarState.position * 100}%`;
+    syncTimingBarCursor();
 }
 
 function handleTimingHit() {
     if (!state.isShiftActive || !timingBarState) return;
+
     const profile = getShiftProfile();
-    const bar = document.getElementById('shift-timing-bar');
-    const zone = bar?.querySelector('.shift-timing-zone');
+    const { zone } = getTimingBarElements();
     if (!zone) return;
 
     const zoneLeft = parseFloat(zone.style.left) / 100;
@@ -593,19 +1003,19 @@ function handleTimingHit() {
 
     if (hit) {
         awardBonus(profile.bonusBase, 50, 50);
-        const widthPct = parseFloat(zone.style.width) || 18;
-        zone.style.left = `${Math.random() * (100 - widthPct)}%`;
     } else {
         resetCombo();
     }
+
+    placeTimingZone(zone, profile);
 }
 
 function cleanupTimingBar() {
     clearInterval(state.shiftArchetypeTimer);
     state.shiftArchetypeTimer = null;
     timingBarState = null;
-    const bar = document.getElementById('shift-timing-bar');
     const rail = document.getElementById('shift-action-rail');
+    const bar = document.getElementById('shift-timing-bar');
     if (bar) bar.classList.add('hidden');
     if (rail) rail.classList.add('hidden');
 }
@@ -755,12 +1165,12 @@ function spawnExecutiveEvent() {
 
 function startArchetypeEngine() {
     const profile = getShiftProfile();
-    cleanupArchetypeEngine();
+    clearArchetypeTimers();
 
     if (profile.archetype === 'spawn_tap') {
         scheduleSpawnTap();
     } else if (profile.archetype === 'timing_bar') {
-        initTimingBar();
+        if (!isBurgerFlipJob(profile)) initTimingBar();
     } else if (profile.archetype === 'key_match') {
         initKeyMatch();
     } else if (profile.archetype === 'executive') {
@@ -768,14 +1178,21 @@ function startArchetypeEngine() {
     }
 }
 
-function cleanupArchetypeEngine() {
+function clearArchetypeTimers() {
     clearInterval(state.shiftArchetypeTimer);
     clearTimeout(state.tipSpawnerInterval);
     state.shiftArchetypeTimer = null;
     state.tipSpawnerInterval = null;
-    timingBarState = null;
     keyMatchState = null;
     shiftOccupiedZones = [];
+}
+
+function cleanupArchetypeEngine() {
+    clearArchetypeTimers();
+    timingBarState = null;
+    stopPizzaArtAnimation();
+    stopBurgerArtAnimation();
+    stopBurgerFlipBar();
 
     cleanupTimingBar();
     cleanupKeyMatch();
@@ -813,15 +1230,6 @@ function startShift() {
 
     renderJobScene(profile, 'tip-container');
     updateShiftHUD();
-
-    if (profile.sceneClass === 'scene-pizza') {
-        requestAnimationFrame(() => {
-            pizzaTipLeftPct = null;
-            pizzaTipRightPct = null;
-            getPizzaTipOffset('left');
-            getPizzaTipOffset('right');
-        });
-    }
 
     state.shiftInterval = setInterval(processShiftTick, 100);
     startArchetypeEngine();
