@@ -3,19 +3,41 @@
     --lcd-pixel: #111406; /* Dark green/black LCD pixel */
     --phone-body: #2a2a2e; /* Dark plastic casing */
     --phone-accent: #71717a; /* Silver plastic accents */
+    --phone-design-width: 360px;
+    --phone-design-height: 750px;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
 }
 
 body {
     font-family: 'Silkscreen', monospace;
     background-color: #121214;
     color: var(--lcd-pixel);
-    overflow: hidden;
     text-transform: uppercase;
     font-size: 14px; /* Smaller base size for the "phone" screen */
+    width: 100vw;
+    height: 100vh;
+}
+
+.phone-stage {
+    width: 100%;
+    height: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    overflow: hidden;
+}
+
+.phone-scale-wrapper {
+    width: var(--phone-design-width);
+    height: var(--phone-design-height);
+    flex-shrink: 0;
+    transform-origin: center center;
 }
 
 .nokia-screen {
@@ -27,6 +49,8 @@ body {
 }
 
 .phone-shell {
+    width: 100%;
+    height: 100%;
     min-height: 0;
     overflow: hidden;
 }
