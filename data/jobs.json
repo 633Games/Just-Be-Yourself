@@ -10,30 +10,12 @@
       "searchable": false
     },
     {
-      "id": "j1",
-      "title": "DISHWASHER",
-      "pay": 0.48,
-      "req": [1],
-      "bonusBase": 0.75,
-      "instructions": "Tap dirty plates before they pile up. Faster scrubbing = more tips.",
-      "searchable": true
-    },
-    {
       "id": "j2",
       "title": "BURGER FLIP",
       "pay": 0.72,
       "req": [1, 4],
       "bonusBase": 1.00,
       "instructions": "Slide the bar into the pass zone and hit [FLIP] for a bonus tip. Sizzle picks up when you nail it.",
-      "searchable": true
-    },
-    {
-      "id": "j3",
-      "title": "CASHIER",
-      "pay": 0.90,
-      "req": [5],
-      "bonusBase": 1.00,
-      "instructions": "Tap customers at the register. Ring them up before they leave.",
       "searchable": true
     },
     {
@@ -46,39 +28,21 @@
       "searchable": true
     },
     {
-      "id": "j5",
-      "title": "CEO",
-      "pay": 30.00,
-      "req": [7, 8],
-      "bonusBase": 12.00,
-      "instructions": "Mostly passive income. Tap golf invites and board meetings when they appear.",
-      "searchable": true
-    },
-    {
-      "id": "j6",
-      "title": "SIGN SPINNER",
-      "pay": 0.60,
-      "req": [9],
-      "bonusBase": 0.75,
-      "instructions": "Time your spins perfectly. Miss the zone and your combo resets.",
-      "searchable": true
-    },
-    {
-      "id": "j7",
-      "title": "DATA ENTRY",
-      "pay": 1.08,
-      "req": [1, 10],
-      "bonusBase": 1.25,
-      "instructions": "Tap the matching key before the timer runs out. Speed builds combos.",
-      "searchable": true
-    },
-    {
       "id": "j8",
       "title": "DAY TRADER",
       "pay": 7.20,
       "req": [3],
       "bonusBase": 4.00,
       "instructions": "Buy or sell on the ticker. Fast calls earn volatile bonuses.",
+      "searchable": true
+    },
+    {
+      "id": "j5",
+      "title": "CEO",
+      "pay": 30.00,
+      "req": [7, 8],
+      "bonusBase": 12.00,
+      "instructions": "Mostly passive income. Tap golf invites and board meetings when they appear.",
       "searchable": true
     }
   ]
