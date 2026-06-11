@@ -4,6 +4,14 @@ let REPLIES_DB = { contacts: {} };
 let SKILLS = {};
 let PIZZA_PLAYER_ASCII = '';
 let BURGER_GRILL_ASCII = '';
+let BOOT_SPLASH_ASCII = '';
+
+function trimAsciiBlankEdges(text) {
+    const lines = text.replace(/\r\n/g, '\n').split('\n');
+    while (lines.length && !lines[0].trim()) lines.shift();
+    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+    return lines.join('\n');
+}
 
 function normalizeSkillId(id) {
     const n = Number(id);
@@ -11,16 +19,17 @@ function normalizeSkillId(id) {
 }
 
 async function loadGameData() {
-    const [skillsRes, jobsRes, eventsRes, repliesRes, pizzaArtRes, burgerArtRes] = await Promise.all([
+    const [skillsRes, jobsRes, eventsRes, repliesRes, pizzaArtRes, burgerArtRes, bootArtRes] = await Promise.all([
         fetch('data/skills.json'),
         fetch('data/jobs.json'),
         fetch('data/events.json'),
         fetch('data/replies.json'),
         fetch('data/ascii/pizza-player.txt'),
         fetch('data/ascii/burger-grill.txt'),
+        fetch('data/ascii/boot-splash.txt'),
     ]);
 
-    if (!skillsRes.ok || !jobsRes.ok || !eventsRes.ok || !repliesRes.ok || !pizzaArtRes.ok || !burgerArtRes.ok) {
+    if (!skillsRes.ok || !jobsRes.ok || !eventsRes.ok || !repliesRes.ok || !pizzaArtRes.ok || !burgerArtRes.ok || !bootArtRes.ok) {
         throw new Error('Failed to load game data JSON files');
     }
 
@@ -30,6 +39,7 @@ async function loadGameData() {
     const repliesData = await repliesRes.json();
     PIZZA_PLAYER_ASCII = (await pizzaArtRes.text()).replace(/\r\n/g, '\n').trimEnd();
     BURGER_GRILL_ASCII = (await burgerArtRes.text()).replace(/\r\n/g, '\n').trimEnd();
+    BOOT_SPLASH_ASCII = trimAsciiBlankEdges((await bootArtRes.text()).replace(/\r\n/g, '\n'));
 
     SKILLS_DB = skillsData.skills;
     JOB_DB = jobsData.jobs;

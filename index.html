@@ -526,6 +526,28 @@
                 </main>
 
                 <div id="toast-container" class="absolute inset-x-0 top-0 z-[100] overflow-hidden pointer-events-none"></div>
+
+                <!-- Boot splash -->
+                <div id="boot-splash" class="boot-splash hidden" aria-hidden="true">
+                    <div class="boot-splash-crt-flash" aria-hidden="true"></div>
+                    <div class="boot-splash-scanlines" aria-hidden="true"></div>
+                    <div class="boot-splash-vignette" aria-hidden="true"></div>
+                    <div class="boot-splash-art-wrap">
+                        <div class="boot-splash-art-stack">
+                            <pre id="boot-splash-art" class="boot-splash-art"></pre>
+                            <pre id="boot-splash-art-shine" class="boot-splash-art-shine" aria-hidden="true"></pre>
+                        </div>
+                    </div>
+                    <div class="boot-splash-footer">
+                        <div id="boot-splash-status" class="boot-splash-status">
+                            <span class="boot-splash-status-text">INITIALIZING...</span>
+                            <span class="boot-splash-cursor blinking">_</span>
+                        </div>
+                        <div class="boot-splash-bar" aria-hidden="true">
+                            <div id="boot-splash-bar-fill" class="boot-splash-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -549,6 +571,7 @@
     <script src="js/jobs.js"></script>
     <script src="js/work.js"></script>
     <script src="js/casino.js"></script>
+    <script src="js/boot.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

@@ -26,6 +26,9 @@ function fitPhoneToWindow() {
 function handleViewportChange() {
     applyMobileNativeClass();
     fitPhoneToWindow();
+    if (typeof isBootSplashVisible === 'function' && isBootSplashVisible()) {
+        scheduleBootSplashFit();
+    }
 }
 
 function submitPlayerName() {
@@ -63,6 +66,7 @@ window.onload = async () => {
     ensureStatsState();
     setupCVListeners();
     updateHUD();
+    await playBootSplash();
     switchView('name-setup-view');
     document.getElementById('player-name-input')?.focus();
 };
