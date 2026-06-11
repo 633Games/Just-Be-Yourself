@@ -83,6 +83,7 @@ function recordNewJob() {
 function recordInterviewStarted() {
     ensureStatsState();
     state.historyStats.interviewsTotal++;
+    checkInterviewSkillUnlocks();
     refreshStatsView();
 }
 

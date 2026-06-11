@@ -67,6 +67,11 @@ const state = {
         interviewsTotal: 0,
         interviewsPassed: 0,
         interviewsFailed: 0
+    },
+    skillProgress: {
+        blackjackWinnings: 0,
+        bossThankCount: 0,
+        steveLendCount: 0
     }
 };
 

@@ -386,6 +386,9 @@ function sendPlayerReply() {
     input.value = '';
     updateReplyCharCount();
     renderMessageThread(state.activeThread);
+    if (state.activeThread === 'BOSS') {
+        checkBossReplySkillUnlocks(text);
+    }
     queueContactReply(state.activeThread, text);
 }
 
@@ -446,7 +449,9 @@ function sendBossShiftFeedback(manual, shiftEarned) {
 
 function notifySkillUnlocked(skillId) {
     const id = normalizeSkillId(skillId);
-    addMessage('SKILLS', `NEW SKILL: ${getSkillName(id)}. Open MY CV to equip it.`);
+    const description = formatSkillDescription(id);
+    const detail = description ? ` ${description}` : '';
+    addMessage('SKILLS', `NEW SKILL: ${getSkillName(id)}.${detail} Open MY CV to equip it.`);
 }
 
 function notifyJobHired(jobTitle, wage) {

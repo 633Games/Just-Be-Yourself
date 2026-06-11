@@ -11,31 +11,56 @@ function calculateMatch(jobReqs) {
     return Math.floor((matches / jobReqs.length) * 100);
 }
 
+function formatSkillReqsWithStatus(reqIds) {
+    if (!reqIds || reqIds.length === 0) return 'NONE';
+
+    const equipped = getEquippedSkillIds();
+    return reqIds.map(id => {
+        const skillId = normalizeSkillId(id);
+        const marker = skillId !== null && equipped.includes(skillId) ? '[*]' : '[ ]';
+        return `${marker} ${getSkillName(skillId)}`;
+    }).join('  ');
+}
+
 function generateJobs() {
     state.availableJobs = [];
-    // Copy and shuffle the database
     let pool = [...getSearchableJobs()].sort(() => Math.random() - 0.5);
+    if (pool.length === 0) return;
 
-    // 1. Find a job with partial qualification (50% to 99%)
-    let jobPartialIndex = pool.findIndex(j => calculateMatch(j.req) >= 50 && calculateMatch(j.req) < 100);
-    if (jobPartialIndex === -1) jobPartialIndex = 0; // Fallback if none exist
+    const isPartialJob = (job) => {
+        const match = calculateMatch(job.req);
+        const potential = calculatePotentialMatch(job.req);
+        return (match >= 50 && match < 100) || (potential >= 50 && potential < 100 && match < 100);
+    };
+
+    let jobPartialIndex = pool.findIndex(isPartialJob);
+    if (jobPartialIndex === -1) jobPartialIndex = 0;
     state.availableJobs.push(pool.splice(jobPartialIndex, 1)[0]);
 
-    // 2. Find a job you are 100% qualified for
     let job100Index = pool.findIndex(j => calculateMatch(j.req) === 100);
-    if (job100Index === -1) job100Index = 0; 
+    if (job100Index === -1) {
+        job100Index = pool.findIndex(j => calculatePotentialMatch(j.req) === 100);
+    }
+    if (job100Index === -1) job100Index = 0;
     state.availableJobs.push(pool.splice(job100Index, 1)[0]);
 
-    // 3. The Wildcard (20% chance for a completely unqualified job 0%, otherwise random)
-    let rareChance = Math.random();
     let jobWildIndex = 0;
-    if (rareChance < 0.2) {
+    if (Math.random() < 0.2) {
         jobWildIndex = pool.findIndex(j => calculateMatch(j.req) === 0);
         if (jobWildIndex === -1) jobWildIndex = 0;
+    } else {
+        const owned = state.achievements
+            .map(normalizeSkillId)
+            .filter(id => id !== null);
+        jobWildIndex = pool.findIndex(j =>
+            (j.req || []).some(req => !owned.includes(normalizeSkillId(req)))
+        );
+        if (jobWildIndex === -1) jobWildIndex = Math.floor(Math.random() * pool.length);
     }
-    state.availableJobs.push(pool.splice(jobWildIndex, 1)[0]);
-    
-    // Shuffle final display order so the 100% job isn't always in the exact same spot
+    if (pool.length > 0) {
+        state.availableJobs.push(pool.splice(jobWildIndex, 1)[0]);
+    }
+
     state.availableJobs.sort(() => Math.random() - 0.5);
 }
 
@@ -61,7 +86,7 @@ function renderJobSearcher() {
                     <span>${job.title}</span>
                     <span>$${job.pay.toFixed(2)}/s</span>
                 </div>
-                <div class="text-[8px] opacity-90 leading-tight">REQ: ${formatSkillReqs(job.req)}</div>
+                <div class="text-[8px] opacity-90 leading-tight">REQ: ${formatSkillReqsWithStatus(job.req)}</div>
                 <div class="flex justify-between items-center mt-1 border-t border-dashed border-[var(--lcd-pixel)] pt-1">
                     <span class="text-[9px] ${match >= 50 ? 'font-bold' : ''}">MATCH: ${match}%</span>
                     <button onclick="applyForJob('${job.id}')" class="nokia-btn-outline px-2 py-[2px] text-[9px] w-auto">
@@ -215,50 +240,82 @@ function openCV() {
     switchView('cv-view');
 }
 
-function renderCVSkillButton(skillId, equipped) {
+function renderCVSkillCard(skillId, equipped) {
     const id = normalizeSkillId(skillId);
     const name = getSkillName(id);
-    const description = getSkillDescription(id);
+    const description = formatSkillDescription(id);
     const marker = equipped ? '[*]' : '[ ]';
-    const borderClass = equipped ? ' border border-[var(--lcd-pixel)] mb-1' : '';
+    const status = equipped ? 'EQUIPPED' : 'TAP TO ADD';
+    const jobs = getJobsRequiringSkill(id);
+    const jobsLine = jobs.length > 0
+        ? jobs.map(j => j.title).join(', ')
+        : '';
+
     const descHtml = description
-        ? `<span class="text-[8px] opacity-80 block leading-tight mt-[2px]">${description}</span>`
+        ? `<div class="cv-skill-card-detail cv-skill-card-muted">${description}</div>`
+        : '';
+    const jobsHtml = jobsLine
+        ? `<div class="cv-skill-card-detail cv-skill-card-detail--jobs cv-skill-card-muted">NEEDED FOR: ${jobsLine}</div>`
         : '';
 
     return `
-        <button data-skill-id="${id}" class="cv-skill-btn nokia-btn text-[9px]${borderClass} text-left w-full">
-            <span>${marker} ${name}</span>
+        <button type="button" data-skill-id="${id}" class="cv-skill-card border-2 border-[var(--lcd-pixel)]${equipped ? ' cv-skill-card--equipped' : ''}">
+            <div class="cv-skill-card-title">${marker} ${name}</div>
+            <div class="cv-skill-card-status cv-skill-card-muted">${status}</div>
             ${descHtml}
+            ${jobsHtml}
         </button>
+    `;
+}
+
+function renderCVLockedCard(skillId) {
+    const id = normalizeSkillId(skillId);
+    const name = getSkillName(id);
+
+    return `
+        <div class="cv-skill-card-locked border-2 border-[var(--lcd-pixel)]">
+            <div class="cv-skill-card-locked-title">[LOCKED] ${name}</div>
+        </div>
     `;
 }
 
 function renderCV() {
     const container = document.getElementById('cv-content');
-    container.innerHTML = '<div class="text-[10px] mb-1 font-bold">EQUIPPED SKILLS:</div>';
-    
-    if (state.equippedCV.length === 0) {
-        container.innerHTML += '<div class="text-[9px] opacity-70 mb-2 px-2">- EMPTY SLOT -</div>';
-    } else {
-        state.equippedCV.forEach(skillId => {
-            container.innerHTML += renderCVSkillButton(skillId, true);
-        });
-    }
-
-    container.innerHTML += '<div class="text-[10px] mt-2 mb-1 font-bold border-t-2 border-dashed border-[var(--lcd-pixel)] pt-2">AVAILABLE:</div>';
-    
     const equipped = getEquippedSkillIds();
-    const available = state.achievements
-        .map(normalizeSkillId)
-        .filter(id => id !== null && !equipped.includes(id));
-    if (available.length === 0) {
-        container.innerHTML += '<div class="text-[9px] opacity-70 px-2">- NONE -</div>';
+
+    const unlocked = SKILLS_DB
+        .map(skill => normalizeSkillId(skill.id))
+        .filter(id => id !== null && hasSkill(id));
+    const locked = SKILLS_DB
+        .map(skill => normalizeSkillId(skill.id))
+        .filter(id => id !== null && !hasSkill(id));
+
+    let html = '<div class="cv-section-label">AVAILABLE:</div>';
+    html += '<div class="cv-skill-list">';
+    if (unlocked.length === 0) {
+        html += '<div class="text-[9px] opacity-70 px-1">- NONE YET -</div>';
     } else {
-        available.forEach(skillId => {
-            container.innerHTML += renderCVSkillButton(skillId, false);
+        unlocked.forEach(id => {
+            html += renderCVSkillCard(id, equipped.includes(id));
         });
     }
-    
+    html += '</div>';
+
+    html += '<div class="cv-section-divider"></div>';
+
+    html += '<div class="cv-section-label">LOCKED:</div>';
+    html += '<div class="cv-skill-list">';
+    if (locked.length === 0) {
+        html += '<div class="text-[9px] opacity-70 px-1">- NONE -</div>';
+    } else {
+        locked.forEach(id => {
+            html += renderCVLockedCard(id);
+        });
+    }
+    html += '</div>';
+
+    container.innerHTML = html;
+
     document.getElementById('cv-equipped-count').innerText = `${state.equippedCV.length}/${state.maxCVSlots}`;
 }
 
@@ -284,6 +341,6 @@ function setupCVListeners() {
     container.dataset.cvBound = 'true';
     container.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-skill-id]');
-        if (btn) toggleCV(btn.dataset.skillId);
+        if (btn && btn.classList.contains('cv-skill-card')) toggleCV(btn.dataset.skillId);
     });
 }
