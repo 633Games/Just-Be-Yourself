@@ -1,14 +1,14 @@
 {
   "skills": [
-    { "id": 1, "key": "NO_LIFE", "name": "TTTNO-LIFE", "description": "Completed 2 full work shifts." },
-    { "id": 2, "key": "BOUNCES_BACK_WELL", "name": "BOUNCES-BACK-WELL", "description": "Begged your boss to hire you back after getting fired." },
-    { "id": 3, "key": "RISK_TAKER", "name": "TTTRISK-TAKER", "description": "Lost 90% or more of your money on a single blackjack bet." },
-    { "id": 4, "key": "FAST_HANDS", "name": "FAST-HANDS", "description": "" },
-    { "id": 5, "key": "MATH_WIZ", "name": "MATH-WIZ", "description": "" },
-    { "id": 6, "key": "YELLING", "name": "YELLING", "description": "" },
-    { "id": 7, "key": "NEPOTISM", "name": "NEPOTISM", "description": "" },
-    { "id": 8, "key": "GOLF", "name": "GOLF", "description": "" },
-    { "id": 9, "key": "NO_SHAME", "name": "NO-SHAME", "description": "Gave away $150+ to family and strangers who definitely wont pay you back." },
-    { "id": 10, "key": "TYPING", "name": "TYPING", "description": "" }
+    { "id": 1, "key": "NO_LIFE", "name": "Mission Driven", "description": "You worked two full shifts back-to-back because you have nothing else going on." },
+    { "id": 2, "key": "BOUNCES_BACK_WELL", "name": "High Resilience", "description": "You got fired and begged your boss to take you back." },
+    { "id": 3, "key": "RISK_TAKER", "name": "High Potential Yield Risk Taker", "description": "You lost almost everything you had on one blackjack hand." },
+    { "id": 4, "key": "FAST_HANDS", "name": "Results Orientated", "description": "You got lucky ok, nothing else." },
+    { "id": 5, "key": "MATH_WIZ", "name": "Great Analytical Skills", "description": "I mean, you knew they were a scammer." },
+    { "id": 6, "key": "YELLING", "name": "Exceptional Emotional Intelligence", "description": "You yelled at people because the job broke you and your boss keeps writing you up." },
+    { "id": 7, "key": "NEPOTISM", "name": "Executive Level Network", "description": "You only know someone at the top because they're family." },
+    { "id": 8, "key": "GOLF", "name": "Brown Noser", "description": "Keep saying thank you {name} it might get you somewhere." },
+    { "id": 9, "key": "NO_SHAME", "name": "High Capital Investor", "description": "You gave away $150+ to family and strangers who definitely aren't paying you back." },
+    { "id": 10, "key": "TYPING", "name": "Technically Proficient", "description": "Its hard work applying for all these jobs!" }
   ]
 }

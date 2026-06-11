@@ -207,14 +207,17 @@ function endBj(result) {
     
     setTimeout(() => {
         let lostHugeAmount = false;
+        let winAmount = 0;
 
         if (result === 'bj') {
             const win = state.bj.bet * 2.5; // Blackjack pays 3:2
+            winAmount = win;
             state.cash += win;
             recordCasinoWin(win);
             showToast(`BLACKJACK! +$${win.toFixed(2)}`);
         } else if (result === 'win') {
             const win = state.bj.bet * 2;
+            winAmount = win;
             state.cash += win;
             recordCasinoWin(win);
             showToast(`YOU WIN! +$${win.toFixed(2)}`);
@@ -222,7 +225,6 @@ function endBj(result) {
             state.cash += state.bj.bet;
             showToast("PUSH. MONEY RETURNED.");
         } else {
-            // Check if they lost >= 90% of their total wealth
             const totalBeforeBet = state.cash + state.bj.bet;
             if (totalBeforeBet > 0 && (state.bj.bet / totalBeforeBet) >= 0.9) {
                 lostHugeAmount = true;
@@ -231,10 +233,7 @@ function endBj(result) {
         }
         updateHUD();
 
-        // Grant Risk-Taker Achievement on devastating losses
-        if (lostHugeAmount && unlockSkill(3)) {
-            setTimeout(() => notifySkillUnlocked(3), 1500);
-        }
+        checkCasinoSkillUnlocks({ winAmount, lostHugeAmount });
 
         setTimeout(initBlackjack, 2500);
     }, 1000);

@@ -1,6 +1,4 @@
 const MAX_EVENTS_PER_DAY = 1;
-const GENEROSITY_SKILL_THRESHOLD = 150;
-const GENEROSITY_SKILL_ID = 9;
 
 let EVENTS_DB = [];
 let EVENT_CONTACTS = [];
@@ -177,11 +175,6 @@ function recordEventForced(amount) {
     if (amount > 0) recordEventPaymentHappiness();
 }
 
-function checkGenerositySkillUnlock() {
-    if (state.eventStats.moneyGiven < GENEROSITY_SKILL_THRESHOLD) return;
-    if (!unlockSkill(GENEROSITY_SKILL_ID)) return;
-    setTimeout(() => notifySkillUnlocked(GENEROSITY_SKILL_ID), 800);
-}
 
 function getPendingEventForContact(contact) {
     const instance = state.activeEvents.find(e => e.contact === contact && e.status === 'pending');
@@ -317,6 +310,8 @@ function resolveEventChoice(instanceId, choiceId) {
         const reply = formatEventText(choice.reply, { amount, deadlineDays: eventDef.deadlineDays });
         addMessage(instance.contact, reply);
     }
+
+    checkEventSkillUnlocks({ eventId: instance.eventId, choiceId });
 
     if (state.activeThread === instance.contact) {
         renderMessageThread(instance.contact);

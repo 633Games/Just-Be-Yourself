@@ -325,9 +325,7 @@ function begForJobBack() {
     state.baseWagePerSec = 0.30;
     state.bossStrikes = 0;
 
-    if (unlockSkill(2)) {
-        notifySkillUnlocked(2);
-    }
+    tryUnlockSkill(2);
 
     updateWorkAppLabel();
     updateShiftBriefing();
@@ -882,8 +880,12 @@ function finishShiftSummary() {
     sendBossShiftFeedback(manual, earned);
     switchView('home-view');
 
-    if (state.shiftsCompleted === 2 && unlockSkill(1)) {
-        unlockCVApp();
+    if (state.shiftsCompleted === 2) {
+        if (tryUnlockSkill(1)) {
+            unlockCVApp();
+        } else if (!state.unlockedApps.cv) {
+            unlockCVApp();
+        }
     }
 
     if (state.shiftsCompleted === 1) {

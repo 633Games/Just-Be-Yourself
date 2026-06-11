@@ -126,6 +126,103 @@ body {
     color: var(--lcd-bg);
 }
 
+.cv-skill-card {
+    background: transparent;
+    color: var(--lcd-pixel);
+    cursor: pointer;
+    font-family: inherit;
+    padding: 6px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    width: 100%;
+}
+
+.cv-skill-card-locked {
+    opacity: 0.75;
+    padding: 4px 6px;
+    margin-bottom: 6px;
+}
+
+.cv-skill-card-title {
+    font-weight: 700;
+    font-size: 10px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cv-skill-card-status {
+    font-size: 8px;
+    line-height: 1.3;
+    text-align: right;
+    margin-top: 2px;
+}
+
+.cv-skill-card-detail {
+    font-size: 8px;
+    line-height: 1.35;
+    margin-top: 4px;
+}
+
+.cv-skill-card-detail--jobs {
+    border-top: 1px dashed var(--lcd-pixel);
+    padding-top: 4px;
+    margin-top: 4px;
+}
+
+.cv-skill-card-locked-title {
+    font-weight: 700;
+    font-size: 9px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cv-skill-card:hover,
+.cv-skill-card:active {
+    background-color: var(--lcd-pixel);
+    color: var(--lcd-bg);
+}
+
+.cv-skill-card:hover .cv-skill-card-muted,
+.cv-skill-card:active .cv-skill-card-muted {
+    opacity: 1;
+}
+
+.cv-skill-card--equipped {
+    outline: 1px solid var(--lcd-pixel);
+}
+
+.cv-skill-card-muted {
+    opacity: 0.85;
+}
+
+.cv-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+}
+
+.cv-section-divider {
+    border-top: 2px dashed var(--lcd-pixel);
+    margin-top: 12px;
+    margin-bottom: 8px;
+}
+
+.cv-skill-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.cv-skill-list > :last-child {
+    margin-bottom: 0;
+}
+
 /* Custom scrollbar for tiny screen */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
