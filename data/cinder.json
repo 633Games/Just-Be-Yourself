@@ -1,0 +1,280 @@
+{
+  "defaultBioTemplate": "{age}. {job}. Into {interest}. {lookingFor}.",
+  "profiles": [
+    {
+      "id": "maya",
+      "name": "MAYA",
+      "age": 23,
+      "asciiFile": "faces/maya.txt",
+      "likeBackChance": 0.35,
+      "bioFields": {
+        "job": "Works nights at the diner",
+        "interest": "horror movies",
+        "lookingFor": "Someone who won't ghost after rent week"
+      },
+      "replies": {
+        "random": [
+          "Ha. You passed and still texted?",
+          "Bold move texting me",
+          "Shouldn't you be at work",
+          "Ok what do you want"
+        ],
+        "keywords": [
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hey", "Hi yourself", "Well hello"]
+          },
+          {
+            "match": ["date", "coffee"],
+            "replies": ["Maybe if you can afford it", "Diner closes at 2am if you're serious"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "alex",
+      "name": "ALEX",
+      "age": 25,
+      "asciiFile": "faces/alex.txt",
+      "likeBackChance": 0.4,
+      "bioFields": {
+        "job": "Day trader wannabe",
+        "interest": "crypto before it was cool",
+        "lookingFor": "A co-signer with good credit"
+      },
+      "replies": {
+        "random": [
+          "Markets closed. I'm not",
+          "You swiped left btw",
+          "This better be important",
+          "Lol ok"
+        ],
+        "keywords": [
+          {
+            "match": ["money", "cash"],
+            "replies": ["Always a topic with you", "I knew this was coming"]
+          },
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Yo", "Sup"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "jordan",
+      "name": "JORDAN",
+      "age": 22,
+      "asciiFile": "faces/jordan.txt",
+      "likeBackChance": 0.45,
+      "bioTemplate": "{name}, {age}. {vibe}. {interest}.",
+      "bioFields": {
+        "vibe": "Just vibing between shifts",
+        "interest": "Skateboards and sad songs"
+      },
+      "replies": {
+        "random": [
+          "Cool cool cool",
+          "Yeah?",
+          "Interesting choice to text me",
+          "K"
+        ],
+        "keywords": [
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hey", "Yo what's up"]
+          },
+          {
+            "match": ["skate", "music"],
+            "replies": ["You actually read my bio?", "Finally someone"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "riley",
+      "name": "RILEY",
+      "age": 27,
+      "asciiFile": "faces/riley.txt",
+      "likeBackChance": 0.3,
+      "bioFields": {
+        "job": "Nurse on the night ward",
+        "interest": "True crime podcasts",
+        "lookingFor": "Someone with a normal sleep schedule"
+      },
+      "replies": {
+        "random": [
+          "On break. Make it quick",
+          "You passed on me remember",
+          "Hmm ok",
+          "Texting at this hour?"
+        ],
+        "keywords": [
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hi there", "Hey you"]
+          },
+          {
+            "match": ["sleep", "tired"],
+            "replies": ["Tell me about it", "Welcome to my life"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "sam",
+      "name": "SAM",
+      "age": 24,
+      "asciiFile": "faces/sam.txt",
+      "likeBackChance": 0.5,
+      "bioFields": {
+        "job": "Bartender downtown",
+        "interest": "Mixology and mixtapes",
+        "lookingFor": "No drama before last call"
+      },
+      "replies": {
+        "random": [
+          "Bar's dead tonight anyway",
+          "You had your chance to like me lol",
+          "Alright alright",
+          "What's good"
+        ],
+        "keywords": [
+          {
+            "match": ["drink", "bar"],
+            "replies": ["First one's on me if you show up", "You know where to find me"]
+          },
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hey stranger", "Well hey"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "casey",
+      "name": "CASEY",
+      "age": 21,
+      "asciiFile": "faces/casey.txt",
+      "likeBackChance": 0.38,
+      "bioFields": {
+        "job": "Art school dropout",
+        "interest": "ASCII portraits ironically",
+        "lookingFor": "Patron of the arts (or rent money)"
+      },
+      "replies": {
+        "random": [
+          "My face is literally ASCII and you passed",
+          "Art is pain",
+          "Ok interesting",
+          "Lmao sure"
+        ],
+        "keywords": [
+          {
+            "match": ["art", "draw"],
+            "replies": ["Finally someone gets it", "I could sketch you. Maybe."]
+          },
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hiii", "Oh hey"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "drew",
+      "name": "DREW",
+      "age": 26,
+      "asciiFile": "faces/drew.txt",
+      "likeBackChance": 0.42,
+      "bioFields": {
+        "job": "Gym rat / personal trainer",
+        "interest": "Meal prep and motivational quotes",
+        "lookingFor": "Accountability partner"
+      },
+      "replies": {
+        "random": [
+          "Leg day waits for no one",
+          "You swiped left tho",
+          "Let's go",
+          "Hmm"
+        ],
+        "keywords": [
+          {
+            "match": ["gym", "workout"],
+            "replies": ["5am. Be there.", "I'll spot you"]
+          },
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hey!", "What's up champ"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "taylor",
+      "name": "TAYLOR",
+      "age": 28,
+      "asciiFile": "faces/taylor.txt",
+      "likeBackChance": 0.33,
+      "bioFields": {
+        "job": "Office temp forever",
+        "interest": "Reality TV and iced coffee",
+        "lookingFor": "Someone who replies before the season finale"
+      },
+      "replies": {
+        "random": [
+          "Between meetings. Hi",
+          "You passed but ok",
+          "Spill",
+          "Fine I'll hear you out"
+        ],
+        "keywords": [
+          {
+            "match": ["tv", "show"],
+            "replies": ["Did you watch last night??", "No spoilers please"]
+          },
+          {
+            "match": ["hey", "hi"],
+            "replies": ["Hey hey", "Hi!"]
+          }
+        ]
+      }
+    },
+    {
+      "id": "unknown",
+      "special": "crash",
+      "name": "[???]",
+      "age": "[???]",
+      "asciiFile": "faces/unknown.txt",
+      "info": "[???]",
+      "likeBackChance": 1,
+      "replies": {
+        "random": [
+          "...",
+          "wait for your next job",
+          "LOL, Nice Try",
+          "i saw you"
+        ],
+        "keywords": [
+          {
+            "match": ["hey", "hi", "hello"],
+            "replies": ["you came back", "knew you would"]
+          },
+          {
+            "match": ["who"],
+            "replies": ["you know who this is", "Its who you think it is"]
+          },
+          {
+            "match": ["what"],
+            "replies": ["Ill be in touch soon.", "Don't worry, Ill look after you"]
+          },
+          {
+            "match": ["love"],
+            "replies": ["Awwww love you too", "Really? Its giving... needy vibes"]
+          }
+        ]
+      }
+    }
+  ]
+}

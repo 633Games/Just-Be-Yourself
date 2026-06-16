@@ -27,6 +27,9 @@ function advanceDay() {
     }
 
     tryRollRandomEvents({ monthChanged });
+    if (typeof tryDailyCinderRefill === 'function') {
+        tryDailyCinderRefill();
+    }
     updateHUD();
 }
 
@@ -42,7 +45,7 @@ function switchView(viewId) {
         return;
     }
 
-    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'debug-view'].forEach(id => {
+    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'vip-jobs-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'cinder-view', 'cinder-matches-view', 'debug-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('hidden');
@@ -59,6 +62,10 @@ function switchView(viewId) {
 
     if (viewId === 'stats-view' && typeof renderStats === 'function') {
         renderStats();
+    }
+
+    if (viewId === 'cinder-view' && typeof renderCinderScreen === 'function') {
+        renderCinderScreen();
     }
 }
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <title>The Rent is Due (Y2K Edition)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
@@ -25,7 +25,7 @@
         <div class="phone-bezel p-2 bg-zinc-900 rounded-xl flex-1 flex flex-col shadow-inner relative min-h-0">
             
             <!-- THE ACTUAL SOFTWARE SCREEN -->
-            <div class="phone-display nokia-screen rounded-lg flex flex-col overflow-hidden relative border-[3px] border-[#6b8519] min-h-0">
+            <div class="phone-display nokia-screen rounded-lg flex flex-col overflow-hidden relative min-h-0">
                 
                 <!-- OS Header Bar -->
                 <div class="header-area relative shrink-0 z-20">
@@ -77,8 +77,13 @@
                         <div class="flex-1 flex flex-col p-2 gap-1 justify-center">
                             <div class="text-[10px] mb-1">SELECT APP:</div>
                             
+                            <button id="btn-app-vip-jobs" onclick="openVipJobs()" class="nokia-btn hidden">
+                                <span id="ui-menu-vip-jobs-label">[✰VIP] JOBS</span>
+                                <span>></span>
+                            </button>
+
                             <button id="btn-app-messages" onclick="openMessages()" class="nokia-btn hidden">
-                                <span id="ui-menu-messages-label">1- MESSAGES</span>
+                                <span id="ui-menu-messages-label">MESSAGES</span>
                                 <span class="flex items-center gap-1">
                                     <span id="messages-unread-badge" class="hidden text-[8px] border border-[var(--lcd-pixel)] px-1">0</span>
                                     <span>></span>
@@ -86,32 +91,37 @@
                             </button>
                             
                             <button id="btn-app-work" onclick="switchView('job-view')" class="nokia-btn hidden">
-                                <span id="ui-menu-job-btn">2- [WORK] PIZZA SHIFT</span>
+                                <span id="ui-menu-job-btn">[WORK] PIZZA SHIFT</span>
                                 <span>></span>
                             </button>
                             
                             <button id="btn-app-cv" onclick="openCV()" class="nokia-btn hidden">
-                                <span id="ui-menu-cv-label">3- MY CV</span>
+                                <span id="ui-menu-cv-label">MY CV</span>
                                 <span>></span>
                             </button>
 
                             <button id="btn-app-jobs" onclick="openJobSearcher()" class="nokia-btn hidden">
-                                <span id="ui-menu-jobs-label">4- JOB SEARCHER</span>
+                                <span id="ui-menu-jobs-label">JOB SEARCHER</span>
                                 <span>></span>
                             </button>
 
                             <button id="btn-app-casino" onclick="openCasino()" class="nokia-btn hidden">
-                                <span id="ui-menu-casino-label">5- CASINO</span>
+                                <span id="ui-menu-casino-label">CASINO</span>
+                                <span>></span>
+                            </button>
+
+                            <button id="btn-app-cinder" onclick="openCinder()" class="nokia-btn hidden">
+                                <span id="ui-menu-cinder-label">CINDER</span>
                                 <span>></span>
                             </button>
 
                             <button id="btn-app-stats" onclick="openStats()" class="nokia-btn hidden">
-                                <span id="ui-menu-stats-label">6- STATS</span>
+                                <span id="ui-menu-stats-label">STATS</span>
                                 <span>></span>
                             </button>
 
                             <button id="btn-app-debug" onclick="openDebugMenu()" class="nokia-btn hidden">
-                                <span id="ui-menu-debug-label">7- DEBUG</span>
+                                <span id="ui-menu-debug-label">DEBUG</span>
                                 <span>></span>
                             </button>
                         </div>
@@ -356,6 +366,24 @@
                         </div>
                     </div>
 
+                    <!-- === VIP JOBS VIEW === -->
+                    <div id="vip-jobs-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>[✰VIP] JOBS</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="vip-job-list-content" class="thread-scroll p-2 flex flex-col gap-2 pb-6">
+                            <div class="text-center py-12 normal-case">
+                                <span class="cinder-unknown-text text-[12px]">Coming Soon</span>
+                            </div>
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] bg-[var(--lcd-bg)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- === JOB SEARCHER VIEW === -->
                     <div id="job-searcher-view" class="w-full h-full hidden flex-col relative">
                         <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
@@ -490,6 +518,91 @@
                         </div>
                     </div>
 
+                    <!-- === CINDER VIEW === -->
+                    <div id="cinder-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>CINDER</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="cinder-intro" class="thread-scroll p-4 flex-1 flex flex-col justify-center gap-3 min-h-0">
+                            <div class="text-[10px] text-center font-bold">WELCOME TO CINDER</div>
+                            <div class="text-[9px] leading-tight normal-case text-center opacity-90">
+                                SWIPE THROUGH LOCAL SINGLES ON YOUR NORKЕE. PASS OR LIKE EACH PROFILE. MATCH TO UNLOCK THEM IN MESSAGES.
+                            </div>
+                            <div class="text-[9px] leading-tight normal-case text-center opacity-80">
+                                3 NEW PROFILES DROP EACH DAY. NO MATCH? THEY GO BACK IN THE POOL AND MAY SHOW UP AGAIN.
+                            </div>
+                        </div>
+                        <div id="cinder-browse-body" class="thread-scroll p-2 flex-1 flex flex-col gap-2 min-h-0 hidden">
+                            <div id="cinder-card" class="cinder-card flex flex-col gap-2 p-2 border-2 border-[var(--lcd-pixel)] hidden">
+                                <div id="cinder-face-wrap" class="cinder-face-wrap">
+                                    <div id="cinder-face-stack" class="cinder-face-stack">
+                                        <pre id="cinder-face" class="cinder-face"></pre>
+                                    </div>
+                                </div>
+                                <div id="cinder-name" class="text-[11px] font-bold text-center"></div>
+                                <div id="cinder-bio" class="text-[9px] leading-tight normal-case text-center opacity-90"></div>
+                                <div id="cinder-glitch-fields" class="cinder-glitch-fields hidden flex flex-col gap-2 py-4">
+                                    <div class="cinder-glitch-line normal-case">
+                                        <span class="cinder-glitch-label">Name</span>
+                                        <span class="cinder-glitch-value">[???]</span>
+                                    </div>
+                                    <div class="cinder-glitch-line normal-case">
+                                        <span class="cinder-glitch-label">Age</span>
+                                        <span class="cinder-glitch-value">[???]</span>
+                                    </div>
+                                    <div class="cinder-glitch-line normal-case">
+                                        <span class="cinder-glitch-label">Info</span>
+                                        <span class="cinder-glitch-value">[???]</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="cinder-empty" class="text-[9px] opacity-70 text-center py-8 hidden">
+                                NO NEW PROFILES TODAY. CHECK BACK TOMORROW.
+                            </div>
+                        </div>
+                        <div id="cinder-intro-footer" class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] flex flex-col gap-1">
+                            <button onclick="cinderContinueFromIntro()" class="nokia-btn nokia-btn-outline w-full py-2 text-[10px] justify-center">
+                                [ START SWIPING ]
+                            </button>
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                        <div id="cinder-browse-footer" class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)] flex flex-col gap-1 hidden">
+                            <div id="cinder-actions" class="cinder-actions grid grid-cols-2 gap-1">
+                                <button id="cinder-btn-pass" onclick="cinderPass()" class="nokia-btn nokia-btn-outline py-2 text-[10px] justify-center">
+                                    [ X PASS ]
+                                </button>
+                                <button id="cinder-btn-like" onclick="cinderLike()" class="nokia-btn nokia-btn-outline py-2 text-[10px] justify-center">
+                                    [ ♥ LIKE ]
+                                </button>
+                            </div>
+                            <button id="cinder-matches-btn" onclick="openCinderMatches()" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ MATCHES (0) ]
+                            </button>
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK TO HOME ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === CINDER MATCHES VIEW === -->
+                    <div id="cinder-matches-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>MATCHES</span>
+                            <span class="blinking">_</span>
+                        </div>
+                        <div id="cinder-matches-list" class="thread-scroll p-2 flex flex-col gap-1">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('cinder-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK ]
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- === DEBUG VIEW === -->
                     <div id="debug-view" class="app-screen w-full hidden flex-col">
                         <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
@@ -526,6 +639,12 @@
                 </main>
 
                 <div id="toast-container" class="absolute inset-x-0 top-0 z-[100] overflow-hidden pointer-events-none"></div>
+
+                <!-- Phone crash overlay (Cinder easter egg) -->
+                <div id="phone-crash-overlay" class="phone-crash-overlay hidden" aria-hidden="true">
+                    <div id="phone-crash-static" class="phone-crash-static" aria-hidden="true"></div>
+                    <div class="phone-crash-text normal-case">FATAL ERROR</div>
+                </div>
 
                 <!-- Boot splash -->
                 <div id="boot-splash" class="boot-splash hidden" aria-hidden="true">
@@ -569,8 +688,10 @@
     <script src="js/ui.js"></script>
     <script src="js/messages.js"></script>
     <script src="js/jobs.js"></script>
+    <script src="js/vipjobs.js?v=2"></script>
     <script src="js/work.js"></script>
     <script src="js/casino.js"></script>
+    <script src="js/cinder.js"></script>
     <script src="js/boot.js"></script>
     <script src="js/main.js"></script>
 </body>
