@@ -377,14 +377,26 @@ function payWeeklyRent() {
     showToast(`RENT PAID: $${amount.toFixed(2)}`);
 }
 
+function getRepliesDb() {
+    return window.REPLIES_DB || REPLIES_DB;
+}
+
 function getContactReplyConfig(contact) {
-    return REPLIES_DB.contacts?.[contact] || null;
+    const key = normalizeSender(contact);
+    return getRepliesDb().contacts?.[key] || null;
+}
+
+function getLastOutgoingMessageText(contact) {
+    const key = normalizeSender(contact);
+    const thread = state.messages.filter(m => getMessageContact(m) === key && m.outgoing);
+    return thread.length ? thread[thread.length - 1].text : '';
 }
 
 function messageMatchesKeywords(messageText, keywords) {
-    const normalized = messageText.toLowerCase();
+    if (!messageText || !keywords?.length) return false;
+    const normalized = String(messageText).toLowerCase();
     return keywords.every(keyword => {
-        const escaped = keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escaped = String(keyword).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         return new RegExp(`\\b${escaped}\\b`, 'i').test(normalized);
     });
 }
@@ -395,7 +407,8 @@ function pickRandomReply(replies) {
 }
 
 function getContactReply(contact, playerText) {
-    const config = getContactReplyConfig(contact);
+    const key = normalizeSender(contact);
+    const config = getContactReplyConfig(key);
     if (!config) return null;
 
     const keywordRules = config.keywords || [];
@@ -416,16 +429,19 @@ function formatContactReply(reply) {
 }
 
 function queueContactReply(contact, playerText) {
-    const config = getContactReplyConfig(contact);
+    const key = normalizeSender(contact);
+    const config = getContactReplyConfig(key);
     if (!config) return;
 
+    const text = (playerText || '').trim() || getLastOutgoingMessageText(key);
+
     setTimeout(() => {
-        const reply = getContactReply(contact, playerText);
+        const reply = getContactReply(key, text);
         if (!reply) return;
 
-        addMessage(contact, formatContactReply(reply));
-        if (state.activeThread === contact) {
-            renderMessageThread(contact);
+        addMessage(key, formatContactReply(reply));
+        if (state.activeThread === key) {
+            renderMessageThread(key);
         }
     }, 700 + Math.random() * 900);
 }

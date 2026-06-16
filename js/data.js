@@ -2,6 +2,7 @@ let SKILLS_DB = [];
 let JOB_DB = [];
 let VIP_JOBS_DB = [];
 let REPLIES_DB = { contacts: {} };
+window.REPLIES_DB = REPLIES_DB;
 let SKILLS = {};
 let PIZZA_PLAYER_ASCII = '';
 let BURGER_GRILL_ASCII = '';
@@ -9,6 +10,12 @@ let BOOT_SPLASH_ASCII = '';
 let CINDER_DB = { defaultBioTemplate: '', profiles: [] };
 let CINDER_FACES = {};
 let CINDER_PROFILES = {};
+
+const DATA_CACHE_BUST = Date.now();
+
+function fetchData(path) {
+    return fetch(`${path}?cb=${DATA_CACHE_BUST}`);
+}
 
 function trimAsciiBlankEdges(text) {
     const lines = text.replace(/\r\n/g, '\n').split('\n');
@@ -30,15 +37,15 @@ function normalizeSkillId(id) {
 
 async function loadGameData() {
     const [skillsRes, jobsRes, vipJobsRes, eventsRes, repliesRes, cinderRes, pizzaArtRes, burgerArtRes, bootArtRes] = await Promise.all([
-        fetch('data/skills.json'),
-        fetch('data/jobs.json'),
-        fetch('data/vipjobs.json'),
-        fetch('data/events.json'),
-        fetch('data/replies.json'),
-        fetch('data/cinder.json'),
-        fetch('data/ascii/pizza-player.txt'),
-        fetch('data/ascii/burger-grill.txt'),
-        fetch('data/ascii/boot-splash.txt'),
+        fetchData('data/skills.json'),
+        fetchData('data/jobs.json'),
+        fetchData('data/vipjobs.json'),
+        fetchData('data/events.json'),
+        fetchData('data/replies.json'),
+        fetchData('data/cinder.json'),
+        fetchData('data/ascii/pizza-player.txt'),
+        fetchData('data/ascii/burger-grill.txt'),
+        fetchData('data/ascii/boot-splash.txt'),
     ]);
 
     if (!skillsRes.ok || !jobsRes.ok || !vipJobsRes.ok || !eventsRes.ok || !repliesRes.ok || !cinderRes.ok || !pizzaArtRes.ok || !burgerArtRes.ok || !bootArtRes.ok) {
@@ -61,6 +68,7 @@ async function loadGameData() {
     EVENTS_DB = eventsData.events || [];
     EVENT_CONTACTS = eventsData.contacts || [];
     REPLIES_DB = repliesData;
+    window.REPLIES_DB = REPLIES_DB;
     if (!REPLIES_DB.contacts || !REPLIES_DB.contacts.MOM) {
         throw new Error('replies.json must define contacts.MOM');
     }
