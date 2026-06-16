@@ -9,6 +9,22 @@ function applyMobileNativeClass() {
     document.documentElement.classList.toggle('mobile-native', isMobileNative());
 }
 
+function syncAppHeight() {
+    const height = window.visualViewport?.height ?? window.innerHeight;
+    document.documentElement.style.setProperty('--app-height', `${Math.round(height)}px`);
+}
+
+function preventDoubleTapZoom() {
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', (event) => {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+            event.preventDefault();
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+}
+
 function fitPhoneToWindow() {
     const wrapper = document.getElementById('phone-scale-wrapper');
     if (!wrapper) return;
@@ -24,6 +40,7 @@ function fitPhoneToWindow() {
 }
 
 function handleViewportChange() {
+    syncAppHeight();
     applyMobileNativeClass();
     fitPhoneToWindow();
     if (typeof isBootSplashVisible === 'function' && isBootSplashVisible()) {
@@ -51,9 +68,12 @@ function submitPlayerName() {
     switchView('home-view');
 }
 
+preventDoubleTapZoom();
 handleViewportChange();
 window.addEventListener('resize', handleViewportChange);
 window.addEventListener('orientationchange', handleViewportChange);
+window.visualViewport?.addEventListener('resize', handleViewportChange);
+window.visualViewport?.addEventListener('scroll', handleViewportChange);
 
 window.onload = async () => {
     try {
