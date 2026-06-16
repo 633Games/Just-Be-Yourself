@@ -54,7 +54,7 @@ async function loadGameData() {
 
     const skillsData = await skillsRes.json();
     const jobsData = await jobsRes.json();
-    const vipJobsData = await vipJobsRes.json();
+    await vipJobsRes.json();
     const eventsData = await eventsRes.json();
     const repliesData = await repliesRes.json();
     const cinderData = await cinderRes.json();
@@ -64,7 +64,7 @@ async function loadGameData() {
 
     SKILLS_DB = skillsData.skills;
     JOB_DB = jobsData.jobs;
-    VIP_JOBS_DB = vipJobsData.jobs || [];
+    VIP_JOBS_DB = [];
     EVENTS_DB = eventsData.events || [];
     EVENT_CONTACTS = eventsData.contacts || [];
     REPLIES_DB = repliesData;
