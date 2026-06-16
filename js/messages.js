@@ -94,8 +94,8 @@ function updateAppMenu() {
         { btnId: 'btn-app-cv', labelId: 'ui-menu-cv-label', key: 'cv', label: 'MY CV' },
         { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', label: 'JOB SEARCHER' },
         { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', label: 'CASINO' },
-        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', label: 'STATS' },
-        { btnId: 'btn-app-cinder', labelId: 'ui-menu-cinder-label', key: 'cinder', label: 'CINDER' }
+        { btnId: 'btn-app-cinder', labelId: 'ui-menu-cinder-label', key: 'cinder', label: 'CINDER' },
+        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', label: 'STATS' }
     ];
 
     const vipUnlocked = typeof isVipJobsAvailable === 'function' && isVipJobsAvailable();
