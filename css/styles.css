@@ -604,6 +604,9 @@ body {
     box-shadow: 2px 2px 0 rgba(17, 20, 6, 1);
     animation: tip-pop 0.25s ease-out;
     text-transform: uppercase;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .tip-btn:hover,
@@ -829,6 +832,11 @@ body {
     pointer-events: none;
 }
 
+#tip-container.shift-workzone-live,
+#tip-container .shift-tip-ring {
+    touch-action: none;
+}
+
 .pizza-tip-btn {
     position: absolute;
     top: 0;
@@ -847,6 +855,9 @@ body {
     text-transform: uppercase;
     box-shadow: 2px 2px 0 rgba(17, 20, 6, 1);
     animation: pizza-tip-fall var(--tip-fall-ms, 3s) linear forwards;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
 }
 
 .pizza-tip-btn:hover,
@@ -1139,6 +1150,220 @@ html.mobile-native .phone-chrome {
 html.mobile-native .nokia-input,
 html.mobile-native .nokia-input-reply {
     font-size: 16px;
+}
+
+html.mobile-native.keyboard-open #messages-thread-footer,
+html.mobile-native.keyboard-open #name-setup-view {
+    position: relative;
+    z-index: 30;
+}
+
+html.mobile-native.keyboard-open .thread-scroll {
+    scroll-padding-bottom: 5rem;
+}
+
+.install-gate {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(12px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    background: var(--lcd-bg);
+    color: var(--lcd-pixel);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.install-gate-main {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 0;
+    padding-bottom: 8px;
+}
+
+.install-gate.hidden {
+    display: none;
+}
+
+html.install-gate-active .phone-stage {
+    display: none;
+}
+
+html.install-gate-active #install-gate {
+    display: flex;
+}
+
+.install-gate-inner {
+    width: 100%;
+    max-width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 3px solid var(--lcd-pixel);
+    padding: 18px 16px 20px;
+    box-shadow: 6px 6px 0 rgba(17, 20, 6, 0.35);
+    background: rgba(17, 20, 6, 0.03);
+}
+
+.install-gate-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding-bottom: 4px;
+    border-bottom: 2px dashed rgba(17, 20, 6, 0.35);
+}
+
+.install-gate-logo {
+    width: 88px;
+    height: 88px;
+    object-fit: contain;
+    display: block;
+}
+
+.install-gate-company {
+    margin: 0;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    opacity: 0.85;
+}
+
+.install-gate-kicker {
+    margin: 0;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-align: center;
+    opacity: 0.9;
+    font-weight: bold;
+    text-transform: none;
+}
+
+.install-gate-title {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.2;
+    text-align: center;
+    letter-spacing: 0.02em;
+    text-transform: none;
+}
+
+.install-gate-subtitle {
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.45;
+    text-align: center;
+    opacity: 0.85;
+    text-transform: none;
+}
+
+.install-gate-subtitle .cinder-unknown-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 10px;
+}
+
+.install-gate-steps {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.install-gate-steps li {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px;
+    align-items: start;
+    font-size: 11px;
+    line-height: 1.4;
+    border-bottom: 1px dashed rgba(17, 20, 6, 0.35);
+    padding-bottom: 10px;
+    text-transform: none;
+}
+
+.install-gate-steps li:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.install-gate-step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--lcd-pixel);
+    font-size: 11px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.install-gate-arrow {
+    text-align: center;
+    font-size: 28px;
+    line-height: 1;
+    animation: install-gate-bounce 1.2s ease-in-out infinite;
+    opacity: 0.85;
+}
+
+@keyframes install-gate-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+}
+
+.install-gate-or {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 340px;
+    margin: 4px 0 10px;
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    opacity: 0.8;
+}
+
+.install-gate-footer {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 340px;
+    margin-top: auto;
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
+}
+
+.install-gate-bypass {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 14px 12px;
+    border: 2px solid var(--lcd-pixel);
+    background: var(--lcd-bg);
+    color: var(--lcd-pixel);
+    font-family: 'Silkscreen', monospace;
+    font-size: 9px;
+    line-height: 1.45;
+    text-align: center;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 rgba(17, 20, 6, 0.4);
+    animation: app-flash 0.9s infinite;
+    text-transform: none;
+}
+
+.install-gate-bypass:active {
+    box-shadow: 2px 2px 0 rgba(17, 20, 6, 0.4);
+    transform: translate(2px, 2px);
 }
 
 /* Pizza player ASCII scene */

@@ -2,13 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
-    <title>The Rent is Due (Y2K Edition)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=overlays-content">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Remember To Be Yourself">
+    <meta name="theme-color" content="#8cac24">
+    <title>Remember To Be Yourself</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/633-games-logo.png">
+    <link rel="icon" href="icons/633-games-logo.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Silkscreen&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        (function () {
+            var ios = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            var coarse = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+            var standalone = window.matchMedia('(display-mode: standalone)').matches
+                || window.navigator.standalone === true;
+            var allowBrowser = /(?:^|[?&])allow-browser=1(?:&|$)/.test(location.search)
+                || sessionStorage.getItem('remember-browser-play') === '1';
+            if (ios && coarse && !standalone && !allowBrowser) {
+                document.documentElement.classList.add('install-gate-active');
+            }
+        })();
+    </script>
 </head>
 <body>
+
+    <div id="install-gate" class="install-gate hidden" role="dialog" aria-modal="true" aria-label="Add to Home Screen to play">
+        <div class="install-gate-main">
+            <div class="install-gate-inner">
+            <div class="install-gate-brand">
+                <img src="icons/633-games-logo.png" alt="633 Games" class="install-gate-logo" width="120" height="120">
+                <p class="install-gate-company">633 GAMES</p>
+            </div>
+            <p class="install-gate-kicker normal-case">Remember to be yourself</p>
+            <h1 class="install-gate-title normal-case">Add to home screen</h1>
+            <p class="install-gate-subtitle normal-case">
+                This game runs better as a Home Screen App. See below on how to get it to work.
+                <span class="cinder-unknown-text">[This only works in safari]</span>
+            </p>
+
+            <ol class="install-gate-steps normal-case">
+                <li>
+                    <span class="install-gate-step-num">1</span>
+                    <span>Tap the <strong>3 Dots</strong> on the bottom right</span>
+                </li>
+                <li>
+                    <span class="install-gate-step-num">2</span>
+                    <span>Press the <strong>Share</strong> button</span>
+                </li>
+                <li>
+                    <span class="install-gate-step-num">3</span>
+                    <span>Press <strong>View More</strong> then <strong>Add To Home Screen</strong></span>
+                </li>
+                <li>
+                    <span class="install-gate-step-num">4</span>
+                    <span>Then press <strong>Add</strong></span>
+                </li>
+            </ol>
+
+            <div class="install-gate-arrow" aria-hidden="true">↓</div>
+            </div>
+        </div>
+        <p class="install-gate-or" aria-hidden="true">----OR----</p>
+        <div class="install-gate-footer">
+            <button type="button" id="install-gate-bypass" class="install-gate-bypass normal-case">
+                Don't Use Safari - Just Let Me Play Even Though Itll Be Worse
+            </button>
+        </div>
+    </div>
 
     <div class="phone-stage">
     <div id="phone-scale-wrapper" class="phone-scale-wrapper">
@@ -679,6 +744,7 @@
     </div>
     </div>
     </div>
+
     <script src="js/data.js"></script>
     <script src="js/state.js"></script>
     <script src="js/skills.js"></script>

@@ -61,6 +61,43 @@ const PIZZA_TIP_RING = [
 let pizzaTipBusySlots = new Set();
 let pizzaArtAnimTimer = null;
 
+const TAP_MOVE_THRESHOLD = 14;
+
+function bindQuickTap(el, handler) {
+    let pointerId = null;
+    let startX = 0;
+    let startY = 0;
+    let handled = false;
+
+    el.addEventListener('pointerdown', (e) => {
+        if (pointerId !== null) return;
+        pointerId = e.pointerId;
+        startX = e.clientX;
+        startY = e.clientY;
+        handled = false;
+        el.setPointerCapture(e.pointerId);
+    });
+
+    el.addEventListener('pointerup', (e) => {
+        if (e.pointerId !== pointerId || handled) return;
+        pointerId = null;
+        try { el.releasePointerCapture(e.pointerId); } catch (_) {}
+        const dx = Math.abs(e.clientX - startX);
+        const dy = Math.abs(e.clientY - startY);
+        if (dx <= TAP_MOVE_THRESHOLD && dy <= TAP_MOVE_THRESHOLD) {
+            handled = true;
+            e.preventDefault();
+            e.stopPropagation();
+            handler(e);
+        }
+    });
+
+    el.addEventListener('pointercancel', () => {
+        pointerId = null;
+        handled = false;
+    });
+}
+
 const PIZZA_ASCII_REGIONS = [
     {
         id: 'exhaust',
@@ -880,10 +917,10 @@ function spawnPizzaTip() {
         if (missed) resetCombo();
     };
 
-    btn.onclick = function () {
+    bindQuickTap(btn, () => {
         awardBonus(amount, slot.top, slot.left);
         removeTip(false);
-    };
+    });
 
     ring.appendChild(btn);
     setTimeout(() => {
@@ -909,10 +946,10 @@ function spawnTapTaskGeneric(profile) {
         if (btn.parentNode) btn.remove();
     };
 
-    btn.onclick = function () {
+    bindQuickTap(btn, () => {
         awardBonus(amount, pos.top, pos.left);
         removeBtn();
-    };
+    });
 
     container.appendChild(btn);
     setTimeout(() => {
@@ -1150,12 +1187,12 @@ function spawnExecutiveEvent() {
         if (btn.parentNode) btn.remove();
     };
 
-    btn.onclick = function () {
+    bindQuickTap(btn, () => {
         awardBonus(profile.bonusBase, pos.top, pos.left);
-        this.innerHTML = 'DONE';
-        this.classList.add('tip-btn-collected');
+        btn.innerHTML = 'DONE';
+        btn.classList.add('tip-btn-collected');
         setTimeout(removeBtn, 400);
-    };
+    });
 
     container.appendChild(btn);
     setTimeout(() => {

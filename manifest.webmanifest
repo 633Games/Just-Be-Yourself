@@ -1,0 +1,24 @@
+{
+    "name": "Remember To Be Yourself",
+    "short_name": "Remember To Be Yourself",
+    "description": "Y2K phone life sim from 633 Games.",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#121214",
+    "theme_color": "#8cac24",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "icons/633-games-logo.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/633-games-logo.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}
