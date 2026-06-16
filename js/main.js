@@ -66,6 +66,7 @@ window.onload = async () => {
     ensureStatsState();
     setupCVListeners();
     updateHUD();
+    if (typeof syncFatalPhoneTheme === 'function') syncFatalPhoneTheme();
     await playBootSplash();
     switchView('name-setup-view');
     document.getElementById('player-name-input')?.focus();

@@ -1,6 +1,7 @@
 :root {
     --lcd-bg: #8cac24; /* Iconic Nokia green backlight */
     --lcd-pixel: #111406; /* Dark green/black LCD pixel */
+    --lcd-bezel-halo: #6b8519;
     --boot-art-dark: #456b1f;
     --boot-art-wave: rgba(220, 245, 138, 0.55);
     --boot-art-wave-soft: rgba(248, 255, 210, 0.28);
@@ -49,6 +50,14 @@ body {
     position: relative;
     flex: 1 1 0%;
     min-height: 0;
+}
+
+.phone-display.nokia-screen {
+    border: 3px solid var(--lcd-bezel-halo);
+    box-shadow:
+        0 0 0 1px rgba(17, 20, 6, 0.18),
+        0 0 10px rgba(107, 133, 25, 0.35),
+        inset 0 0 18px rgba(17, 20, 6, 0.08);
 }
 
 .phone-shell {
@@ -352,6 +361,17 @@ body {
     font-size: 8px;
     opacity: 0.65;
     margin-bottom: 2px;
+}
+
+.cinder-unknown-text,
+.msg-incoming--unknown p {
+    font-weight: bold;
+    text-transform: none;
+    animation: cinder-glitch-vibrate 0.07s linear infinite;
+    display: inline-block;
+    text-shadow:
+        1px 0 rgba(17, 20, 6, 0.85),
+        -1px 0 rgba(17, 20, 6, 0.55);
 }
 
 .nokia-input::placeholder {
@@ -1093,7 +1113,7 @@ html.mobile-native .phone-bezel {
 
 html.mobile-native .phone-display.nokia-screen {
     border-radius: 1.25rem;
-    border: 3px solid #6b8519;
+    border: 3px solid var(--lcd-bezel-halo);
     overflow: hidden;
 }
 
@@ -1688,4 +1708,222 @@ html.mobile-native .nokia-input-reply {
     background: var(--lcd-pixel);
     transition: width 0.32s cubic-bezier(0.22, 1, 0.36, 1);
     box-shadow: 0 0 6px rgba(17, 20, 6, 0.35);
+}
+
+/* Cinder dating app */
+.cinder-card {
+    background: rgba(17, 20, 6, 0.04);
+}
+
+.cinder-face-wrap {
+    width: 100%;
+    min-height: 80px;
+    max-height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.cinder-face-stack {
+    width: 100%;
+    max-width: 100%;
+    transform: scale(var(--cinder-face-scale, 1));
+    transform-origin: center center;
+}
+
+.cinder-face {
+    width: 100%;
+    font-family: ui-monospace, 'Courier New', Courier, monospace;
+    font-size: 4px;
+    line-height: 1;
+    letter-spacing: 0;
+    white-space: pre;
+    text-align: center;
+    text-transform: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    color: var(--lcd-pixel);
+}
+
+.cinder-face--glitch {
+    animation: cinder-card-flicker 0.12s steps(2, end) infinite;
+}
+
+.cinder-actions {
+    width: 100%;
+}
+
+.cinder-match-row {
+    background: rgba(17, 20, 6, 0.04);
+}
+
+.cinder-match-face {
+    font-family: ui-monospace, 'Courier New', Courier, monospace;
+    white-space: pre;
+    text-align: center;
+    text-transform: none;
+    margin: 0;
+}
+
+.messages-section-header {
+    border-top: 1px dashed var(--lcd-pixel);
+    padding-top: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+/* Cinder glitch profile */
+.cinder-card--glitch {
+    animation: cinder-card-flicker 0.12s steps(2, end) infinite;
+    border-style: dashed;
+}
+
+.cinder-glitch-fields {
+    text-align: center;
+}
+
+.cinder-glitch-line {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    align-items: center;
+}
+
+.cinder-glitch-label {
+    font-size: 8px;
+    opacity: 0.75;
+    text-transform: uppercase;
+}
+
+.cinder-glitch-value {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: none;
+    animation: cinder-glitch-vibrate 0.07s linear infinite;
+    text-shadow:
+        1px 0 rgba(17, 20, 6, 0.85),
+        -1px 0 rgba(17, 20, 6, 0.55);
+}
+
+.cinder-glitch-btn {
+    animation: cinder-glitch-vibrate 0.09s linear infinite;
+    font-weight: bold;
+}
+
+.cinder-actions--solo {
+    grid-template-columns: 1fr;
+}
+
+@keyframes cinder-glitch-vibrate {
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-1px, 1px); }
+    50% { transform: translate(1px, -1px); }
+    75% { transform: translate(-1px, -1px); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes cinder-card-flicker {
+    0%, 100% { opacity: 1; filter: none; }
+    50% { opacity: 0.92; filter: contrast(1.15); }
+}
+
+/* Phone crash / permanent fatal screen (after ??? match) */
+.phone-display.phone-fatal-screen {
+    --lcd-bg: #b83232;
+    --lcd-pixel: #2a0808;
+    --lcd-bezel-halo: #851919;
+    --boot-art-dark: #6b1f1f;
+    --boot-art-wave: rgba(255, 160, 160, 0.55);
+    --boot-art-wave-soft: rgba(255, 210, 210, 0.28);
+    box-shadow:
+        0 0 0 1px rgba(42, 8, 8, 0.22),
+        0 0 12px rgba(133, 25, 25, 0.5),
+        inset 0 0 18px rgba(42, 8, 8, 0.12);
+}
+
+.phone-display.phone-fatal-screen::after {
+    background-image:
+        linear-gradient(rgba(42, 8, 8, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(42, 8, 8, 0.05) 1px, transparent 1px);
+}
+
+.phone-display.phone-crash {
+    animation: phone-crash-shake 0.08s linear infinite;
+}
+
+.phone-crash-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 180;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--lcd-bg);
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.phone-crash-overlay.hidden {
+    display: none !important;
+}
+
+.phone-crash-overlay:not(.hidden) {
+    display: flex !important;
+}
+
+.phone-crash-overlay--black {
+    background: #111406;
+}
+
+.phone-crash-static {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            rgba(17, 20, 6, 0.08) 0px,
+            rgba(17, 20, 6, 0.08) 1px,
+            transparent 1px,
+            transparent 3px
+        ),
+        repeating-linear-gradient(
+            90deg,
+            rgba(17, 20, 6, 0.06) 0px,
+            rgba(17, 20, 6, 0.06) 1px,
+            transparent 1px,
+            transparent 4px
+        );
+}
+
+.phone-crash-static--active {
+    opacity: 1;
+    animation: phone-crash-static-flicker 0.06s steps(2, end) infinite;
+}
+
+.phone-crash-text {
+    position: relative;
+    z-index: 2;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 0.12em;
+    animation: cinder-glitch-vibrate 0.05s linear infinite;
+    text-transform: uppercase;
+}
+
+@keyframes phone-crash-shake {
+    0% { transform: translate(0, 0); }
+    20% { transform: translate(-2px, 1px); }
+    40% { transform: translate(2px, -2px); }
+    60% { transform: translate(-1px, 2px); }
+    80% { transform: translate(2px, 0); }
+    100% { transform: translate(0, 0); }
+}
+
+@keyframes phone-crash-static-flicker {
+    0% { opacity: 0.55; transform: translate(0, 0); }
+    50% { opacity: 1; transform: translate(-2px, 1px); }
+    100% { opacity: 0.65; transform: translate(1px, -1px); }
 }

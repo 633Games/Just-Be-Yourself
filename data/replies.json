@@ -19,6 +19,14 @@
           ]
         },
         {
+          "match": ["money"],
+          "replies": [
+            "I've got nowt left son sorry x",
+            "I've literally got less than $0.20 left",
+            "Do you think money grows on trees?"
+          ]
+        },
+        {
           "match": ["rent"],
           "replies": [
             "Use the pay button in our chat love. Dont make me chase you",

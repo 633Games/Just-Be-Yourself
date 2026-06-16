@@ -47,7 +47,20 @@ const state = {
         cv: false,
         jobs: false,
         casino: false,
-        stats: false
+        stats: false,
+        cinder: false,
+        vipJobs: false
+    },
+    cinder: {
+        introSeen: false,
+        pool: [],
+        deck: [],
+        matches: [],
+        unlockedContacts: [],
+        lastRefillDateKey: null,
+        crashSeen: false,
+        crashOffered: false,
+        swipeCount: 0
     },
     happiness: 5,
     eventHistory: {},

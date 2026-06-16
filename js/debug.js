@@ -8,9 +8,12 @@ function applyDebugBootstrap() {
     if (!isDebugMode()) return;
 
     Object.keys(state.unlockedApps).forEach(key => {
+        if (key === 'vipJobs') return;
         state.unlockedApps[key] = true;
     });
+    state.unlockedApps.vipJobs = true;
     updateWorkAppLabel();
+    updateAppMenu();
 }
 
 function debugGiveMoney(amount) {

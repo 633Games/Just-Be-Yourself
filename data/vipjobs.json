@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "id": "vip-handler",
+      "title": "ASSET HANDLER",
+      "pay": 12.00,
+      "req": [5, 6],
+      "bonusBase": 4.00,
+      "instructions": "Move packages nobody asks about. Tap when the pager buzzes.",
+      "description": "Discreet logistics. References not required."
+    },
+    {
+      "id": "vip-liaison",
+      "title": "PRIVATE LIAISON",
+      "pay": 18.50,
+      "req": [7],
+      "bonusBase": 6.00,
+      "instructions": "Take meetings off the books. Golf bonuses still apply.",
+      "description": "Executive access tier. Interview waived for recruits."
+    },
+    {
+      "id": "vip-analyst",
+      "title": "SHADOW ANALYST",
+      "pay": 22.00,
+      "req": [3, 8],
+      "bonusBase": 8.00,
+      "instructions": "Watch tickers that are not on the news. Fast keys, faster exits.",
+      "description": "Markets after hours. Eyes only."
+    },
+    {
+      "id": "vip-director",
+      "title": "REGIONAL DIRECTOR",
+      "pay": 35.00,
+      "req": [7, 8],
+      "bonusBase": 15.00,
+      "instructions": "Mostly passive. Board pings and golf when they appear.",
+      "description": "Corner office track. Handler assigned."
+    },
+    {
+      "id": "vip-special",
+      "title": "SPECIAL PROJECT",
+      "pay": 50.00,
+      "req": [],
+      "bonusBase": 20.00,
+      "instructions": "Details on arrival. Do not discuss pay rate.",
+      "description": "Classified placement. Match not evaluated."
+    }
+  ]
+}

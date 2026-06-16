@@ -88,25 +88,36 @@ function updateMessagesBadge() {
 
 function updateAppMenu() {
     const menuItems = [
-        { btnId: 'btn-app-messages', labelId: 'ui-menu-messages-label', key: 'messages', slot: 1, label: 'MESSAGES' },
-        { btnId: 'btn-app-work', labelId: 'ui-menu-job-btn', key: 'work', slot: 2, label: () => `[WORK] ${state.currentJobTitle}` },
-        { btnId: 'btn-app-cv', labelId: 'ui-menu-cv-label', key: 'cv', slot: 3, label: 'MY CV' },
-        { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', slot: 4, label: 'JOB SEARCHER' },
-        { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', slot: 5, label: 'CASINO' },
-        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', slot: 6, label: 'STATS' }
+        { btnId: 'btn-app-vip-jobs', labelId: 'ui-menu-vip-jobs-label', key: 'vipJobs', label: '[✰VIP] JOBS' },
+        { btnId: 'btn-app-messages', labelId: 'ui-menu-messages-label', key: 'messages', label: 'MESSAGES' },
+        { btnId: 'btn-app-work', labelId: 'ui-menu-job-btn', key: 'work', label: () => `[WORK] ${state.currentJobTitle}` },
+        { btnId: 'btn-app-cv', labelId: 'ui-menu-cv-label', key: 'cv', label: 'MY CV' },
+        { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', label: 'JOB SEARCHER' },
+        { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', label: 'CASINO' },
+        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', label: 'STATS' },
+        { btnId: 'btn-app-cinder', labelId: 'ui-menu-cinder-label', key: 'cinder', label: 'CINDER' }
     ];
+
+    const vipUnlocked = typeof isVipJobsAvailable === 'function' && isVipJobsAvailable();
 
     menuItems.forEach(item => {
         const btn = document.getElementById(item.btnId);
         const label = document.getElementById(item.labelId);
         if (!btn || !label) return;
 
+        if (item.key === 'vipJobs') {
+            btn.classList.toggle('hidden', !vipUnlocked);
+            if (vipUnlocked) {
+                label.innerText = item.label;
+            }
+            return;
+        }
+
         const unlocked = state.unlockedApps[item.key];
         btn.classList.toggle('hidden', !unlocked);
 
         if (unlocked) {
-            const text = typeof item.label === 'function' ? item.label() : item.label;
-            label.innerText = `${item.slot}- ${text}`;
+            label.innerText = typeof item.label === 'function' ? item.label() : item.label;
         }
     });
 
@@ -114,7 +125,7 @@ function updateAppMenu() {
     const debugLabel = document.getElementById('ui-menu-debug-label');
     const showDebug = typeof isDebugMode === 'function' && isDebugMode();
     if (debugBtn) debugBtn.classList.toggle('hidden', !showDebug);
-    if (debugLabel && showDebug) debugLabel.innerText = '7- DEBUG';
+    if (debugLabel && showDebug) debugLabel.innerText = 'DEBUG';
 
     updateMessagesBadge();
 }
@@ -138,9 +149,15 @@ function unlockCVApp() {
     state.unlockedApps.casino = true;
     state.unlockedApps.stats = true;
 
-    const msg = `Hey ${state.playerName}, Mam said you needed help doing your CV ive sent you an app that will help you write your cv with all your skills in, dont put too much in, employers dont normally like that and remember to <strong class="glitch-text">BE YOURSELF</strong>`;
+    const msg = `Hey ${state.playerName}, Mam said you needed help doing your CV ive sent you an app that will help you write your cv with all your skills in, dont put too much in, employers dont normally like that and remember to <strong class="glitch-text">BE YOURSELF</strong>.`;
     addMessage('SUSAN', msg, { html: true });
     state.messagesFlash = true;
+    updateAppMenu();
+}
+
+function unlockCinderApp() {
+    if (state.unlockedApps.cinder) return;
+    state.unlockedApps.cinder = true;
     updateAppMenu();
 }
 
@@ -183,39 +200,71 @@ function backToMessagesList() {
     switchView('messages-view');
 }
 
+function isCinderMatchContact(key) {
+    return MESSAGE_SENDERS[key]?.category === 'cinder_match';
+}
+
+function canReplyToContact(contact) {
+    const meta = MESSAGE_SENDERS[contact];
+    return REPLYABLE_CONTACTS.includes(contact) || meta?.category === 'cinder_match';
+}
+
+function buildContactButton(key) {
+    const meta = MESSAGE_SENDERS[key];
+    if (!meta) return null;
+
+    const thread = state.messages.filter(m => getMessageContact(m) === key);
+    const unread = getUnreadCount(key);
+    let preview = meta.preview || 'Tap to message';
+    if (thread.length > 0) {
+        const previewText = stripHtml(thread[thread.length - 1].text);
+        preview = previewText.slice(0, 28) + (previewText.length > 28 ? '...' : '');
+    }
+
+    const btn = document.createElement('button');
+    btn.className = `nokia-btn border border-[var(--lcd-pixel)] mb-1${unread ? ' contact-unread-flash' : ''}`;
+    btn.onclick = () => openMessageThread(key);
+        btn.innerHTML = `
+            <span class="flex flex-col items-start gap-[2px] text-[10px]">
+                <span class="font-bold${isCinderUnknownContact(key) ? ' cinder-unknown-text' : ''}">${meta.label}${unread ? ` (${unread})` : ''}</span>
+                <span class="text-[8px] opacity-80 normal-case${isCinderUnknownContact(key) ? ' cinder-unknown-text' : ''}">${escapeHtml(preview)}</span>
+            </span>
+            <span>></span>
+        `;
+    return btn;
+}
+
 function renderMessagesContacts() {
     const container = document.getElementById('messages-contact-list');
     container.innerHTML = '';
 
     const sendersWithMessages = [...new Set(state.messages.map(m => getMessageContact(m)))];
+    const regularContacts = sendersWithMessages.filter(key => !isCinderMatchContact(key));
+    const matchContacts = [...state.cinder.unlockedContacts];
+    const hasRegular = regularContacts.length > 0;
+    const hasMatches = matchContacts.length > 0;
 
-    if (sendersWithMessages.length === 0) {
+    if (!hasRegular && !hasMatches) {
         container.innerHTML = '<div class="text-[9px] opacity-70 text-center py-4">NO MESSAGES</div>';
         return;
     }
 
-    sendersWithMessages.forEach(key => {
-        const meta = MESSAGE_SENDERS[key];
-        if (!meta) return;
-
-        const thread = state.messages.filter(m => getMessageContact(m) === key);
-        const unread = getUnreadCount(key);
-        const lastMsg = thread[thread.length - 1];
-        const previewText = stripHtml(lastMsg.text);
-        const preview = previewText.slice(0, 28) + (previewText.length > 28 ? '...' : '');
-
-        const btn = document.createElement('button');
-        btn.className = `nokia-btn border border-[var(--lcd-pixel)] mb-1${unread ? ' contact-unread-flash' : ''}`;
-        btn.onclick = () => openMessageThread(key);
-        btn.innerHTML = `
-            <span class="flex flex-col items-start gap-[2px] text-[10px]">
-                <span class="font-bold">${meta.label}${unread ? ` (${unread})` : ''}</span>
-                <span class="text-[8px] opacity-80 normal-case">${escapeHtml(preview)}</span>
-            </span>
-            <span>></span>
-        `;
-        container.appendChild(btn);
+    regularContacts.forEach(key => {
+        const btn = buildContactButton(key);
+        if (btn) container.appendChild(btn);
     });
+
+    if (hasMatches) {
+        const header = document.createElement('div');
+        header.className = 'messages-section-header text-[8px] opacity-80 mt-2 mb-1 px-1';
+        header.textContent = 'MATCHES';
+        container.appendChild(header);
+
+        matchContacts.forEach(key => {
+            const btn = buildContactButton(key);
+            if (btn) container.appendChild(btn);
+        });
+    }
 }
 
 function renderThreadFooter(from) {
@@ -232,7 +281,8 @@ function renderThreadFooter(from) {
     }
 
     if (replyRow) {
-        const canReply = REPLYABLE_CONTACTS.includes(from) && !pendingEvent;
+        const meta = MESSAGE_SENDERS[from];
+        const canReply = canReplyToContact(from) && !pendingEvent;
         replyRow.classList.toggle('hidden', !canReply);
     }
     if (replyInput) {
@@ -263,7 +313,13 @@ function renderThreadFooter(from) {
 
 function renderMessageThread(sender) {
     const from = normalizeSender(sender);
-    document.getElementById('messages-thread-title').innerText = MESSAGE_SENDERS[from].label;
+    const meta = MESSAGE_SENDERS[from];
+    const isUnknown = isCinderUnknownContact(from);
+    const titleEl = document.getElementById('messages-thread-title');
+    if (titleEl) {
+        titleEl.innerText = meta?.label || from;
+        titleEl.classList.toggle('cinder-unknown-text', isUnknown);
+    }
 
     const container = document.getElementById('messages-thread-log');
     const thread = state.messages.filter(m => getMessageContact(m) === from);
@@ -281,7 +337,7 @@ function renderMessageThread(sender) {
                 `;
             }
             return `
-                <div class="msg-incoming text-[10px] leading-tight normal-case">
+                <div class="msg-incoming text-[10px] leading-tight normal-case${isUnknown ? ' msg-incoming--unknown' : ''}">
                     <p>${msg.html ? msg.text : escapeHtml(msg.text)}</p>
                 </div>
             `;
@@ -305,11 +361,18 @@ function payWeeklyRent() {
         return;
     }
 
+    const firstRentEver = state.historyStats.rentSpent === 0;
+
     state.cash -= amount;
     state.rentPaidThisWeek = true;
     recordRentPaid(amount);
     updateHUD();
-    addMessage('MOM', `Got your $${amount.toFixed(2)}. Rent sorted for week ${state.rentWeek}. Cheers love.`);
+    if (firstRentEver) {
+        unlockCinderApp();
+        addMessage('MOM', `Got your rent cheers son. I've signed you up for that Dinder thingy thats how steve met his lass you know might be alright. Good luck anyway let me know if you need money for a date x`);
+    } else {
+        addMessage('MOM', `Got your $${amount.toFixed(2)}. Rent sorted for week ${state.rentWeek}. Cheers love.`);
+    }
     renderMessageThread('MOM');
     showToast(`RENT PAID: $${amount.toFixed(2)}`);
 }
@@ -320,7 +383,10 @@ function getContactReplyConfig(contact) {
 
 function messageMatchesKeywords(messageText, keywords) {
     const normalized = messageText.toLowerCase();
-    return keywords.every(keyword => normalized.includes(keyword.toLowerCase()));
+    return keywords.every(keyword => {
+        const escaped = keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return new RegExp(`\\b${escaped}\\b`, 'i').test(normalized);
+    });
 }
 
 function pickRandomReply(replies) {
@@ -377,7 +443,7 @@ function sendPlayerReply() {
 
     const text = input.value.trim();
     if (!text) return;
-    if (!REPLYABLE_CONTACTS.includes(state.activeThread)) return;
+    if (!canReplyToContact(state.activeThread)) return;
     if (typeof getPendingEventForContact === 'function' && getPendingEventForContact(state.activeThread)) return;
     if (text.length > REPLY_MAX_CHARS) return;
 
