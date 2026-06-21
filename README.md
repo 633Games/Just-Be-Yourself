@@ -1,4 +1,4 @@
-# Always Be Yourself
+# Just Be Yourself
 
 A browser style game documenting the difficulties and the honesties of getting a job the modern world. Navigate tricky situations to fill your CV with experiance and become the ultimate millionare.
 
