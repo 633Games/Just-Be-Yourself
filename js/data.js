@@ -9,6 +9,8 @@ let BURGER_GRILL_ASCII = '';
 let BOOT_SPLASH_ASCII = '';
 let CINDER_DB = { defaultBioTemplate: '', profiles: [] };
 let CINDER_FACES = {};
+let CINDER_FACE_FRAMES = {};
+const MAX_CINDER_FACE_FRAMES = 10;
 let CINDER_PROFILES = {};
 
 const DATA_CACHE_BUST = Date.now();
@@ -79,23 +81,53 @@ async function loadGameData() {
     registerCinderProfiles();
 }
 
+function getCinderFaceVariantPaths(asciiFile) {
+    if (!asciiFile) return [];
+    if (!asciiFile.endsWith('.txt')) return [asciiFile];
+    const basePath = asciiFile.slice(0, -4);
+    const paths = [asciiFile];
+    for (let i = 2; i <= MAX_CINDER_FACE_FRAMES; i++) {
+        paths.push(`${basePath}${i}.txt`);
+    }
+    return paths;
+}
+
 async function loadCinderFaces() {
     const profiles = CINDER_DB.profiles || [];
-    const uniqueFiles = [...new Set(profiles.map(p => p.asciiFile).filter(Boolean))];
+    const profileVariantPaths = {};
+    const pathsToFetch = new Set();
+
+    profiles.forEach(profile => {
+        if (!profile.id || !profile.asciiFile) return;
+        const paths = getCinderFaceVariantPaths(profile.asciiFile);
+        profileVariantPaths[profile.id] = paths;
+        paths.forEach(path => pathsToFetch.add(path));
+    });
+
+    const requiredFiles = new Set(profiles.map(p => p.asciiFile).filter(Boolean));
     const results = await Promise.all(
-        uniqueFiles.map(async file => {
-            const res = await fetch(`data/ascii/${file}`);
-            if (!res.ok) throw new Error(`Failed to load Cinder ASCII: ${file}`);
+        [...pathsToFetch].map(async file => {
+            const res = await fetchData(`data/ascii/${file}`);
+            if (!res.ok) {
+                if (requiredFiles.has(file)) {
+                    throw new Error(`Failed to load Cinder ASCII: ${file}`);
+                }
+                return [file, null];
+            }
             const text = trimAsciiBlankEdges((await res.text()).replace(/\r\n/g, '\n'));
             return [file, text];
         })
     );
     const fileMap = Object.fromEntries(results);
     CINDER_FACES = {};
+    CINDER_FACE_FRAMES = {};
     profiles.forEach(profile => {
-        if (profile.id && profile.asciiFile) {
-            CINDER_FACES[profile.id] = centerAsciiArt(fileMap[profile.asciiFile] || '');
-        }
+        if (!profile.id || !profile.asciiFile) return;
+        const frames = (profileVariantPaths[profile.id] || [])
+            .filter(path => fileMap[path])
+            .map(path => centerAsciiArt(fileMap[path]));
+        CINDER_FACE_FRAMES[profile.id] = frames;
+        CINDER_FACES[profile.id] = frames[0] || '';
     });
 }
 

@@ -112,6 +112,53 @@ function cinderContinueFromIntro() {
     renderCinderProfile();
 }
 
+const CINDER_FACE_CYCLE_MS = 500;
+let cinderFaceCycleTimer = null;
+let cinderFaceCycleProfileId = null;
+let cinderFaceCycleIndex = 0;
+
+function getCinderFaceFrames(profileId) {
+    const frames = CINDER_FACE_FRAMES[profileId];
+    if (frames?.length) return frames;
+    const primary = CINDER_FACES[profileId];
+    return primary ? [primary] : [];
+}
+
+function stopCinderFaceCycle() {
+    if (cinderFaceCycleTimer) {
+        clearInterval(cinderFaceCycleTimer);
+        cinderFaceCycleTimer = null;
+    }
+    cinderFaceCycleProfileId = null;
+    cinderFaceCycleIndex = 0;
+}
+
+function prefersReducedFaceMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function startCinderFaceCycle(profileId) {
+    stopCinderFaceCycle();
+    const frames = getCinderFaceFrames(profileId);
+    const faceEl = document.getElementById('cinder-face');
+    if (!faceEl) return;
+
+    faceEl.textContent = frames[0] || '';
+    if (frames.length <= 1 || prefersReducedFaceMotion()) return;
+
+    cinderFaceCycleProfileId = profileId;
+    cinderFaceCycleIndex = 0;
+    cinderFaceCycleTimer = setInterval(() => {
+        if (cinderFaceCycleProfileId !== profileId) return;
+        cinderFaceCycleIndex = (cinderFaceCycleIndex + 1) % frames.length;
+        faceEl.textContent = frames[cinderFaceCycleIndex];
+    }, CINDER_FACE_CYCLE_MS);
+}
+
+function applyCinderFaceArt(profileId) {
+    startCinderFaceCycle(profileId);
+}
+
 function setCinderGlitchMode(isGlitch) {
     const cardEl = document.getElementById('cinder-card');
     const faceWrap = document.getElementById('cinder-face-wrap');
@@ -156,6 +203,7 @@ function renderCinderProfile() {
     }
 
     if (!profileId) {
+        stopCinderFaceCycle();
         setCinderGlitchMode(false);
         cardEl.classList.add('hidden');
         if (actionsEl) actionsEl.classList.remove('hidden');
@@ -177,8 +225,8 @@ function renderCinderProfile() {
     setCinderGlitchMode(isGlitch);
 
     if (isGlitch) {
-        const faceEl = document.getElementById('cinder-face');
-        if (faceEl) faceEl.textContent = CINDER_FACES[profileId] || '';
+        applyCinderFaceArt(profileId);
+        document.getElementById('cinder-face')?.classList.add('cinder-face--glitch');
         scheduleCinderFaceFit();
         return;
     }
@@ -187,10 +235,8 @@ function renderCinderProfile() {
     const nameEl = document.getElementById('cinder-name');
     const bioEl = document.getElementById('cinder-bio');
 
-    if (faceEl) {
-        faceEl.textContent = CINDER_FACES[profileId] || '';
-        faceEl.classList.remove('cinder-face--glitch');
-    }
+    applyCinderFaceArt(profileId);
+    if (faceEl) faceEl.classList.remove('cinder-face--glitch');
     if (nameEl) nameEl.textContent = `${profile.name}, ${profile.age}`;
     if (bioEl) bioEl.textContent = generateCinderBio(profile);
 
@@ -206,8 +252,24 @@ function fitCinderFace() {
     stack.style.setProperty('--cinder-face-scale', '1');
     const wrapWidth = wrap.clientWidth;
     const wrapHeight = wrap.clientHeight;
-    const faceWidth = face.scrollWidth;
-    const faceHeight = face.scrollHeight;
+    const profileId = getCurrentCinderProfileId();
+    const frames = profileId ? getCinderFaceFrames(profileId) : [];
+    let faceWidth = 0;
+    let faceHeight = 0;
+
+    if (frames.length > 1) {
+        const currentText = face.textContent;
+        frames.forEach(frame => {
+            face.textContent = frame;
+            faceWidth = Math.max(faceWidth, face.scrollWidth);
+            faceHeight = Math.max(faceHeight, face.scrollHeight);
+        });
+        face.textContent = frames[cinderFaceCycleIndex] || frames[0] || currentText;
+    } else {
+        faceWidth = face.scrollWidth;
+        faceHeight = face.scrollHeight;
+    }
+
     if (wrapWidth <= 0 || faceWidth <= 0 || wrapHeight <= 0 || faceHeight <= 0) return;
 
     const scale = Math.min(1, wrapWidth / faceWidth, wrapHeight / faceHeight);
