@@ -154,6 +154,7 @@ async function bootGame() {
     }
     handleViewportChange();
     ensureStatsState();
+    initSfx();
     setupCVListeners();
     updateHUD();
     if (typeof syncFatalPhoneTheme === 'function') syncFatalPhoneTheme();

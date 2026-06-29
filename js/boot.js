@@ -73,6 +73,7 @@ async function playBootSplash() {
 
     await wait(120);
     splash.classList.remove('boot-splash--power');
+    playBootChime();
 
     await wait(1400);
     splash.classList.remove('boot-splash--in');

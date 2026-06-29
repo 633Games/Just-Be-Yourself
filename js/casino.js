@@ -14,8 +14,7 @@ function buyScratch() {
         showToast("BROKE.");
         return;
     }
-    state.cash -= 1.00;
-    updateHUD();
+    adjustCash(-1);
 
     state.scratch.active = true;
     state.scratch.won = false;
@@ -58,11 +57,10 @@ function revealScratch(index, btnElement) {
     if (val === '$') {
         state.scratch.won = true;
         state.scratch.active = false;
-        state.cash += 5.00;
+        adjustCash(5);
         recordCasinoWin(5.00);
         recordScratchJackpot();
         tryUnlockTrophy('scratch_jackpot');
-        updateHUD();
         showToast("JACKPOT! +$5.00");
         setTimeout(initScratch, 2000);
     } else {
@@ -140,8 +138,7 @@ function startBjDeal() {
     
     const cashBeforeBet = state.cash;
     state.bj.wasAllIn = state.bj.bet >= cashBeforeBet && cashBeforeBet > 0;
-    state.cash -= state.bj.bet;
-    updateHUD();
+    adjustCash(-state.bj.bet, { sfx: 'none' });
 
     state.bj.state = 'play';
     state.bj.deck = getDeck();
@@ -216,26 +213,26 @@ function endBj(result) {
         if (result === 'bj') {
             const win = state.bj.bet * 2.5; // Blackjack pays 3:2
             winAmount = win;
-            state.cash += win;
+            adjustCash(win, { gainAmount: state.bj.bet });
             recordCasinoWin(win);
             showToast(`BLACKJACK! +$${win.toFixed(2)}`);
         } else if (result === 'win') {
             const win = state.bj.bet * 2;
             winAmount = win;
-            state.cash += win;
+            adjustCash(win, { gainAmount: state.bj.bet });
             recordCasinoWin(win);
             showToast(`YOU WIN! +$${win.toFixed(2)}`);
         } else if (result === 'push') {
-            state.cash += state.bj.bet;
+            adjustCash(state.bj.bet, { silent: true });
             showToast("PUSH. MONEY RETURNED.");
         } else {
             const totalBeforeBet = state.cash + state.bj.bet;
             if (totalBeforeBet > 0 && (state.bj.bet / totalBeforeBet) >= 0.9) {
                 lostHugeAmount = true;
             }
+            playWompWomp();
             showToast(`YOU LOSE $${state.bj.bet.toFixed(2)}`);
         }
-        updateHUD();
 
         checkCasinoSkillUnlocks({ winAmount, lostHugeAmount });
         if (result === 'bj' || result === 'win') {

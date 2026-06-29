@@ -263,7 +263,7 @@ function awardBonus(amount, topPct, leftPct) {
     const total = amount * multiplier;
     const comboExtra = total - amount;
 
-    state.cash += total;
+    adjustCash(total);
     state.shiftEarned += total;
     state.shiftBonusEarned += total;
     state.shiftBonusRaw += amount;
@@ -271,7 +271,6 @@ function awardBonus(amount, topPct, leftPct) {
     state.shiftTipsCollected++;
     state.shiftCombo++;
 
-    updateHUD();
     updateShiftHUD();
     pulseEarnedHUD();
     if (topPct != null) showFloatText(`+${formatMoney(total)}`, topPct, leftPct);
@@ -672,9 +671,8 @@ function processShiftTick() {
 
     const earnedThisTick = state.baseWagePerSec * tickLength;
     state.shiftEarned += earnedThisTick;
-    state.cash += earnedThisTick;
+    adjustCash(earnedThisTick, { silent: true });
 
-    updateHUD();
     updateShiftHUD();
 
     if (state.shiftTimeElapsed >= state.shiftMaxTime) {
@@ -747,6 +745,9 @@ function endShift(manual) {
     cleanupArchetypeEngine();
 
     const earned = state.shiftEarned;
+    const basePay = Math.max(0, earned - state.shiftBonusEarned);
+    if (basePay > 0) playMoneyGain(basePay);
+
     recordJobEarnings(earned);
     recordShiftCompleted();
 
