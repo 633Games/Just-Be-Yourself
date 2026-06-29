@@ -1,6 +1,7 @@
 :root {
     --lcd-bg: #8cac24; /* Iconic Nokia green backlight */
     --lcd-pixel: #111406; /* Dark green/black LCD pixel */
+    --cash-gain-green: #1a4d14; /* Dark green for +$$$ fly-in */
     --lcd-bezel-halo: #6b8519;
     --boot-art-dark: #456b1f;
     --boot-art-wave: rgba(220, 245, 138, 0.55);
@@ -256,29 +257,36 @@ body {
 }
 .blinking { animation: blink 1s infinite; }
 
-#toast-container {
-    z-index: 100;
+#toast-container.ticker-tape {
+    position: relative;
+    flex-shrink: 0;
+    z-index: 110;
+    height: 1.35rem;
+    overflow: hidden;
+    pointer-events: none;
+    border-bottom: 2px solid var(--lcd-pixel);
+    background: var(--lcd-pixel);
+    color: var(--lcd-bg);
 }
 
-.toast-alert {
-    position: relative;
-    min-height: 2.75rem;
+.ticker-tape-track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
-    transform: translateY(-100%);
-    opacity: 0;
-    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    white-space: nowrap;
+    font-size: 9px;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    will-change: transform;
 }
 
-.toast-alert-visible {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-.toast-alert-hide {
-    transform: translateY(-100%);
-    opacity: 0;
+.ticker-tape-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
 }
 
 @keyframes timer-urgent-blink {
@@ -967,6 +975,82 @@ body {
 @keyframes scanline-sweep {
     0% { background-position: 0 -8px; }
     100% { background-position: 0 100%; }
+}
+
+.cash-hud-wrap {
+    position: relative;
+    display: block;
+    text-align: center;
+    overflow: visible;
+}
+
+.cash-fx-layer {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 160%;
+    height: 220%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
+}
+
+#ui-cash {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: 0 auto;
+    width: max-content;
+    text-align: center;
+    transform-origin: center center;
+    will-change: transform, filter;
+}
+
+#ui-cash.cash-hud-pop,
+#ui-cash.cash-hud-settle {
+    transition: none;
+}
+
+.cash-gain-floater {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--cash-gain-green);
+    animation: cash-gain-floater-merge var(--cash-floater-duration, 480ms)
+        cubic-bezier(0.22, 1.14, 0.36, 1) forwards;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+@keyframes cash-gain-floater-merge {
+    0% {
+        opacity: 0;
+        transform: translate(calc(-50% + var(--floater-start-x, 18px)), calc(-50% + var(--floater-start-y, 18px)))
+            scale(0.45);
+    }
+    20% {
+        opacity: 1;
+        transform: translate(calc(-50% + var(--floater-mid-x, 9px)), calc(-50% + var(--floater-mid-y, 9px)))
+            scale(1.16);
+    }
+    45% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+    70% {
+        opacity: 0.88;
+        transform: translate(-50%, -50%) scale(0.88);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.35);
+    }
 }
 
 .shift-float-layer {

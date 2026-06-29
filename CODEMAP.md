@@ -104,6 +104,7 @@ Rent formula: `getWeeklyRent()` in `state.js`.
 | `initSfx` | Unlock `AudioContext` on first user gesture |
 | `adjustCash(delta, opts?)` | Change `state.cash`, update HUD, play gain/loss SFX |
 | `playMoneyGain` / `playWompWomp` | Explicit money sounds (e.g. shift end base pay, BJ loss) |
+| `scheduleMoneyGainCascade` / `getMoneyGainDingDuration` | Ding timing; floater duration synced to cascade gaps |
 | `playAchievementDing` | CV skill or trophy unlock |
 
 ### [`js/ascii.js`](js/ascii.js) — ASCII art pipeline
@@ -133,9 +134,10 @@ Loaded globals: `SKILLS_DB`, `JOB_DB`, `EVENTS_DB`, `CINDER_DB`, `TROPHIES_DB`, 
 | Function | Use for |
 |----------|---------|
 | `updateHUD` | Top-bar cash & date |
+| `onCashGainDing` / `beginCashGainFxBurst` | `+$$$` fly-in per coin ding (called from `playMoneyGain`) |
+| `showToast` | Scrolling alerts in the top ticker strip (`#toast-container`) |
 | `advanceDay` | End of shift day tick, rent week, events |
 | `switchView(viewId)` | Show one app screen |
-| `showToast` | Pop-up alerts |
 | `openCasino` | Casino entry |
 
 ### [`js/messages.js`](js/messages.js) — comms & unlocks
@@ -254,6 +256,8 @@ Content-only changes → edit JSON/ASCII, not JS (unless new fields need loaders
 |------|------|
 | [`index.html`](index.html) | All views (`#*-view`), `onclick` handlers, script tags |
 | [`css/styles.css`](css/styles.css) | Phone shell, LCD, per-scene art, trophies, Cinder, boot |
+
+**Top ticker strip (`#toast-container.ticker-tape`):** Always-visible dark bar at the top of the phone screen (first child inside `.phone-display`). Reserved for scrolling `showToast` messages and future persistent HUD copy — background stays on even when no message is playing.
 
 New app screen: copy a `app-screen` block, add ID to `switchView` list in [`js/ui.js`](js/ui.js), add home button + `updateAppMenu` entry in [`js/messages.js`](js/messages.js).
 

@@ -91,6 +91,8 @@
             
             <!-- THE ACTUAL SOFTWARE SCREEN -->
             <div class="phone-display nokia-screen rounded-lg flex flex-col overflow-hidden relative min-h-0">
+
+                <div id="toast-container" class="ticker-tape" aria-live="polite" aria-atomic="true"></div>
                 
                 <!-- OS Header Bar -->
                 <div class="header-area relative shrink-0 z-20">
@@ -103,8 +105,11 @@
                             <span class="text-[8px] leading-none ml-1 normal-case">Nee-G</span>
                         </div>
 
-                        <div class="text-center leading-none">
-                            <div id="ui-cash" class="text-lg">$0.00</div>
+                        <div class="flex justify-center items-end w-full min-w-0 leading-none">
+                            <div class="cash-hud-wrap">
+                                <div id="cash-fx-layer" class="cash-fx-layer" aria-hidden="true"></div>
+                                <div id="ui-cash" class="text-lg">$0.00</div>
+                            </div>
                         </div>
 
                         <div class="flex flex-col items-end gap-[2px] text-[10px] leading-none">
@@ -723,8 +728,6 @@
                         </div>
                     </div>
                 </main>
-
-                <div id="toast-container" class="absolute inset-x-0 top-0 z-[100] overflow-hidden pointer-events-none"></div>
 
                 <!-- Phone crash overlay (Cinder easter egg) -->
                 <div id="phone-crash-overlay" class="phone-crash-overlay hidden" aria-hidden="true">

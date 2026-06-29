@@ -3,6 +3,172 @@ function updateHUD() {
     elRentTimer.innerText = formatGameDate();
 }
 
+const CASH_GAIN_FLOATER_TEXT = '+$$$';
+const CASH_SCALE_MAX = 1.2;
+const CASH_WOBBLE_DEG = 2.8;
+const CASH_BURST_PAD_MS = 480;
+const CASH_POP_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
+const CASH_SETTLE_EASE = 'cubic-bezier(0.22, 1.12, 0.36, 1)';
+const CASH_FLOATER_TRAVEL_PX = 20;
+
+let cashFxBurstId = 0;
+let cashFxResetTimer = null;
+let cashHudScale = 1;
+let cashHudRotate = 0;
+let cashHudAnim = null;
+
+function cashHudTransform(scale, rotate) {
+    return `scale(${scale}) rotate(${rotate}deg)`;
+}
+
+function resetCashHudFx() {
+    if (!elCash) return;
+
+    if (cashHudAnim) {
+        cashHudAnim.cancel();
+        cashHudAnim = null;
+    }
+
+    if (cashHudScale <= 1.001 && Math.abs(cashHudRotate) < 0.05) {
+        cashHudScale = 1;
+        cashHudRotate = 0;
+        elCash.classList.remove('cash-hud-pop', 'cash-hud-settle');
+        elCash.style.transform = '';
+        return;
+    }
+
+    const fromScale = cashHudScale;
+    const fromRotate = cashHudRotate;
+    elCash.classList.remove('cash-hud-pop');
+    elCash.classList.add('cash-hud-settle');
+
+    cashHudAnim = elCash.animate(
+        [
+            { transform: cashHudTransform(fromScale, fromRotate) },
+            { transform: cashHudTransform(1.04, fromRotate * 0.25) },
+            { transform: cashHudTransform(1, 0) },
+        ],
+        {
+            duration: Math.max(320, CASH_BURST_PAD_MS - 80),
+            easing: CASH_SETTLE_EASE,
+            fill: 'forwards',
+        }
+    );
+
+    cashHudAnim.onfinish = () => {
+        cashHudScale = 1;
+        cashHudRotate = 0;
+        elCash.classList.remove('cash-hud-settle');
+        elCash.style.transform = '';
+        cashHudAnim = null;
+    };
+}
+
+function hitCashHud(stepIndex, total, landDurationMs) {
+    if (!elCash) return;
+
+    const progress = total > 0 ? (stepIndex + 1) / total : 1;
+    const targetScale = Math.min(CASH_SCALE_MAX, 1 + progress * (CASH_SCALE_MAX - 1));
+    const overshoot = Math.min(
+        CASH_SCALE_MAX + 0.05,
+        targetScale + Math.max(0.05, (targetScale - cashHudScale) * 0.55)
+    );
+    const wobbleDir = stepIndex % 2 === 0 ? -1 : 1;
+    const targetRotate = wobbleDir * CASH_WOBBLE_DEG * (0.55 + progress * 0.45);
+    const overshootRotate = targetRotate * 1.35;
+    const popMs = Math.min(340, Math.max(130, landDurationMs * 0.42));
+
+    if (cashHudAnim) {
+        cashHudAnim.cancel();
+        cashHudAnim = null;
+    }
+
+    elCash.classList.remove('cash-hud-settle');
+    elCash.classList.add('cash-hud-pop');
+
+    cashHudAnim = elCash.animate(
+        [
+            {
+                transform: cashHudTransform(cashHudScale, cashHudRotate),
+                filter: 'brightness(1)',
+            },
+            {
+                transform: cashHudTransform(overshoot, overshootRotate),
+                filter: 'brightness(1.14)',
+            },
+            {
+                transform: cashHudTransform(targetScale, targetRotate),
+                filter: 'brightness(1.05)',
+            },
+        ],
+        {
+            duration: popMs,
+            easing: CASH_POP_EASE,
+            fill: 'forwards',
+        }
+    );
+
+    cashHudAnim.onfinish = () => {
+        cashHudScale = targetScale;
+        cashHudRotate = targetRotate;
+        elCash.style.transform = cashHudTransform(targetScale, targetRotate);
+        cashHudAnim = null;
+    };
+}
+
+function spawnCashGainFloater(label, durationMs, stepIndex, onLand) {
+    const layer = document.getElementById('cash-fx-layer');
+    if (!layer || !elCash) return;
+
+    const duration = Math.max(120, Number(durationMs) || 480);
+    const fromLeft = stepIndex % 2 === 0;
+    const travel = CASH_FLOATER_TRAVEL_PX;
+    const half = travel / 2;
+    const el = document.createElement('span');
+    el.className = 'cash-gain-floater';
+    el.textContent = label;
+    el.style.setProperty('--cash-floater-duration', `${duration}ms`);
+    el.style.setProperty('--floater-start-x', fromLeft ? `-${travel}px` : `${travel}px`);
+    el.style.setProperty('--floater-start-y', `${travel}px`);
+    el.style.setProperty('--floater-mid-x', fromLeft ? `-${half}px` : `${half}px`);
+    el.style.setProperty('--floater-mid-y', `${half}px`);
+    layer.appendChild(el);
+
+    const landAt = duration * 0.68;
+    setTimeout(() => {
+        if (onLand) onLand();
+    }, landAt);
+
+    setTimeout(() => el.remove(), duration + 40);
+}
+
+function beginCashGainFxBurst(dingCount, totalMs) {
+    const burstId = ++cashFxBurstId;
+    if (cashFxResetTimer) clearTimeout(cashFxResetTimer);
+
+    if (cashHudAnim) {
+        cashHudAnim.cancel();
+        cashHudAnim = null;
+    }
+    cashHudScale = 1;
+    cashHudRotate = 0;
+    elCash?.classList.remove('cash-hud-pop', 'cash-hud-settle');
+    if (elCash) elCash.style.transform = '';
+
+    cashFxResetTimer = setTimeout(() => {
+        if (burstId !== cashFxBurstId) return;
+        resetCashHudFx();
+    }, totalMs + CASH_BURST_PAD_MS);
+}
+
+function onCashGainDing(stepIndex, total, durationMs) {
+    if (!document.getElementById('cash-fx-layer') || !elCash) return;
+
+    spawnCashGainFloater(CASH_GAIN_FLOATER_TEXT, durationMs, stepIndex, () => {
+        hitCashHud(stepIndex, total, durationMs);
+    });
+}
+
 function advanceDay() {
     const prevDate = new Date(state.gameDateMs);
     const prevMonth = prevDate.getMonth();
@@ -104,22 +270,67 @@ function switchView(viewId) {
     activeViewId = viewId;
 }
 
-function showToast(message) {
+let tickerQueue = [];
+let tickerActive = false;
+let tickerAnim = null;
+
+function stripToastHtml(message) {
+    return String(message)
+        .replace(/<br\s*\/?>/gi, ' · ')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function finishTickerItem(container) {
+    if (tickerAnim) {
+        tickerAnim.cancel();
+        tickerAnim = null;
+    }
+    container.innerHTML = '';
+    tickerActive = false;
+    drainTickerQueue();
+}
+
+function drainTickerQueue() {
+    if (tickerActive || tickerQueue.length === 0) return;
+
     const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    tickerActive = true;
+
+    const text = tickerQueue.shift();
     container.innerHTML = '';
 
-    const toast = document.createElement('div');
-    toast.className = 'toast-alert bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] border-b-2 border-[var(--lcd-bg)] px-2 py-2 text-center w-full pointer-events-auto text-[10px]';
-    toast.innerHTML = `<span class="blinking inline mr-1">!</span><span>${message}</span>`;
+    const track = document.createElement('div');
+    track.className = 'ticker-tape-track';
+    track.innerHTML = `<span class="ticker-tape-text"><span class="blinking">!</span><span>${escapeHtml(text)}</span></span>`;
+    container.appendChild(track);
 
-    container.appendChild(toast);
-    requestAnimationFrame(() => toast.classList.add('toast-alert-visible'));
+    requestAnimationFrame(() => {
+        const viewport = container.clientWidth;
+        const travel = viewport + track.offsetWidth;
+        const duration = Math.max(3500, Math.min(12000, (travel / 42) * 1000));
 
-    setTimeout(() => {
-        toast.classList.remove('toast-alert-visible');
-        toast.classList.add('toast-alert-hide');
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+        tickerAnim = track.animate(
+            [
+                { transform: `translateX(${viewport}px)` },
+                { transform: `translateX(-${track.offsetWidth}px)` },
+            ],
+            { duration, easing: 'linear', fill: 'forwards' }
+        );
+
+        tickerAnim.onfinish = () => finishTickerItem(container);
+        tickerAnim.oncancel = () => {};
+    });
+}
+
+function showToast(message) {
+    const text = stripToastHtml(message);
+    if (!text) return;
+    tickerQueue.push(text);
+    drainTickerQueue();
 }
 
 function openCasino() {

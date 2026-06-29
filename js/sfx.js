@@ -460,15 +460,39 @@ function dingCountForAmount(amount) {
     );
 }
 
-function playMoneyGain(amount) {
+function getMoneyGainDingDuration(amount, stepIndex, total) {
+    const gaps = buildCascadeGaps(total);
+    if (stepIndex < gaps.length) return Math.max(80, gaps[stepIndex]);
+    return Math.max(120, SFX_CHIME_TAIL_MS);
+}
+
+function scheduleMoneyGainCascade(amount, onDing) {
     const count = dingCountForAmount(amount);
     const gaps = buildCascadeGaps(count);
     let delay = 0;
 
     for (let i = 0; i < count; i++) {
-        const pitchProgress = pitchProgressForDing(i, count);
-        setTimeout(() => playCoinChime(i, count, { pitchProgress }), delay);
+        const step = i;
+        setTimeout(() => {
+            playCoinChime(step, count, { pitchProgress: pitchProgressForDing(step, count) });
+            if (onDing) onDing(step, count);
+        }, delay);
         if (i < gaps.length) delay += gaps[i];
+    }
+
+    return { count, totalMs: delay + SFX_CHIME_TAIL_MS };
+}
+
+function playMoneyGain(amount) {
+    const result = scheduleMoneyGainCascade(amount, (step, total) => {
+        const durationMs = getMoneyGainDingDuration(amount, step, total);
+        if (typeof onCashGainDing === 'function') {
+            onCashGainDing(step, total, durationMs);
+        }
+    });
+
+    if (typeof beginCashGainFxBurst === 'function') {
+        beginCashGainFxBurst(result.count, result.totalMs);
     }
 }
 
