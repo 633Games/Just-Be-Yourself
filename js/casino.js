@@ -1,11 +1,28 @@
+function updateScratchLeaveUI() {
+    const btn = document.getElementById('btn-scratch-leave');
+    const buyBtn = document.getElementById('btn-buy-scratch');
+    if (!btn || !buyBtn) return;
+    const buyVisible = !buyBtn.classList.contains('hidden');
+    btn.classList.toggle('hidden', !buyVisible);
+}
+
+function leaveScratch() {
+    const buyBtn = document.getElementById('btn-buy-scratch');
+    if (!buyBtn || buyBtn.classList.contains('hidden')) return;
+    switchView('gamble-menu-view');
+}
+
 function initScratch() {
     state.scratch.active = false;
+    state.scratch.jackpotsFound = 0;
+    state.scratch.won = false;
     document.getElementById('btn-buy-scratch').classList.remove('hidden');
     document.getElementById('scratch-boxes').innerHTML = `
         <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
         <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
         <div class="w-10 h-10 border-2 border-[var(--lcd-pixel)] flex items-center justify-center opacity-30">[ ]</div>
     `;
+    updateScratchLeaveUI();
     switchView('scratch-view');
 }
 
@@ -20,15 +37,11 @@ function buyScratch() {
     state.scratch.won = false;
     tryUnlockTrophy('scratch_buy');
     document.getElementById('btn-buy-scratch').classList.add('hidden');
+    updateScratchLeaveUI();
 
-    // 15% chance to win $5
-    const isWinner = Math.random() < 0.15;
-    state.scratch.boxes = ['X', 'X', 'X'];
-    
-    if (isWinner) {
-        const winIndex = Math.floor(Math.random() * 3);
-        state.scratch.boxes[winIndex] = '$';
-    }
+    // Each box has an independent 15% chance to be a jackpot
+    state.scratch.jackpotsFound = 0;
+    state.scratch.boxes = ['X', 'X', 'X'].map(() => Math.random() < 0.15 ? '$' : 'X');
 
     renderScratchBoxes();
 }
@@ -46,6 +59,20 @@ function renderScratchBoxes() {
     });
 }
 
+function finishScratchRound() {
+    state.scratch.active = false;
+
+    if (state.scratch.jackpotsFound === 0) {
+        playDunDun();
+        showToast("YOU LOSE.");
+    } else if (state.scratch.jackpotsFound > 1) {
+        const total = state.scratch.jackpotsFound * 5;
+        showToast(`TOTAL WIN +$${total.toFixed(2)}`);
+    }
+
+    setTimeout(initScratch, 2000);
+}
+
 function revealScratch(index, btnElement) {
     if (!state.scratch.active) return;
 
@@ -58,23 +85,20 @@ function revealScratch(index, btnElement) {
 
     if (val === '$') {
         state.scratch.won = true;
-        state.scratch.active = false;
+        state.scratch.jackpotsFound++;
         adjustCash(5);
         recordCasinoWin(5.00);
         recordScratchJackpot();
         tryUnlockTrophy('scratch_jackpot');
         showToast("JACKPOT! +$5.00");
-        setTimeout(initScratch, 2000);
     } else {
-        // Check if all revealed
-        const allRevealed = Array.from(document.getElementById('scratch-boxes').children)
-                                 .every(el => el.innerText !== '?');
-        if (allRevealed && !state.scratch.won) {
-            state.scratch.active = false;
-            playWompWomp();
-            showToast("YOU LOSE.");
-            setTimeout(initScratch, 2000);
-        }
+        playDing();
+    }
+
+    const allRevealed = Array.from(document.getElementById('scratch-boxes').children)
+        .every(el => el.innerText !== '?');
+    if (allRevealed) {
+        finishScratchRound();
     }
 }
 
@@ -264,6 +288,7 @@ function bjStand() {
     if (state.bj.state !== 'play') return;
     state.bj.state = 'over';
     document.getElementById('bj-actions').classList.add('hidden');
+    playCardFlipDun();
     
     // Dealer logic
     let dVal = getHandValue(state.bj.dealer);
@@ -318,7 +343,7 @@ function endBj(result) {
             if (tableTotal > 0 && (lostBet / tableTotal) >= 0.9) {
                 lostHugeAmount = true;
             }
-            playWompWomp();
+            playDunDun();
             showToast(`YOU LOSE $${lostBet.toFixed(2)}`);
             state.bj.bet = 0;
         }

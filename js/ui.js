@@ -486,6 +486,26 @@ let tickerQueue = [];
 let tickerActive = false;
 let tickerAnim = null;
 
+const TICKER_BASE_PX_PER_SEC = 52;
+const TICKER_BACKLOG_SPEED_STEP = 0.55;
+const TICKER_MAX_PX_PER_SEC = 180;
+const TICKER_MIN_DURATION_MS = 900;
+const TICKER_MAX_DURATION_MS = 10000;
+
+function getTickerScrollSpeedPxPerSec() {
+    const backlog = tickerQueue.length + (tickerActive ? 1 : 0);
+    const boost = 1 + Math.max(0, backlog - 1) * TICKER_BACKLOG_SPEED_STEP;
+    return Math.min(TICKER_MAX_PX_PER_SEC, TICKER_BASE_PX_PER_SEC * boost);
+}
+
+function getTickerDurationMs(travelPx) {
+    const pxPerSec = getTickerScrollSpeedPxPerSec();
+    return Math.max(
+        TICKER_MIN_DURATION_MS,
+        Math.min(TICKER_MAX_DURATION_MS, (travelPx / pxPerSec) * 1000)
+    );
+}
+
 function stripToastHtml(message) {
     return String(message)
         .replace(/<br\s*\/?>/gi, ' · ')
@@ -523,7 +543,7 @@ function drainTickerQueue() {
     requestAnimationFrame(() => {
         const viewportWidth = viewport.clientWidth;
         const travel = viewportWidth + track.offsetWidth;
-        const duration = Math.max(3500, Math.min(12000, (travel / 42) * 1000));
+        const duration = getTickerDurationMs(travel);
 
         tickerAnim = track.animate(
             [

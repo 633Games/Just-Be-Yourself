@@ -19,6 +19,19 @@ function stripHtml(text) {
     return text.replace(/<[^>]+>/g, '');
 }
 
+function getMessageTickerLabel(contact) {
+    return MESSAGE_SENDERS[contact]?.label || contact;
+}
+
+function notifyIncomingMessage(contact, text, html) {
+    const body = stripHtml(String(text)).replace(/\s+/g, ' ').trim();
+    if (!body) return;
+
+    const label = getMessageTickerLabel(contact);
+    showToast(`${label}: ${body}`);
+    playMessagePing();
+}
+
 function addMessage(sender, text, options = {}) {
     const contact = normalizeSender(sender);
     const outgoing = Boolean(options.outgoing);
@@ -42,6 +55,10 @@ function addMessage(sender, text, options = {}) {
         state.messagesFlash = true;
     }
     updateMessagesBadge();
+
+    if (!outgoing) {
+        notifyIncomingMessage(contact, text, options.html);
+    }
 }
 
 function markThreadAsRead(contact) {

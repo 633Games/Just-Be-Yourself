@@ -126,6 +126,8 @@ function startInterview(job, match) {
         match: match,
         question: qPool[0], // 1 question per interview to keep it punchy
         timeLeft: timerMax,
+        timerMax,
+        tickAccumulator: 0,
         interval: null,
         scrambleInterval: null
     };
@@ -133,13 +135,24 @@ function startInterview(job, match) {
     recordInterviewStarted();
     switchView('interview-view');
     renderInterview();
+    playCountdownTick(0);
 
     // Run the timer
     state.interview.interval = setInterval(() => {
-        state.interview.timeLeft -= 0.1;
-        document.getElementById('interview-timer').innerText = Math.max(0, state.interview.timeLeft).toFixed(1);
-        
-        if (state.interview.timeLeft <= 0) {
+        const interview = state.interview;
+        interview.timeLeft -= 0.1;
+        document.getElementById('interview-timer').innerText = Math.max(0, interview.timeLeft).toFixed(1);
+
+        const progress = 1 - Math.max(0, interview.timeLeft) / interview.timerMax;
+        const tickInterval = 1.0 - progress * 0.85;
+        interview.tickAccumulator += 0.1;
+
+        if (interview.tickAccumulator >= tickInterval) {
+            playCountdownTick(progress);
+            interview.tickAccumulator = 0;
+        }
+
+        if (interview.timeLeft <= 0) {
             endInterview(false, "TIME UP!");
         }
     }, 100);

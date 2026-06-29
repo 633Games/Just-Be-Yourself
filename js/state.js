@@ -24,7 +24,7 @@ const state = {
     currentJobTitle: "PIZZA SHIFT",
     interview: null,
     // Casino State
-    scratch: { active: false, boxes: [], won: false },
+    scratch: { active: false, boxes: [], won: false, jackpotsFound: 0 },
     bj: { bet: 1, deck: [], player: [], dealer: [], state: 'bet' }, // bet, play, over
     // Messages
     messages: [],
