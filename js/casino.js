@@ -49,6 +49,8 @@ function renderScratchBoxes() {
 function revealScratch(index, btnElement) {
     if (!state.scratch.active) return;
 
+    playScratchRip();
+
     const val = state.scratch.boxes[index];
     btnElement.className = "w-10 h-10 border-2 border-[var(--lcd-pixel)] bg-transparent text-[var(--lcd-pixel)] flex items-center justify-center font-bold text-lg";
     btnElement.innerText = val;
@@ -69,44 +71,117 @@ function revealScratch(index, btnElement) {
                                  .every(el => el.innerText !== '?');
         if (allRevealed && !state.scratch.won) {
             state.scratch.active = false;
+            playWompWomp();
             showToast("YOU LOSE.");
             setTimeout(initScratch, 2000);
         }
     }
 }
 
+function roundBetAmount(amount) {
+    return Math.round((Number(amount) || 0) * 100) / 100;
+}
+
+function getBjMaxWager() {
+    return roundBetAmount(state.bj.bet + state.cash);
+}
+
+function setBjWager(targetBet) {
+    const maxWager = getBjMaxWager();
+    const nextBet = roundBetAmount(Math.min(maxWager, Math.max(0, targetBet)));
+    const delta = roundBetAmount(nextBet - state.bj.bet);
+    if (delta === 0) return;
+
+    adjustCash(-delta);
+    state.bj.bet = nextBet;
+    updateBjBetUI();
+}
+
+function refundBjWager(silent = true) {
+    if (state.bj.bet <= 0) return;
+    adjustCash(state.bj.bet, silent ? { silent: true } : undefined);
+    state.bj.bet = 0;
+    updateBjBetUI();
+}
+
 function initBlackjack() {
     state.bj.state = 'bet';
-    state.bj.bet = 1;
-    if(state.bj.bet > state.cash) state.bj.bet = Math.max(0, state.cash);
+    state.bj.bet = 0;
     
     document.getElementById('bj-bet-screen').classList.remove('hidden');
     document.getElementById('bj-active-screen').classList.add('hidden');
+    const customInput = document.getElementById('bj-custom-bet-input');
+    if (customInput) customInput.value = '';
     updateBjBetUI();
     
     switchView('blackjack-view');
 }
 
 function updateBjBetUI() {
-    document.getElementById('bj-bet-amount').innerText = `$${state.bj.bet.toFixed(2)}`;
+    document.getElementById('bj-bet-amount').innerText = formatMoney(state.bj.bet);
     document.getElementById('bj-status').innerText = 'BET';
+
+    const dealBtn = document.getElementById('bj-deal-btn');
+    if (dealBtn) {
+        const canDeal = state.bj.bet > 0;
+        dealBtn.disabled = !canDeal;
+        dealBtn.classList.toggle('opacity-50', !canDeal);
+        dealBtn.classList.toggle('pointer-events-none', !canDeal);
+    }
 }
 
 function changeBjBet(amount) {
     if (amount === 'max') {
-        state.bj.bet = state.cash; // Grab the exact amount, including cents
-    } else {
-        // If they use +/- buttons, snap it back to a clean whole number
-        state.bj.bet = Math.floor(state.bj.bet) + amount;
+        setBjWager(getBjMaxWager());
+        return;
     }
-    
-    // Handle betting constraints
-    if (state.bj.bet < 1 && state.cash >= 1) state.bj.bet = 1;
-    else if (state.cash < 1) state.bj.bet = state.cash; // Allow sub-$1 bets if you are super broke
-    
-    if (state.bj.bet > state.cash) state.bj.bet = state.cash;
-    
-    updateBjBetUI();
+
+    const step = Number(amount) || 0;
+    if (step > 0) {
+        if (state.cash < step) {
+            showToast('NOT ENOUGH CASH');
+            return;
+        }
+        setBjWager(state.bj.bet + step);
+        return;
+    }
+
+    if (step < 0) {
+        if (state.bj.bet < Math.abs(step)) return;
+        setBjWager(state.bj.bet + step);
+    }
+}
+
+function applyBjCustomBet() {
+    const input = document.getElementById('bj-custom-bet-input');
+    if (!input) return;
+
+    const raw = String(input.value || '').trim();
+    if (!raw) {
+        showToast('ENTER A WAGER');
+        return;
+    }
+
+    const amount = roundBetAmount(raw);
+    if (!Number.isFinite(amount) || amount <= 0) {
+        showToast('INVALID WAGER');
+        return;
+    }
+
+    if (state.cash < amount) {
+        showToast('NOT ENOUGH CASH');
+        return;
+    }
+
+    setBjWager(state.bj.bet + amount);
+    input.value = '';
+}
+
+function leaveBlackjack() {
+    if (state.bj.state === 'bet') {
+        refundBjWager();
+    }
+    switchView('gamble-menu-view');
 }
 
 function getDeck() {
@@ -130,15 +205,19 @@ function getHandValue(hand) {
     return val;
 }
 
+function playBjCardFlipDuns(count, gapMs = 70) {
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => playCardFlipDun(), i * gapMs);
+    }
+}
+
 function startBjDeal() {
-    if (state.cash < state.bj.bet) {
-        showToast("NOT ENOUGH CASH");
+    if (state.bj.bet <= 0) {
+        showToast("PLACE A WAGER");
         return;
     }
     
-    const cashBeforeBet = state.cash;
-    state.bj.wasAllIn = state.bj.bet >= cashBeforeBet && cashBeforeBet > 0;
-    adjustCash(-state.bj.bet, { sfx: 'none' });
+    state.bj.wasAllIn = state.cash <= 0 && state.bj.bet > 0;
 
     state.bj.state = 'play';
     state.bj.deck = getDeck();
@@ -150,6 +229,7 @@ function startBjDeal() {
     document.getElementById('bj-actions').classList.remove('hidden');
     
     renderBj();
+    playBjCardFlipDuns(4);
     
     if (getHandValue(state.bj.player) === 21) endBj('bj');
 }
@@ -173,6 +253,7 @@ function bjHit() {
     if (state.bj.state !== 'play') return;
     state.bj.player.push(state.bj.deck.pop());
     renderBj();
+    playCardFlipDun();
     
     if (getHandValue(state.bj.player) > 21) {
         endBj('bust');
@@ -186,12 +267,17 @@ function bjStand() {
     
     // Dealer logic
     let dVal = getHandValue(state.bj.dealer);
+    let dealerDraws = 0;
     while (dVal < 17) {
         state.bj.dealer.push(state.bj.deck.pop());
         dVal = getHandValue(state.bj.dealer);
+        dealerDraws++;
     }
     
     renderBj();
+    if (dealerDraws > 0) {
+        playBjCardFlipDuns(dealerDraws);
+    }
     
     const pVal = getHandValue(state.bj.player);
     
@@ -224,14 +310,17 @@ function endBj(result) {
             showToast(`YOU WIN! +$${win.toFixed(2)}`);
         } else if (result === 'push') {
             adjustCash(state.bj.bet, { silent: true });
+            state.bj.bet = 0;
             showToast("PUSH. MONEY RETURNED.");
         } else {
-            const totalBeforeBet = state.cash + state.bj.bet;
-            if (totalBeforeBet > 0 && (state.bj.bet / totalBeforeBet) >= 0.9) {
+            const lostBet = state.bj.bet;
+            const tableTotal = lostBet + state.cash;
+            if (tableTotal > 0 && (lostBet / tableTotal) >= 0.9) {
                 lostHugeAmount = true;
             }
             playWompWomp();
-            showToast(`YOU LOSE $${state.bj.bet.toFixed(2)}`);
+            showToast(`YOU LOSE $${lostBet.toFixed(2)}`);
+            state.bj.bet = 0;
         }
 
         checkCasinoSkillUnlocks({ winAmount, lostHugeAmount });

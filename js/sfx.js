@@ -444,6 +444,82 @@ function playWompWomp() {
     playWompGlide(ctx, now + 0.47, 320, 110, 0.35, 0.1);
 }
 
+function playLossChime(index, total) {
+    const pitchProgress = 1 - pitchProgressForDing(index, total);
+    playCoinChime(index, total, { pitchProgress, gainScale: 0.82 });
+}
+
+function playCardFlipDun() {
+    const ctx = getSfxContext();
+    if (!ctx) return;
+
+    resumeSfxContext();
+
+    const now = ctx.currentTime;
+    const dunHz = 78 + Math.random() * 32;
+    const peak = 0.11 + Math.random() * 0.03;
+    const tail = 0.09 + Math.random() * 0.03;
+
+    const body = ctx.createOscillator();
+    body.type = 'triangle';
+    body.frequency.setValueAtTime(dunHz, now);
+    body.frequency.exponentialRampToValueAtTime(dunHz * 0.72, now + tail);
+
+    const bodyGain = ctx.createGain();
+    bodyGain.gain.setValueAtTime(0.001, now);
+    bodyGain.gain.exponentialRampToValueAtTime(peak, now + 0.004);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + tail);
+
+    body.connect(bodyGain);
+    bodyGain.connect(ctx.destination);
+    body.start(now);
+    body.stop(now + tail + 0.02);
+
+    const thud = ctx.createOscillator();
+    thud.type = 'sine';
+    thud.frequency.setValueAtTime(dunHz * 0.55, now);
+
+    const thudGain = ctx.createGain();
+    thudGain.gain.setValueAtTime(0.001, now);
+    thudGain.gain.exponentialRampToValueAtTime(peak * 0.55, now + 0.003);
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + tail * 0.85);
+
+    thud.connect(thudGain);
+    thudGain.connect(ctx.destination);
+    thud.start(now);
+    thud.stop(now + tail);
+}
+
+function playScratchRip() {
+    const ctx = getSfxContext();
+    if (!ctx) return;
+
+    resumeSfxContext();
+
+    const now = ctx.currentTime;
+    const duration = 0.04 + Math.random() * 0.02;
+    const peak = 0.055 + Math.random() * 0.02;
+    const ripHz = 900 + Math.random() * 700;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = getClickNoiseBuffer(ctx);
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(ripHz, now);
+    filter.Q.value = 3 + Math.random() * 4;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(peak, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    noise.start(now);
+    noise.stop(now + duration + 0.01);
+}
+
 function dingCountForAmount(amount) {
     const value = Math.min(SFX_GAIN_AMOUNT_CAP, Math.abs(Number(amount) || 0));
     if (value <= 0) return 0;
@@ -483,7 +559,7 @@ function scheduleMoneyGainCascade(amount, onDing) {
     return { count, totalMs: delay + SFX_CHIME_TAIL_MS };
 }
 
-function playMoneyGain(amount) {
+function playMoneyGain(amount, hudStart, hudDelta) {
     const result = scheduleMoneyGainCascade(amount, (step, total) => {
         const durationMs = getMoneyGainDingDuration(amount, step, total);
         if (typeof onCashGainDing === 'function') {
@@ -492,7 +568,37 @@ function playMoneyGain(amount) {
     });
 
     if (typeof beginCashGainFxBurst === 'function') {
-        beginCashGainFxBurst(result.count, result.totalMs);
+        beginCashGainFxBurst(result.count, result.totalMs, hudStart, hudDelta);
+    }
+}
+
+function scheduleMoneyLossCascade(amount, onDing) {
+    const count = dingCountForAmount(amount);
+    const gaps = buildCascadeGaps(count);
+    let delay = 0;
+
+    for (let i = 0; i < count; i++) {
+        const step = i;
+        setTimeout(() => {
+            playLossChime(step, count);
+            if (onDing) onDing(step, count);
+        }, delay);
+        if (i < gaps.length) delay += gaps[i];
+    }
+
+    return { count, totalMs: delay + SFX_CHIME_TAIL_MS };
+}
+
+function playMoneyLoss(amount, hudStart, hudDelta) {
+    const result = scheduleMoneyLossCascade(amount, (step, total) => {
+        const durationMs = getMoneyGainDingDuration(amount, step, total);
+        if (typeof onCashLossDing === 'function') {
+            onCashLossDing(step, total, durationMs);
+        }
+    });
+
+    if (typeof beginCashLossFxBurst === 'function') {
+        beginCashLossFxBurst(result.count, result.totalMs, hudStart, hudDelta);
     }
 }
 
@@ -500,20 +606,38 @@ function adjustCash(delta, options = {}) {
     const amount = Number(delta) || 0;
     if (amount === 0) return;
 
+    const cashBefore = state.cash;
     state.cash += amount;
-    updateHUD();
 
-    if (options.silent) return;
+    if (options.silent) {
+        updateHUD();
+        return;
+    }
 
     const sfx = options.sfx || 'auto';
-    if (sfx === 'none') return;
+    if (sfx === 'none') {
+        updateHUD();
+        return;
+    }
+
+    if (elRentTimer) elRentTimer.innerText = formatGameDate();
 
     if (sfx === 'gain' || (sfx === 'auto' && amount > 0)) {
-        playMoneyGain(options.gainAmount != null ? options.gainAmount : amount);
+        setCashHudDisplay(cashBefore);
+        playMoneyGain(
+            options.gainAmount != null ? options.gainAmount : amount,
+            cashBefore,
+            amount
+        );
         return;
     }
 
     if (sfx === 'loss' || (sfx === 'auto' && amount < 0)) {
-        playWompWomp();
+        setCashHudDisplay(cashBefore);
+        playMoneyLoss(
+            options.lossAmount != null ? options.lossAmount : Math.abs(amount),
+            cashBefore,
+            amount
+        );
     }
 }

@@ -92,33 +92,33 @@
             <!-- THE ACTUAL SOFTWARE SCREEN -->
             <div class="phone-display nokia-screen rounded-lg flex flex-col overflow-hidden relative min-h-0">
 
-                <div id="toast-container" class="ticker-tape" aria-live="polite" aria-atomic="true"></div>
+                <div id="toast-container" class="ticker-tape" aria-live="polite">
+                    <div class="ticker-tape-side ticker-tape-side-left">
+                        <div class="ticker-tape-signal" aria-hidden="true">
+                            <span class="ticker-signal-bar ticker-signal-bar-1"></span>
+                            <span class="ticker-signal-bar ticker-signal-bar-2"></span>
+                            <span class="ticker-signal-bar ticker-signal-bar-3"></span>
+                            <span class="ticker-signal-bar ticker-signal-bar-4"></span>
+                        </div>
+                        <span class="ticker-tape-carrier">Nee-G</span>
+                    </div>
+                    <div id="ticker-tape-viewport" class="ticker-tape-viewport" aria-atomic="true"></div>
+                    <div class="ticker-tape-side ticker-tape-side-right">
+                        <div class="ticker-tape-battery" aria-hidden="true">
+                            <span class="ticker-battery-cell"></span>
+                            <span class="ticker-battery-cell"></span>
+                            <span class="ticker-battery-cell"></span>
+                        </div>
+                        <span id="ui-rent-timer" class="ticker-tape-date">11/15/05</span>
+                    </div>
+                </div>
                 
                 <!-- OS Header Bar -->
                 <div class="header-area relative shrink-0 z-20">
-                    <header class="grid-header grid grid-cols-3 items-end p-2 border-b-2 border-[var(--lcd-pixel)]">
-                        <div class="flex items-end gap-1 text-[10px]">
-                            <span class="inline-block w-1 h-3 bg-[var(--lcd-pixel)]"></span>
-                            <span class="inline-block w-1 h-4 bg-[var(--lcd-pixel)]"></span>
-                            <span class="inline-block w-1 h-5 bg-[var(--lcd-pixel)]"></span>
-                            <span class="inline-block w-1 h-5 border border-[var(--lcd-pixel)]"></span>
-                            <span class="text-[8px] leading-none ml-1 normal-case">Nee-G</span>
-                        </div>
-
-                        <div class="flex justify-center items-end w-full min-w-0 leading-none">
-                            <div class="cash-hud-wrap">
-                                <div id="cash-fx-layer" class="cash-fx-layer" aria-hidden="true"></div>
-                                <div id="ui-cash" class="text-lg">$0.00</div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col items-end gap-[2px] text-[10px] leading-none">
-                            <div class="w-6 h-3 border-2 border-[var(--lcd-pixel)] p-[1px] flex gap-[1px]">
-                                <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
-                                <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
-                                <div class="flex-1 bg-[var(--lcd-pixel)]"></div>
-                            </div>
-                            <span id="ui-rent-timer">11/15/05</span>
+                    <header class="grid-header flex justify-center items-end p-2 border-b-2 border-[var(--lcd-pixel)]">
+                        <div class="cash-hud-wrap">
+                            <div id="cash-fx-layer" class="cash-fx-layer" aria-hidden="true"></div>
+                            <div id="ui-cash" class="text-lg">$0.00</div>
                         </div>
                     </header>
                 </div>
@@ -541,9 +541,27 @@
                                 <button onclick="changeBjBet(-1)" class="nokia-btn nokia-btn-outline flex-1 py-1">[-$1]</button>
                                 <button onclick="changeBjBet(1)" class="nokia-btn nokia-btn-outline flex-1 py-1">[+$1]</button>
                             </div>
+                            <div class="flex w-full justify-center items-center gap-1">
+                                <input
+                                    id="bj-custom-bet-input"
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    inputmode="decimal"
+                                    placeholder="CUSTOM $"
+                                    class="nokia-input w-[75%] text-center text-[10px] py-1 min-w-0"
+                                    onkeydown="if (event.key === 'Enter') applyBjCustomBet()"
+                                />
+                                <button
+                                    type="button"
+                                    onclick="applyBjCustomBet()"
+                                    class="nokia-btn nokia-btn-outline w-7 h-7 min-w-7 p-0 text-sm font-bold leading-none shrink-0 flex items-center justify-center"
+                                    aria-label="Add custom wager"
+                                >+</button>
+                            </div>
                             <button onclick="changeBjBet('max')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] opacity-80">[ MAX BET ]</button>
                             
-                            <button onclick="startBjDeal()" class="nokia-btn w-full py-2 border-2 border-[var(--lcd-pixel)] mt-2 font-bold text-center justify-center">
+                            <button id="bj-deal-btn" onclick="startBjDeal()" class="nokia-btn w-full py-2 border-2 border-[var(--lcd-pixel)] mt-2 font-bold text-center justify-center" disabled>
                                 DEAL CARDS
                             </button>
                         </div>
@@ -571,7 +589,7 @@
                         </div>
 
                         <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
-                            <button onclick="switchView('gamble-menu-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                            <button onclick="leaveBlackjack()" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
                                 [ LEAVE TABLE ]
                             </button>
                         </div>

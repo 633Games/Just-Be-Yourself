@@ -103,7 +103,9 @@ Rent formula: `getWeeklyRent()` in `state.js`.
 |----------|---------|
 | `initSfx` | Unlock `AudioContext` on first user gesture |
 | `adjustCash(delta, opts?)` | Change `state.cash`, update HUD, play gain/loss SFX |
-| `playMoneyGain` / `playWompWomp` | Explicit money sounds (e.g. shift end base pay, BJ loss) |
+| `playMoneyGain` / `playMoneyLoss` | Cash change cascades with HUD floaters |
+| `playWompWomp` | One-shot loss sting (e.g. scratch all-lose) |
+| `playCardFlipDun` / `playScratchRip` | Casino table SFX |
 | `scheduleMoneyGainCascade` / `getMoneyGainDingDuration` | Ding timing; floater duration synced to cascade gaps |
 | `playAchievementDing` | CV skill or trophy unlock |
 
@@ -135,6 +137,7 @@ Loaded globals: `SKILLS_DB`, `JOB_DB`, `EVENTS_DB`, `CINDER_DB`, `TROPHIES_DB`, 
 |----------|---------|
 | `updateHUD` | Top-bar cash & date |
 | `onCashGainDing` / `beginCashGainFxBurst` | `+$$$` fly-in per coin ding (called from `playMoneyGain`) |
+| `onCashLossDing` / `beginCashLossFxBurst` | `-$$$` fall per loss ding (called from `playMoneyLoss`) |
 | `showToast` | Scrolling alerts in the top ticker strip (`#toast-container`) |
 | `advanceDay` | End of shift day tick, rent week, events |
 | `switchView(viewId)` | Show one app screen |
@@ -206,7 +209,8 @@ New job with custom art → copy this split pattern; wire from `renderJobScene` 
 
 ### [`js/casino.js`](js/casino.js)
 
-`initScratch`, `buyScratch`, `revealScratch` · `initBlackjack`, `startBjDeal`, `endBj`, `checkCasinoSkillUnlocks` hook.
+`initScratch`, `buyScratch`, `revealScratch` · `initBlackjack`, `setBjWager`, `leaveBlackjack`, `startBjDeal`, `endBj`, `checkCasinoSkillUnlocks` hook.  
+Blackjack wager moves to the table on +/- / custom / max (`setBjWager`); bet settles in `endBj` (win: payout; lose: already on table; push: refund).
 
 ### [`js/cinder.js`](js/cinder.js)
 
