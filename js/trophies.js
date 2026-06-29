@@ -29,6 +29,7 @@ function tryUnlockTrophy(id) {
     if (def.parent && !hasTrophy(def.parent)) return false;
 
     state.trophyIds.push(id);
+    playAchievementDing();
     showToast(`TROPHY: ${def.title}`);
 
     const view = document.getElementById('trophies-view');

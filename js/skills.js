@@ -38,6 +38,7 @@ function formatSkillDescription(id) {
 
 function tryUnlockSkill(id) {
     if (!unlockSkill(id)) return false;
+    playAchievementDing();
     setTimeout(() => {
         notifySkillUnlocked(id);
         notifySusanJobOpportunities(id);

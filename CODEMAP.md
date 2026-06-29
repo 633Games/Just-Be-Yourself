@@ -13,6 +13,7 @@ Serve with `python3 -m http.server 8000`.
 | You are working on… | Put it in… |
 |---------------------|------------|
 | Generic helper (money, HTML escape, shuffle, templates) | [`js/utils.js`](js/utils.js) |
+| SFX synthesis, `adjustCash`, money gain/loss sounds | [`js/sfx.js`](js/sfx.js) |
 | ASCII load / trim / fit / animated art HTML | [`js/ascii.js`](js/ascii.js) |
 | Load JSON or `.txt`, job/skill/Cinder lookups | [`js/data.js`](js/data.js) |
 | New global state field or date/rent helpers | [`js/state.js`](js/state.js) |
@@ -47,7 +48,7 @@ Use `state.trophyIds` for trophies.
 Later files may call earlier ones. Do not reorder without checking dependencies.
 
 ```
-utils.js → ascii.js → data.js → state.js → skills.js → events.js → stats.js
+utils.js → sfx.js → ascii.js → data.js → state.js → skills.js → events.js → stats.js
 → debug.js → ui.js → messages.js → trophies.js → jobs.js → vipjobs.js
 → work-pizza.js → work-burger.js → work-core.js → casino.js → cinder.js
 → boot.js → main.js
@@ -95,6 +96,15 @@ Rent formula: `getWeeklyRent()` in `state.js`.
 | `openUnlockedApp(key, renderFn, viewId, lockedMsg?)` | App open guard |
 | `fillTemplate(str, vars)` | `{name}`, `${amount}` strings |
 | `renderDebugButtonList` | Debug menu lists |
+
+### [`js/sfx.js`](js/sfx.js) — synthesized audio & cash changes
+
+| Function | Use for |
+|----------|---------|
+| `initSfx` | Unlock `AudioContext` on first user gesture |
+| `adjustCash(delta, opts?)` | Change `state.cash`, update HUD, play gain/loss SFX |
+| `playMoneyGain` / `playWompWomp` | Explicit money sounds (e.g. shift end base pay, BJ loss) |
+| `playAchievementDing` | CV skill or trophy unlock |
 
 ### [`js/ascii.js`](js/ascii.js) — ASCII art pipeline
 
@@ -259,7 +269,7 @@ New app screen: copy a `app-screen` block, add ID to `switchView` list in [`js/u
 | App unlocked | `messages.js` → `unlock*App` + `updateAppMenu` |
 | Skill earned | `skills.js` → `tryUnlockSkill` |
 | Trophy earned | `trophies.js` → `tryUnlockTrophy` / `checkTrophyMilestones` |
-| Money changes | `ui.js` → `updateHUD` |
+| Money changes | `sfx.js` → `adjustCash` (calls `updateHUD`) |
 | New message | `messages.js` → `addMessage` |
 | Event fires | `events.js` → `triggerEvent` |
 | Hired | `jobs.js` → `endInterview` |

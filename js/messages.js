@@ -358,10 +358,9 @@ function payWeeklyRent() {
 
     const firstRentEver = state.historyStats.rentSpent === 0;
 
-    state.cash -= amount;
+    adjustCash(-amount);
     state.rentPaidThisWeek = true;
     recordRentPaid(amount);
-    updateHUD();
     tryUnlockTrophy('rent_paid');
     checkTrophyMilestones();
     if (firstRentEver) {

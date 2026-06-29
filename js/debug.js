@@ -23,8 +23,7 @@ function debugGiveMoney(amount) {
         return;
     }
 
-    state.cash += value;
-    updateHUD();
+    adjustCash(value);
     showToast(`+${formatMoney(value)}`);
     renderDebugMenu();
 }
@@ -66,6 +65,7 @@ function debugGrantSkill(skillId) {
     }
 
     if (unlockSkill(skillId)) {
+        playAchievementDing();
         notifySkillUnlocked(skillId);
         showToast(`UNLOCKED: ${skill.name}`);
     }

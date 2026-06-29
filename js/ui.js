@@ -33,6 +33,24 @@ function advanceDay() {
     updateHUD();
 }
 
+const APP_BEEP_VIEWS = new Set([
+    'job-view',
+    'messages-view',
+    'cv-view',
+    'vip-jobs-view',
+    'job-searcher-view',
+    'gamble-menu-view',
+    'scratch-view',
+    'blackjack-view',
+    'stats-view',
+    'trophies-view',
+    'cinder-view',
+    'cinder-matches-view',
+    'debug-view',
+]);
+
+let activeViewId = null;
+
 function switchView(viewId) {
     if (state.isShiftActive && viewId !== 'job-view') {
         showToast("CANNOT ABORT");
@@ -71,6 +89,19 @@ function switchView(viewId) {
     if (viewId === 'trophies-view' && typeof renderTrophiesView === 'function') {
         renderTrophiesView();
     }
+
+    if (APP_BEEP_VIEWS.has(viewId)) {
+        playAppBeep();
+    } else if (
+        viewId === 'home-view'
+        && activeViewId
+        && activeViewId !== 'home-view'
+        && activeViewId !== 'name-setup-view'
+    ) {
+        playAppBackBeep();
+    }
+
+    activeViewId = viewId;
 }
 
 function showToast(message) {

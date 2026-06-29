@@ -232,9 +232,8 @@ function resolveExpiredEvent(instance, eventDef) {
 
     if (escalation.deductEvenIfBroke !== false && instance.escalatedAmount > 0) {
         const deducted = Math.min(state.cash, instance.escalatedAmount);
-        state.cash -= deducted;
+        if (deducted > 0) adjustCash(-deducted);
         if (deducted > 0) recordEventForced(deducted);
-        updateHUD();
         if (deducted < instance.escalatedAmount) {
             addMessage(instance.contact, `Took every penny you had. Still short $${(instance.escalatedAmount - deducted).toFixed(2)}.`);
         }
@@ -297,8 +296,7 @@ function resolveEventChoice(instanceId, choiceId) {
             showToast('NOT ENOUGH CASH');
             return;
         }
-        state.cash -= amount;
-        updateHUD();
+        adjustCash(-amount);
         recordEventAccepted(amount);
     } else if (effect.type === 'close') {
         recordEventRefused();
