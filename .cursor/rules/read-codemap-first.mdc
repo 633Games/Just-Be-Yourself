@@ -1,0 +1,32 @@
+---
+description: Read CODEMAP.md before any task — where code lives and where to add changes
+alwaysApply: true
+---
+
+# Start here: read the code map
+
+Before planning, searching, or editing this repo, **read [`CODEMAP.md`](CODEMAP.md)** at the project root.
+
+## Required first steps on every task
+
+1. **Read `CODEMAP.md`** — routing table, script load order, `state` fields, per-file responsibilities, hook points.
+2. **Skim the relevant module** listed in the map (do not guess file placement from memory).
+3. **Only then** plan or implement.
+
+## Where to put new code
+
+Use the **“Quick routing”** table in `CODEMAP.md`. If unsure, read that section before creating a file.
+
+Hard rules:
+- CV skills → `state.achievements` · trophies → `state.trophyIds` + `data/trophies.json`
+- Shared helpers → `js/utils.js` · ASCII → `js/ascii.js` · loaders/lookups → `js/data.js`
+- New work minigame → `js/work-*.js` (before `work-core.js` in `index.html`)
+- Content-only changes → `data/*.json` or `data/ascii/` without JS unless new fields need loaders
+
+## When the task is broad or unfamiliar
+
+List `js/`, `data/`, and `CODEMAP.md` before writing code. Do not rely on outdated README structure — **`CODEMAP.md` is authoritative**.
+
+## Local run
+
+`python3 -m http.server 8000` → http://localhost:8000 (required for `fetch()`).

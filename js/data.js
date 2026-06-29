@@ -18,16 +18,11 @@ function fetchData(path) {
 }
 
 function trimAsciiBlankEdges(text) {
-    const lines = text.replace(/\r\n/g, '\n').split('\n');
-    while (lines.length && !lines[0].trim()) lines.shift();
-    while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
-    return lines.join('\n');
+    return normalizeAsciiText(text, { trimEdges: true, trimEnd: false });
 }
 
 function centerAsciiArt(text) {
-    let lines = trimAsciiBlankEdges(text).split('\n');
-    if (!lines.length) return '';
-    return lines.map(line => line.trim()).join('\n');
+    return normalizeAsciiText(text, { trimEdges: true, center: true, trimEnd: false });
 }
 
 function normalizeSkillId(id) {
@@ -36,19 +31,20 @@ function normalizeSkillId(id) {
 }
 
 async function loadGameData() {
-    const [skillsRes, jobsRes, vipJobsRes, eventsRes, repliesRes, cinderRes, pizzaArtRes, burgerArtRes, bootArtRes] = await Promise.all([
+    const [skillsRes, jobsRes, vipJobsRes, eventsRes, repliesRes, cinderRes, trophiesRes, pizzaArtRes, burgerArtRes, bootArtRes] = await Promise.all([
         fetchData('data/skills.json'),
         fetchData('data/jobs.json'),
         fetchData('data/vipjobs.json'),
         fetchData('data/events.json'),
         fetchData('data/replies.json'),
         fetchData('data/cinder.json'),
+        fetchData('data/trophies.json'),
         fetchData('data/ascii/pizza-player.txt'),
         fetchData('data/ascii/burger-grill.txt'),
         fetchData('data/ascii/boot-splash.txt'),
     ]);
 
-    if (!skillsRes.ok || !jobsRes.ok || !vipJobsRes.ok || !eventsRes.ok || !repliesRes.ok || !cinderRes.ok || !pizzaArtRes.ok || !burgerArtRes.ok || !bootArtRes.ok) {
+    if (!skillsRes.ok || !jobsRes.ok || !vipJobsRes.ok || !eventsRes.ok || !repliesRes.ok || !cinderRes.ok || !trophiesRes.ok || !pizzaArtRes.ok || !burgerArtRes.ok || !bootArtRes.ok) {
         throw new Error('Failed to load game data JSON files');
     }
 
@@ -58,9 +54,10 @@ async function loadGameData() {
     const eventsData = await eventsRes.json();
     const repliesData = await repliesRes.json();
     const cinderData = await cinderRes.json();
-    PIZZA_PLAYER_ASCII = (await pizzaArtRes.text()).replace(/\r\n/g, '\n').trimEnd();
-    BURGER_GRILL_ASCII = (await burgerArtRes.text()).replace(/\r\n/g, '\n').trimEnd();
-    BOOT_SPLASH_ASCII = trimAsciiBlankEdges((await bootArtRes.text()).replace(/\r\n/g, '\n'));
+    const trophiesData = await trophiesRes.json();
+    PIZZA_PLAYER_ASCII = normalizeAsciiText(await pizzaArtRes.text());
+    BURGER_GRILL_ASCII = normalizeAsciiText(await burgerArtRes.text());
+    BOOT_SPLASH_ASCII = normalizeAsciiText(await bootArtRes.text(), { trimEdges: true });
 
     SKILLS_DB = skillsData.skills;
     JOB_DB = jobsData.jobs;
@@ -73,6 +70,7 @@ async function loadGameData() {
         throw new Error('replies.json must define contacts.MOM');
     }
     CINDER_DB = cinderData;
+    TROPHIES_DB = trophiesData.trophies || [];
     buildSkillsMap();
     registerEventContacts();
     await loadCinderFaces();
@@ -84,9 +82,9 @@ async function loadCinderFaces() {
     const uniqueFiles = [...new Set(profiles.map(p => p.asciiFile).filter(Boolean))];
     const results = await Promise.all(
         uniqueFiles.map(async file => {
-            const res = await fetch(`data/ascii/${file}`);
+            const res = await fetchData(`data/ascii/${file}`);
             if (!res.ok) throw new Error(`Failed to load Cinder ASCII: ${file}`);
-            const text = trimAsciiBlankEdges((await res.text()).replace(/\r\n/g, '\n'));
+            const text = normalizeAsciiText(await res.text(), { trimEdges: true });
             return [file, text];
         })
     );
@@ -126,7 +124,7 @@ function generateCinderBio(profile) {
     if (!profile) return '';
     const template = profile.bioTemplate || CINDER_DB.defaultBioTemplate || '';
     const fields = { name: profile.name || '', age: String(profile.age ?? ''), ...(profile.bioFields || {}) };
-    return template.replace(/\{(\w+)\}/g, (_, key) => fields[key] ?? '');
+    return fillTemplate(template, fields);
 }
 
 function unlockCinderContact(profileId) {
@@ -170,11 +168,6 @@ function getSkillName(id) {
 
 function getSkillDescription(id) {
     return getSkill(id)?.description ?? '';
-}
-
-function formatSkillReqs(reqIds) {
-    if (!reqIds || reqIds.length === 0) return 'NONE';
-    return reqIds.map(id => getSkillName(id)).join(', ');
 }
 
 function hasSkill(id) {

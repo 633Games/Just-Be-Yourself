@@ -31,10 +31,11 @@ function getEventHistory(eventId) {
 function formatEventText(template, ctx = {}) {
     if (!template) return '';
     const amount = ctx.amount ?? 0;
-    return template
-        .replace(/\$\{amount\}/g, `$${Number(amount).toFixed(2)}`)
-        .replace(/\$\{name\}/g, state.playerName || 'nephew')
-        .replace(/\$\{deadlineDays\}/g, String(ctx.deadlineDays ?? ''));
+    return fillTemplate(template, {
+        amount: formatMoney(amount),
+        name: state.playerName || 'nephew',
+        deadlineDays: String(ctx.deadlineDays ?? ''),
+    });
 }
 
 function roundAmount(value, roundTo = 1) {
@@ -312,6 +313,9 @@ function resolveEventChoice(instanceId, choiceId) {
     }
 
     checkEventSkillUnlocks({ eventId: instance.eventId, choiceId });
+
+    tryUnlockTrophy('event_choice');
+    checkTrophyMilestones();
 
     if (state.activeThread === instance.contact) {
         renderMessageThread(instance.contact);

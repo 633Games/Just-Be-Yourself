@@ -19,6 +19,7 @@ function buyScratch() {
 
     state.scratch.active = true;
     state.scratch.won = false;
+    tryUnlockTrophy('scratch_buy');
     document.getElementById('btn-buy-scratch').classList.add('hidden');
 
     // 15% chance to win $5
@@ -60,6 +61,7 @@ function revealScratch(index, btnElement) {
         state.cash += 5.00;
         recordCasinoWin(5.00);
         recordScratchJackpot();
+        tryUnlockTrophy('scratch_jackpot');
         updateHUD();
         showToast("JACKPOT! +$5.00");
         setTimeout(initScratch, 2000);
@@ -115,7 +117,7 @@ function getDeck() {
     for(let i=0; i<4; i++) { // 4 suits
         for(let v of values) deck.push(v);
     }
-    return deck.sort(() => Math.random() - 0.5);
+    return shuffleArray(deck);
 }
 
 function getHandValue(hand) {
@@ -136,6 +138,8 @@ function startBjDeal() {
         return;
     }
     
+    const cashBeforeBet = state.cash;
+    state.bj.wasAllIn = state.bj.bet >= cashBeforeBet && cashBeforeBet > 0;
     state.cash -= state.bj.bet;
     updateHUD();
 
@@ -234,6 +238,13 @@ function endBj(result) {
         updateHUD();
 
         checkCasinoSkillUnlocks({ winAmount, lostHugeAmount });
+        if (result === 'bj' || result === 'win') {
+            tryUnlockTrophy('bj_win');
+            if (state.bj.wasAllIn) tryUnlockTrophy('bj_allin_win');
+            checkTrophyMilestones();
+        } else if (lostHugeAmount) {
+            tryUnlockTrophy('bj_allin_lose');
+        }
 
         setTimeout(initBlackjack, 2500);
     }, 1000);

@@ -15,14 +15,6 @@ function getMessageContact(message) {
     return message.contact || message.sender;
 }
 
-function escapeHtml(text) {
-    return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-}
-
 function stripHtml(text) {
     return text.replace(/<[^>]+>/g, '');
 }
@@ -95,7 +87,8 @@ function updateAppMenu() {
         { btnId: 'btn-app-jobs', labelId: 'ui-menu-jobs-label', key: 'jobs', label: 'JOB SEARCHER' },
         { btnId: 'btn-app-casino', labelId: 'ui-menu-casino-label', key: 'casino', label: 'CASINO' },
         { btnId: 'btn-app-cinder', labelId: 'ui-menu-cinder-label', key: 'cinder', label: 'CINDER' },
-        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', label: 'STATS' }
+        { btnId: 'btn-app-stats', labelId: 'ui-menu-stats-label', key: 'stats', label: 'STATS' },
+        { btnId: 'btn-app-trophies', labelId: 'ui-menu-trophies-label', key: 'trophies', label: 'TROPHIES' }
     ];
 
     const vipUnlocked = typeof isVipJobsAvailable === 'function' && isVipJobsAvailable();
@@ -148,6 +141,7 @@ function unlockCVApp() {
     state.unlockedApps.jobs = true;
     state.unlockedApps.casino = true;
     state.unlockedApps.stats = true;
+    state.unlockedApps.trophies = true;
 
     const msg = `Hey ${state.playerName}, Mam said you needed help doing your CV ive sent you an app that will help you write your cv with all your skills in, dont put too much in, employers dont normally like that and remember to <strong class="glitch-text">BE YOURSELF</strong>.`;
     addMessage('SUSAN', msg, { html: true });
@@ -167,6 +161,7 @@ function checkIntroUnlock() {
     const momMessages = state.messages.filter(m => getMessageContact(m) === 'MOM' && !m.outgoing);
     if (momMessages.length > 0 && momMessages.every(m => m.read)) {
         unlockWorkApp();
+        tryUnlockTrophy('inbox_cleared');
     }
 }
 
@@ -300,14 +295,14 @@ function renderThreadFooter(from) {
         } else {
             payBtn.disabled = false;
             payBtn.classList.remove('opacity-60');
-            payBtn.innerHTML = `[ PAY WEEKLY RENT $<span id="rent-pay-amount">${getWeeklyRent().toFixed(2)}</span> ]`;
+            payBtn.innerHTML = `[ PAY WEEKLY RENT $<span id="rent-pay-amount">${formatMoney(getWeeklyRent()).slice(1)}</span> ]`;
         }
     } else if (payBtn) {
         payBtn.classList.add('hidden');
     }
 
     if (payAmount && from === 'MOM' && !state.rentPaidThisWeek) {
-        payAmount.innerText = getWeeklyRent().toFixed(2);
+        payAmount.innerText = formatMoney(getWeeklyRent()).slice(1);
     }
 }
 
@@ -367,14 +362,16 @@ function payWeeklyRent() {
     state.rentPaidThisWeek = true;
     recordRentPaid(amount);
     updateHUD();
+    tryUnlockTrophy('rent_paid');
+    checkTrophyMilestones();
     if (firstRentEver) {
         unlockCinderApp();
         addMessage('MOM', `Got your rent cheers son. I've signed you up for that Dinder thingy thats how steve met his lass you know might be alright. Good luck anyway let me know if you need money for a date x`);
     } else {
-        addMessage('MOM', `Got your $${amount.toFixed(2)}. Rent sorted for week ${state.rentWeek}. Cheers love.`);
+        addMessage('MOM', `Got your ${formatMoney(amount)}. Rent sorted for week ${state.rentWeek}. Cheers love.`);
     }
     renderMessageThread('MOM');
-    showToast(`RENT PAID: $${amount.toFixed(2)}`);
+    showToast(`RENT PAID: ${formatMoney(amount)}`);
 }
 
 function getRepliesDb() {
@@ -425,7 +422,7 @@ function getContactReply(contact, playerText) {
 }
 
 function formatContactReply(reply) {
-    return reply.replace(/\{name\}/gi, state.playerName);
+    return fillTemplate(reply, { name: state.playerName });
 }
 
 function queueContactReply(contact, playerText) {
@@ -489,6 +486,7 @@ function firePlayer() {
     state.baseWagePerSec = 0;
     state.bossStrikes = 0;
     updateWorkAppLabel();
+    tryUnlockTrophy('pink_slip');
     addMessage('BOSS', `You're fired from ${oldJob}. Don't come back.`);
     setTimeout(() => {
         addMessage('MOM', 'You lost your job again? Rent does not wait.');
@@ -502,6 +500,7 @@ function sendBossShiftFeedback(manual, shiftEarned) {
 
     if (manual) {
         state.bossStrikes++;
+        tryUnlockTrophy('boss_strike');
         if (state.bossStrikes >= 2) {
             firePlayer();
             return;
@@ -516,15 +515,13 @@ function sendBossShiftFeedback(manual, shiftEarned) {
         ? ` ${state.shiftTipsCollected} tip${state.shiftTipsCollected === 1 ? '' : 's'} collected.`
         : '';
 
-    const base = state.baseWagePerSec * state.shiftMaxTime;
-    const strong = base * 1.15;
-    const decent = base * 0.85;
+    const tier = getShiftPerformanceTier(shiftEarned, manual);
 
-    if (shiftEarned >= strong) {
-        addMessage('BOSS', `Strong shift at ${job}. $${shiftEarned.toFixed(2)} earned.${tipNote} Keep it up.`);
-    } else if (shiftEarned >= decent) {
+    if (tier === 'strong') {
+        addMessage('BOSS', `Strong shift at ${job}. ${formatMoney(shiftEarned)} earned.${tipNote} Keep it up.`);
+    } else if (tier === 'decent') {
         addMessage('BOSS', `Decent work at ${job}.${tipNote} Try to earn more next shift.`);
-    } else {
+    } else if (tier === 'slow') {
         addMessage('BOSS', `Slow shift at ${job}. Pick up the pace or customers stop tipping.`);
     }
 }
@@ -537,6 +534,6 @@ function notifySkillUnlocked(skillId) {
 }
 
 function notifyJobHired(jobTitle, wage) {
-    addMessage('BOSS', `Welcome to ${jobTitle}. $${wage.toFixed(2)}/sec. Do not be late.`);
+    addMessage('BOSS', `Welcome to ${jobTitle}. ${formatMoney(wage)}/sec. Do not be late.`);
     state.bossStrikes = 0;
 }

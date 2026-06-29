@@ -49,8 +49,10 @@ const state = {
         casino: false,
         stats: false,
         cinder: false,
-        vipJobs: false
+        vipJobs: false,
+        trophies: false
     },
+    trophyIds: [],
     cinder: {
         introSeen: false,
         pool: [],

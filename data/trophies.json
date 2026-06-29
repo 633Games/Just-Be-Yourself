@@ -1,0 +1,43 @@
+{
+  "trophies": [
+    { "id": "first_shift", "title": "First Shift", "hint": "The car keys are on the hook.", "branch": "work", "parent": null, "hidden": false, "glyph": "▶" },
+    { "id": "shift_complete", "title": "Clock Out", "hint": "Stay until the timer hits zero.", "branch": "work", "parent": "first_shift", "hidden": false, "glyph": "■" },
+    { "id": "shift_bonus", "title": "Extra on Top", "hint": "Tap fast. Something extra might stick.", "branch": "work", "parent": "shift_complete", "hidden": false, "glyph": "+" },
+    { "id": "strong_shift", "title": "Above Quota", "hint": "Earn well above the base rate in one run.", "branch": "work", "parent": "shift_complete", "hidden": false, "glyph": "★" },
+    { "id": "leave_early", "title": "Short Day", "hint": "The exit is always available.", "branch": "work", "parent": "first_shift", "hidden": false, "glyph": "←" },
+    { "id": "boss_strike", "title": "Marked Absent", "hint": "Your boss keeps count.", "branch": "work", "parent": "leave_early", "hidden": false, "glyph": "!" },
+    { "id": "pink_slip", "title": "Terminated", "hint": "Some doors close for good.", "branch": "work", "parent": "boss_strike", "hidden": false, "glyph": "✕" },
+    { "id": "grovel_protocol", "title": "Grovel Protocol", "hint": "Pride is expensive. Begging is free.", "branch": "work", "parent": "pink_slip", "hidden": false, "glyph": "…" },
+    { "id": "inbox_cleared", "title": "All Read", "hint": "Every intro message opened.", "branch": "work", "parent": "first_shift", "hidden": false, "glyph": "✉" },
+
+    { "id": "two_shifts", "title": "Regular", "hint": "Show up twice. More apps may appear.", "branch": "career", "parent": "shift_complete", "hidden": false, "glyph": "2" },
+    { "id": "cv_unlock", "title": "Paper Trail", "hint": "A relative sends help. Check your inbox.", "branch": "career", "parent": "two_shifts", "hidden": false, "glyph": "▤" },
+    { "id": "equip_cv", "title": "Curated", "hint": "Pick two lines. Less is more.", "branch": "career", "parent": "cv_unlock", "hidden": false, "glyph": "▥" },
+    { "id": "skill_unlock", "title": "New Line Item", "hint": "Skills arrive by text. Open the CV.", "branch": "career", "parent": "cv_unlock", "hidden": false, "glyph": "◆" },
+    { "id": "job_search", "title": "Now Hiring", "hint": "Browse listings. Match % matters.", "branch": "career", "parent": "equip_cv", "hidden": false, "glyph": "?" },
+    { "id": "interview", "title": "Room Temperature", "hint": "Answer before time runs out.", "branch": "career", "parent": "job_search", "hidden": false, "glyph": "?" },
+    { "id": "new_job", "title": "Promotion Material", "hint": "Pass the quiz. New wage, new title.", "branch": "career", "parent": "interview", "hidden": false, "glyph": "↑" },
+    { "id": "job_flip", "title": "Heat Management", "hint": "A kitchen role. Timing is everything.", "branch": "career", "parent": "new_job", "hidden": false, "glyph": "#" },
+    { "id": "job_office", "title": "Meeting Culture", "hint": "Middle floor. Pop-up tasks pay.", "branch": "career", "parent": "new_job", "hidden": false, "glyph": "M" },
+    { "id": "job_market", "title": "Ticker Tape", "hint": "Fast keys. Volatile bonuses.", "branch": "career", "parent": "new_job", "hidden": false, "glyph": "%" },
+    { "id": "job_corner", "title": "Top Floor", "hint": "Passive pay. Tap the invites.", "branch": "career", "parent": "new_job", "hidden": false, "glyph": "C" },
+    { "id": "ten_interviews", "title": "Serial Applicant", "hint": "Ten interviews. Pass or fail.", "branch": "career", "parent": "interview", "hidden": false, "glyph": "10" },
+    { "id": "five_skills", "title": "Overqualified", "hint": "Five CV skills unlocked.", "branch": "career", "parent": "skill_unlock", "hidden": false, "glyph": "5" },
+
+    { "id": "casino_enter", "title": "House Rules", "hint": "Unlocked with the CV bundle. Try your luck.", "branch": "casino", "parent": "two_shifts", "hidden": false, "glyph": "♠" },
+    { "id": "scratch_buy", "title": "Scratch That", "hint": "One dollar. Three boxes.", "branch": "casino", "parent": "casino_enter", "hidden": false, "glyph": "?" },
+    { "id": "scratch_jackpot", "title": "Three of a Kind", "hint": "One symbol pays five.", "branch": "casino", "parent": "scratch_buy", "hidden": false, "glyph": "$" },
+    { "id": "bj_win", "title": "Beat the Dealer", "hint": "Any winning hand counts.", "branch": "casino", "parent": "casino_enter", "hidden": false, "glyph": "♣" },
+    { "id": "bj_total_250", "title": "Stacked Deck", "hint": "Two hundred fifty in winnings. Total, not one hand.", "branch": "casino", "parent": "bj_win", "hidden": false, "glyph": "♦" },
+    { "id": "bj_allin_win", "title": "Double Down on Destiny", "hint": "Max bet. Win the hand.", "branch": "casino", "parent": "bj_win", "hidden": false, "glyph": "♥" },
+    { "id": "bj_allin_lose", "title": "Wholesale Loss", "hint": "Max bet. Lose it all.", "branch": "casino", "parent": "bj_win", "hidden": true, "glyph": "♠" },
+
+    { "id": "rent_paid", "title": "Landlord's Cut", "hint": "Weekly amount. Pay button in a family thread.", "branch": "social", "parent": "two_shifts", "hidden": false, "glyph": "⌂" },
+    { "id": "dating_app", "title": "Swipe Culture", "hint": "Unlocks after your first payment upstairs.", "branch": "social", "parent": "rent_paid", "hidden": false, "glyph": "♡" },
+    { "id": "first_match", "title": "Mutual Interest", "hint": "Like enough. Someone likes back.", "branch": "social", "parent": "dating_app", "hidden": false, "glyph": "♥" },
+    { "id": "unknown_profile", "title": "Corrupted Data", "hint": "A profile with no bio.", "branch": "social", "parent": "first_match", "hidden": true, "glyph": "?" },
+    { "id": "phone_crash", "title": "Fatal Exception", "hint": "The screen goes static.", "branch": "social", "parent": "unknown_profile", "hidden": true, "glyph": "▓" },
+    { "id": "vip_access", "title": "VIP Access", "hint": "A new icon. Content not included.", "branch": "social", "parent": "phone_crash", "hidden": false, "glyph": "✰" },
+    { "id": "event_choice", "title": "Reply Required", "hint": "A thread with buttons. Pick one.", "branch": "social", "parent": "rent_paid", "hidden": false, "glyph": "▶" }
+  ]
+}

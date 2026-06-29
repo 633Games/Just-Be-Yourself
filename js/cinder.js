@@ -1,15 +1,6 @@
 const DAILY_CINDER_BATCH = 3;
 const CINDER_CRASH_PROFILE_ID = 'unknown';
 
-function shuffleArray(arr) {
-    const copy = [...arr];
-    for (let i = copy.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-    }
-    return copy;
-}
-
 function getNormalCinderProfileIds() {
     return (CINDER_DB.profiles || [])
         .map(p => p.id)
@@ -38,6 +29,7 @@ function maybeInjectCrashProfile() {
     if (force || random) {
         state.cinder.deck.unshift(CINDER_CRASH_PROFILE_ID);
         state.cinder.crashOffered = true;
+        tryUnlockTrophy('unknown_profile');
     }
 }
 
@@ -97,12 +89,7 @@ function renderCinderScreen() {
 }
 
 function openCinder() {
-    if (!state.unlockedApps.cinder) {
-        showToast('APP LOCKED');
-        return;
-    }
-    switchView('cinder-view');
-    renderCinderScreen();
+    openUnlockedApp('cinder', renderCinderScreen, 'cinder-view');
 }
 
 function cinderContinueFromIntro() {
@@ -215,11 +202,7 @@ function fitCinderFace() {
 }
 
 function scheduleCinderFaceFit() {
-    requestAnimationFrame(() => {
-        fitCinderFace();
-        requestAnimationFrame(fitCinderFace);
-    });
-    setTimeout(fitCinderFace, 50);
+    scheduleAsciiFit(fitCinderFace);
 }
 
 function finishCinderSwipe(profileId, matched) {
@@ -231,6 +214,8 @@ function finishCinderSwipe(profileId, matched) {
             state.cinder.matches.push(profileId);
             unlockCinderContact(profileId);
             showToast("IT'S A MATCH!");
+            tryUnlockTrophy('first_match');
+            checkTrophyMilestones();
         }
     } else {
         returnCinderProfileToPool(profileId);
@@ -269,6 +254,7 @@ async function triggerCinderCrashMatch() {
     state.cinder.deck.shift();
     state.cinder.swipeCount++;
     state.cinder.crashSeen = true;
+    tryUnlockTrophy('phone_crash');
 
     await playPhoneCrashReboot();
 }
@@ -315,6 +301,7 @@ function enableFatalPhoneTheme() {
 function unlockVipJobsApp() {
     if (state.unlockedApps.vipJobs) return;
     state.unlockedApps.vipJobs = true;
+    tryUnlockTrophy('vip_access');
     updateAppMenu();
 }
 
@@ -375,27 +362,17 @@ function renderCinderMatches() {
     container.innerHTML = state.cinder.matches.map(profileId => {
         const profile = getCinderProfileById(profileId);
         if (!profile) return '';
-        if (isCinderCrashProfile(profile)) {
-            const face = CINDER_FACES[profileId] || '?';
-            const miniFace = face.split('\n').slice(0, 4).join('\n');
-            return `
-                <div class="cinder-match-row border-2 border-[var(--lcd-pixel)] p-2 flex gap-2 items-center">
-                    <pre class="cinder-match-face cinder-face--glitch text-[6px] leading-none shrink-0">${escapeHtml(miniFace)}</pre>
-                    <div class="flex flex-col gap-[2px] min-w-0">
-                        <span class="text-[10px] font-bold cinder-glitch-value">${escapeHtml(profile.name)}</span>
-                        <span class="text-[8px] opacity-80 cinder-glitch-value">${escapeHtml(String(profile.age))}</span>
-                    </div>
-                </div>
-            `;
-        }
-        const face = CINDER_FACES[profileId] || profile.name.slice(0, 1);
+        const isGlitch = isCinderCrashProfile(profile);
+        const face = CINDER_FACES[profileId] || (isGlitch ? '?' : profile.name.slice(0, 1));
         const miniFace = face.split('\n').slice(0, 4).join('\n');
+        const glitchCls = isGlitch ? ' cinder-face--glitch' : '';
+        const valueCls = isGlitch ? ' cinder-glitch-value' : '';
         return `
             <div class="cinder-match-row border-2 border-[var(--lcd-pixel)] p-2 flex gap-2 items-center">
-                <pre class="cinder-match-face text-[6px] leading-none shrink-0">${escapeHtml(miniFace)}</pre>
+                <pre class="cinder-match-face${glitchCls} text-[6px] leading-none shrink-0">${escapeHtml(miniFace)}</pre>
                 <div class="flex flex-col gap-[2px] min-w-0">
-                    <span class="text-[10px] font-bold">${escapeHtml(profile.name)}</span>
-                    <span class="text-[8px] opacity-80">${profile.age}</span>
+                    <span class="text-[10px] font-bold${valueCls}">${escapeHtml(profile.name)}</span>
+                    <span class="text-[8px] opacity-80${valueCls}">${isGlitch ? escapeHtml(String(profile.age)) : profile.age}</span>
                 </div>
             </div>
         `;

@@ -84,6 +84,8 @@ function recordInterviewStarted() {
     ensureStatsState();
     state.historyStats.interviewsTotal++;
     checkInterviewSkillUnlocks();
+    tryUnlockTrophy('interview');
+    checkTrophyMilestones();
     refreshStatsView();
 }
 
@@ -121,18 +123,11 @@ function getTotalEventMoneyGiven() {
     return state.historyStats.eventMoneyGiven;
 }
 
-function formatMoney(amount) {
-    return `$${Number(amount || 0).toFixed(2)}`;
-}
-
 function openStats() {
-    if (!state.unlockedApps.stats) {
-        showToast('APP LOCKED');
-        return;
-    }
-    ensureStatsState();
-    renderStats();
-    switchView('stats-view');
+    openUnlockedApp('stats', () => {
+        ensureStatsState();
+        renderStats();
+    }, 'stats-view');
 }
 
 function renderStats() {

@@ -12,14 +12,19 @@
       ],
       "keywords": [
         {
-          "match": ["got", "job"],
+          "match": [
+            "got",
+            "job"
+          ],
           "replies": [
             "Finally love! Proud of you. Rent still due though x",
             "About time son. Dont blow it this time"
           ]
         },
         {
-          "match": ["money"],
+          "match": [
+            "money"
+          ],
           "replies": [
             "I've got nowt left son sorry x",
             "I've literally got less than $0.20 left",
@@ -27,14 +32,19 @@
           ]
         },
         {
-          "match": ["rent"],
+          "match": [
+            "rent"
+          ],
           "replies": [
             "Use the pay button in our chat love. Dont make me chase you",
             "Rent doesnt pay itself son"
           ]
         },
         {
-          "match": ["love", "you"],
+          "match": [
+            "love",
+            "you"
+          ],
           "replies": [
             "Love you too son x",
             "Aw love you too. Now go earn some money"
@@ -53,21 +63,28 @@
       ],
       "keywords": [
         {
-          "match": ["got", "job"],
+          "match": [
+            "got",
+            "job"
+          ],
           "replies": [
             "See I told you the CV would help! Well done love x",
             "Brilliant news love! Mam will be thrilled"
           ]
         },
         {
-          "match": ["cv"],
+          "match": [
+            "cv"
+          ],
           "replies": [
             "Open MY CV and pick a few skills love. Less is more",
             "Remember BE YOURSELF on that CV love"
           ]
         },
         {
-          "match": ["help"],
+          "match": [
+            "help"
+          ],
           "replies": [
             "Im always here love. Text your mam too she worries",
             "Course I can help love. What do you need?"
@@ -86,21 +103,29 @@
       ],
       "keywords": [
         {
-          "match": ["sick", "day"],
+          "match": [
+            "sick",
+            "day"
+          ],
           "replies": [
             "No sick days. Get in or youre sacked {name}",
             "Everyone's sick. Still need you on shift {name}"
           ]
         },
         {
-          "match": ["quit"],
+          "match": [
+            "quit"
+          ],
           "replies": [
             "You quit you dont come back {name}. Think about it",
             "Door's that way {name}. Clock out first though"
           ]
         },
         {
-          "match": ["raise", "pay"],
+          "match": [
+            "raise",
+            "pay"
+          ],
           "replies": [
             "Raises come after you stop slacking {name}",
             "Do a few more shifts then well talk {name}"

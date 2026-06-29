@@ -1,5 +1,5 @@
 function updateHUD() {
-    elCash.innerText = `$${state.cash.toFixed(2)}`;
+    elCash.innerText = formatMoney(state.cash);
     elRentTimer.innerText = formatGameDate();
 }
 
@@ -20,7 +20,7 @@ function advanceDay() {
         state.rentPaidThisWeek = false;
         const rent = getWeeklyRent();
         setTimeout(() => {
-            addMessage('MOM', `Week ${state.rentWeek}. Rent is $${rent.toFixed(2)} this week.`);
+            addMessage('MOM', `Week ${state.rentWeek}. Rent is ${formatMoney(rent)} this week.`);
             state.messagesFlash = true;
             updateMessagesBadge();
         }, 800);
@@ -45,7 +45,7 @@ function switchView(viewId) {
         return;
     }
 
-    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'vip-jobs-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'cinder-view', 'cinder-matches-view', 'debug-view'].forEach(id => {
+    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'vip-jobs-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'trophies-view', 'cinder-view', 'cinder-matches-view', 'debug-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('hidden');
@@ -66,6 +66,10 @@ function switchView(viewId) {
 
     if (viewId === 'cinder-view' && typeof renderCinderScreen === 'function') {
         renderCinderScreen();
+    }
+
+    if (viewId === 'trophies-view' && typeof renderTrophiesView === 'function') {
+        renderTrophiesView();
     }
 }
 
@@ -88,9 +92,8 @@ function showToast(message) {
 }
 
 function openCasino() {
-    if (!state.unlockedApps.casino) {
-        showToast('APP LOCKED');
-        return;
-    }
-    switchView('gamble-menu-view');
+    openUnlockedApp('casino', () => {
+        tryUnlockTrophy('casino_enter');
+        checkTrophyMilestones();
+    }, 'gamble-menu-view');
 }

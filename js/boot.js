@@ -14,29 +14,15 @@ function wait(ms) {
 function fitBootSplashArt() {
     const wrap = document.querySelector('.boot-splash-art-wrap');
     const stack = document.querySelector('.boot-splash-art-stack');
-    const art = document.getElementById('boot-splash-art');
-    if (!wrap || !stack || !art || !art.textContent) return;
-
-    stack.style.setProperty('--boot-scale', '1');
-
-    const maxW = wrap.clientWidth * 0.94;
-    const maxH = wrap.clientHeight * 0.9;
-    if (maxW <= 0 || maxH <= 0) return;
-
-    const rawW = stack.scrollWidth;
-    const rawH = stack.scrollHeight;
-    if (rawW <= 0 || rawH <= 0) return;
-
-    const scale = Math.min(maxW / rawW, maxH / rawH, 1.15);
-    stack.style.setProperty('--boot-scale', String(scale));
+    if (!wrap || !stack) return;
+    fitAsciiToContainer(wrap, stack, '--boot-scale', {
+        widthFactor: 0.94,
+        heightFactor: 0.9,
+    });
 }
 
 function scheduleBootSplashFit() {
-    requestAnimationFrame(() => {
-        fitBootSplashArt();
-        requestAnimationFrame(fitBootSplashArt);
-    });
-    setTimeout(fitBootSplashArt, 50);
+    scheduleAsciiFit(fitBootSplashArt);
 }
 
 function isBootSplashVisible() {

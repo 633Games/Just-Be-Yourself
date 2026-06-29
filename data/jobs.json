@@ -3,9 +3,9 @@
     {
       "id": "starter",
       "title": "PIZZA SHIFT",
-      "pay": 0.30,
+      "pay": 0.3,
       "req": [],
-      "bonusBase": 0.50,
+      "bonusBase": 0.5,
       "instructions": "Tap [TIP] buttons around your car before they vanish. Tips range from $0.50 to $4.",
       "searchable": false
     },
@@ -13,35 +13,47 @@
       "id": "j2",
       "title": "BURGER FLIP",
       "pay": 0.72,
-      "req": [1, 4],
-      "bonusBase": 1.00,
+      "req": [
+        1,
+        4
+      ],
+      "bonusBase": 1,
       "instructions": "Slide the bar into the pass zone and hit [FLIP] for a bonus tip. Sizzle picks up when you nail it.",
       "searchable": true
     },
     {
       "id": "j4",
       "title": "MANAGER",
-      "pay": 1.80,
-      "req": [1, 5, 6],
-      "bonusBase": 2.50,
+      "pay": 1.8,
+      "req": [
+        1,
+        5,
+        6
+      ],
+      "bonusBase": 2.5,
       "instructions": "Oversee the floor. Rare meeting bonuses pop up — tap to collect.",
       "searchable": true
     },
     {
       "id": "j8",
       "title": "DAY TRADER",
-      "pay": 7.20,
-      "req": [3],
-      "bonusBase": 4.00,
+      "pay": 7.2,
+      "req": [
+        3
+      ],
+      "bonusBase": 4,
       "instructions": "Buy or sell on the ticker. Fast calls earn volatile bonuses.",
       "searchable": true
     },
     {
       "id": "j5",
       "title": "CEO",
-      "pay": 30.00,
-      "req": [7, 8],
-      "bonusBase": 12.00,
+      "pay": 30,
+      "req": [
+        7,
+        8
+      ],
+      "bonusBase": 12,
       "instructions": "Mostly passive income. Tap golf invites and board meetings when they appear.",
       "searchable": true
     }

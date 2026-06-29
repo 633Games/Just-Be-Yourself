@@ -2,23 +2,34 @@
 
 A browser style game documenting the difficulties and the honesties of getting a job the modern world. Navigate tricky situations to fill your CV with experiance and become the ultimate millionare.
 
-## Project structure
+## For developers & AI agents
+
+**Start every task by reading [`CODEMAP.md`](CODEMAP.md)** — module map, where to add code, script order, state fields, and hook points.
+
+Cursor loads `.cursor/rules/read-codemap-first.mdc` so new sessions are directed there automatically.
+
+## Run locally
+
+```bash
+python3 -m http.server 8000
+# http://localhost:8000
+```
+
+## Project structure (summary)
+
+See **`CODEMAP.md`** for the full file-by-file reference. Brief layout:
 
 ```
 the-rent-is-due/
+├── CODEMAP.md          # ← read this first
 ├── index.html
-├── data/
-│   ├── jobs.json   # Job pay, bonuses, CV requirements (editable)
-│   └── skills.json # Skill names and award descriptions (editable)
-├── css/
-│   └── styles.css
+├── data/               # JSON + ASCII (jobs, skills, events, trophies, cinder, replies)
+├── css/styles.css
 └── js/
-    ├── data.js     # Loads JSON and lookup helpers
-    ├── state.js    # Game state
-    ├── ui.js       # HUD, views, toasts
-    ├── messages.js # Messages app and notifications
-    ├── jobs.js     # Job search, interviews, CV
-    ├── work.js     # Work shifts
-    ├── casino.js   # Scratch cards and blackjack
-    └── main.js     # Entry point
+    ├── utils.js, ascii.js, data.js, state.js   # shared / load
+    ├── ui.js, messages.js, trophies.js         # shell & apps
+    ├── jobs.js, skills.js, stats.js, events.js
+    ├── work-pizza.js, work-burger.js, work-core.js
+    ├── casino.js, cinder.js, boot.js, main.js
+    └── debug.js, vipjobs.js
 ```

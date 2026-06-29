@@ -185,6 +185,11 @@
                                 <span>></span>
                             </button>
 
+                            <button id="btn-app-trophies" onclick="openTrophies()" class="nokia-btn hidden">
+                                <span id="ui-menu-trophies-label">TROPHIES</span>
+                                <span>></span>
+                            </button>
+
                             <button id="btn-app-debug" onclick="openDebugMenu()" class="nokia-btn hidden">
                                 <span id="ui-menu-debug-label">DEBUG</span>
                                 <span>></span>
@@ -583,6 +588,22 @@
                         </div>
                     </div>
 
+                    <!-- === TROPHIES VIEW === -->
+                    <div id="trophies-view" class="app-screen w-full hidden flex-col">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>TROPHIES</span>
+                            <span id="trophies-summary" class="text-[9px]">0 / 0</span>
+                        </div>
+                        <div id="trophies-content" class="thread-scroll p-2 flex flex-col gap-2 text-[10px] leading-tight">
+                            <!-- Populated by JS -->
+                        </div>
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button onclick="switchView('home-view')" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px]">
+                                [ BACK ]
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- === CINDER VIEW === -->
                     <div id="cinder-view" class="app-screen w-full hidden flex-col">
                         <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
@@ -745,6 +766,8 @@
     </div>
     </div>
 
+    <script src="js/utils.js"></script>
+    <script src="js/ascii.js"></script>
     <script src="js/data.js"></script>
     <script src="js/state.js"></script>
     <script src="js/skills.js"></script>
@@ -753,9 +776,12 @@
     <script src="js/debug.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/messages.js"></script>
+    <script src="js/trophies.js"></script>
     <script src="js/jobs.js"></script>
     <script src="js/vipjobs.js?v=2"></script>
-    <script src="js/work.js"></script>
+    <script src="js/work-pizza.js"></script>
+    <script src="js/work-burger.js"></script>
+    <script src="js/work-core.js"></script>
     <script src="js/casino.js"></script>
     <script src="js/cinder.js"></script>
     <script src="js/boot.js"></script>

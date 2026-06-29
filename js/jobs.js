@@ -1,14 +1,5 @@
 function calculateMatch(jobReqs) {
-    if (!jobReqs || jobReqs.length === 0) return 100;
-
-    const equipped = getEquippedSkillIds();
-    let matches = 0;
-    jobReqs.forEach(req => {
-        const reqId = normalizeSkillId(req);
-        if (reqId !== null && equipped.includes(reqId)) matches++;
-    });
-
-    return Math.floor((matches / jobReqs.length) * 100);
+    return computeJobMatch(jobReqs, 'equipped');
 }
 
 function formatSkillReqsWithStatus(reqIds) {
@@ -24,12 +15,12 @@ function formatSkillReqsWithStatus(reqIds) {
 
 function generateJobs() {
     state.availableJobs = [];
-    let pool = [...getSearchableJobs()].sort(() => Math.random() - 0.5);
+    let pool = shuffleArray(getSearchableJobs());
     if (pool.length === 0) return;
 
     const isPartialJob = (job) => {
         const match = calculateMatch(job.req);
-        const potential = calculatePotentialMatch(job.req);
+        const potential = computeJobMatch(job.req, 'owned');
         return (match >= 50 && match < 100) || (potential >= 50 && potential < 100 && match < 100);
     };
 
@@ -39,7 +30,7 @@ function generateJobs() {
 
     let job100Index = pool.findIndex(j => calculateMatch(j.req) === 100);
     if (job100Index === -1) {
-        job100Index = pool.findIndex(j => calculatePotentialMatch(j.req) === 100);
+        job100Index = pool.findIndex(j => computeJobMatch(j.req, 'owned') === 100);
     }
     if (job100Index === -1) job100Index = 0;
     state.availableJobs.push(pool.splice(job100Index, 1)[0]);
@@ -49,9 +40,7 @@ function generateJobs() {
         jobWildIndex = pool.findIndex(j => calculateMatch(j.req) === 0);
         if (jobWildIndex === -1) jobWildIndex = 0;
     } else {
-        const owned = state.achievements
-            .map(normalizeSkillId)
-            .filter(id => id !== null);
+        const owned = getOwnedSkillIds();
         jobWildIndex = pool.findIndex(j =>
             (j.req || []).some(req => !owned.includes(normalizeSkillId(req)))
         );
@@ -61,17 +50,15 @@ function generateJobs() {
         state.availableJobs.push(pool.splice(jobWildIndex, 1)[0]);
     }
 
-    state.availableJobs.sort(() => Math.random() - 0.5);
+    state.availableJobs = shuffleArray(state.availableJobs);
 }
 
 function openJobSearcher() {
-    if (!state.unlockedApps.jobs) {
-        showToast('APP LOCKED');
-        return;
-    }
-    generateJobs();
-    renderJobSearcher();
-    switchView('job-searcher-view');
+    openUnlockedApp('jobs', () => {
+        tryUnlockTrophy('job_search');
+        generateJobs();
+        renderJobSearcher();
+    }, 'job-searcher-view');
 }
 
 function renderJobSearcher() {
@@ -84,7 +71,7 @@ function renderJobSearcher() {
             <div class="border-2 border-[var(--lcd-pixel)] p-1 flex flex-col gap-1 bg-transparent">
                 <div class="flex justify-between font-bold text-[10px]">
                     <span>${job.title}</span>
-                    <span>$${job.pay.toFixed(2)}/s</span>
+                    <span>${formatMoney(job.pay)}/s</span>
                 </div>
                 <div class="text-[8px] opacity-90 leading-tight">REQ: ${formatSkillReqsWithStatus(job.req)}</div>
                 <div class="flex justify-between items-center mt-1 border-t border-dashed border-[var(--lcd-pixel)] pt-1">
@@ -123,10 +110,10 @@ function startInterview(job, match) {
     let timerMax = 10;
     
     if (match === 100) {
-        qPool = [...QUIZ_DB[100]].sort(() => Math.random() - 0.5);
+        qPool = shuffleArray(QUIZ_DB[100]);
         timerMax = 15;
     } else if (match > 0) {
-        qPool = [...QUIZ_DB[50]].sort(() => Math.random() - 0.5);
+        qPool = shuffleArray(QUIZ_DB[50]);
         timerMax = 8;
     } else {
         // 0% Match
@@ -172,7 +159,7 @@ function renderInterview() {
     
     // Shuffle answers but remember which one was originally correct
     let answers = qData.a.map((text, idx) => ({text, isCorrect: idx === qData.correct}));
-    answers.sort(() => Math.random() - 0.5);
+    answers = shuffleArray(answers);
 
     answers.forEach(ans => {
         const btn = document.createElement('button');
@@ -218,8 +205,11 @@ function endInterview(isCorrect, reason) {
         updateWorkAppLabel();
         recordInterviewPassed();
         recordNewJob();
+        tryUnlockTrophy('new_job');
+        tryUnlockJobTierTrophy(state.interview.job.title);
+        checkTrophyMilestones();
         
-        showToast(`${reason}<br>NEW WAGE: $${state.baseWagePerSec.toFixed(2)}/s`);
+        showToast(`${reason}<br>NEW WAGE: ${formatMoney(state.baseWagePerSec)}/s`);
         notifyJobHired(state.interview.job.title, state.interview.job.pay);
     } else {
         recordInterviewFailed();
@@ -231,13 +221,10 @@ function endInterview(isCorrect, reason) {
 }
 
 function openCV() {
-    if (!state.unlockedApps.cv) {
-        showToast('CV APP LOCKED');
-        return;
-    }
-    setupCVListeners();
-    renderCV();
-    switchView('cv-view');
+    openUnlockedApp('cv', () => {
+        setupCVListeners();
+        renderCV();
+    }, 'cv-view', 'CV APP LOCKED');
 }
 
 function renderCVSkillCard(skillId, equipped) {
@@ -333,6 +320,7 @@ function toggleCV(skillId) {
         state.equippedCV.push(id);
     }
     renderCV();
+    checkTrophyMilestones();
 }
 
 function setupCVListeners() {

@@ -33,7 +33,7 @@ function ensureSkillProgress() {
 function formatSkillDescription(id) {
     const raw = getSkillDescription(id);
     if (!raw) return '';
-    return raw.replace(/\{name\}/gi, state.playerName || 'mate');
+    return fillTemplate(raw, { name: state.playerName || 'mate' });
 }
 
 function tryUnlockSkill(id) {
@@ -41,6 +41,7 @@ function tryUnlockSkill(id) {
     setTimeout(() => {
         notifySkillUnlocked(id);
         notifySusanJobOpportunities(id);
+        checkTrophyMilestones();
     }, 800);
     return true;
 }
@@ -126,27 +127,14 @@ function getJobsRequiringSkill(skillId) {
 }
 
 function calculatePotentialMatch(jobReqs) {
-    if (!jobReqs || jobReqs.length === 0) return 100;
-
-    const owned = state.achievements
-        .map(normalizeSkillId)
-        .filter(skillId => skillId !== null);
-    let matches = 0;
-    jobReqs.forEach(req => {
-        const reqId = normalizeSkillId(req);
-        if (reqId !== null && owned.includes(reqId)) matches++;
-    });
-
-    return Math.floor((matches / jobReqs.length) * 100);
+    return computeJobMatch(jobReqs, 'owned');
 }
 
 function notifySusanJobOpportunities(newSkillId) {
     if (!state.unlockedApps.jobs) return;
 
     const skillId = normalizeSkillId(newSkillId);
-    const owned = state.achievements
-        .map(normalizeSkillId)
-        .filter(id => id !== null);
+    const owned = getOwnedSkillIds();
 
     getSearchableJobs().forEach(job => {
         const reqs = (job.req || []).map(normalizeSkillId).filter(id => id !== null);

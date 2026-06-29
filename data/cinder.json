@@ -21,12 +21,25 @@
         ],
         "keywords": [
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hey", "Hi yourself", "Well hello"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hey",
+              "Hi yourself",
+              "Well hello"
+            ]
           },
           {
-            "match": ["date", "coffee"],
-            "replies": ["Maybe if you can afford it", "Diner closes at 2am if you're serious"]
+            "match": [
+              "date",
+              "coffee"
+            ],
+            "replies": [
+              "Maybe if you can afford it",
+              "Diner closes at 2am if you're serious"
+            ]
           }
         ]
       }
@@ -51,12 +64,24 @@
         ],
         "keywords": [
           {
-            "match": ["money", "cash"],
-            "replies": ["Always a topic with you", "I knew this was coming"]
+            "match": [
+              "money",
+              "cash"
+            ],
+            "replies": [
+              "Always a topic with you",
+              "I knew this was coming"
+            ]
           },
           {
-            "match": ["hey", "hi"],
-            "replies": ["Yo", "Sup"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Yo",
+              "Sup"
+            ]
           }
         ]
       }
@@ -81,12 +106,24 @@
         ],
         "keywords": [
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hey", "Yo what's up"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hey",
+              "Yo what's up"
+            ]
           },
           {
-            "match": ["skate", "music"],
-            "replies": ["You actually read my bio?", "Finally someone"]
+            "match": [
+              "skate",
+              "music"
+            ],
+            "replies": [
+              "You actually read my bio?",
+              "Finally someone"
+            ]
           }
         ]
       }
@@ -111,12 +148,24 @@
         ],
         "keywords": [
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hi there", "Hey you"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hi there",
+              "Hey you"
+            ]
           },
           {
-            "match": ["sleep", "tired"],
-            "replies": ["Tell me about it", "Welcome to my life"]
+            "match": [
+              "sleep",
+              "tired"
+            ],
+            "replies": [
+              "Tell me about it",
+              "Welcome to my life"
+            ]
           }
         ]
       }
@@ -141,12 +190,24 @@
         ],
         "keywords": [
           {
-            "match": ["drink", "bar"],
-            "replies": ["First one's on me if you show up", "You know where to find me"]
+            "match": [
+              "drink",
+              "bar"
+            ],
+            "replies": [
+              "First one's on me if you show up",
+              "You know where to find me"
+            ]
           },
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hey stranger", "Well hey"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hey stranger",
+              "Well hey"
+            ]
           }
         ]
       }
@@ -171,12 +232,24 @@
         ],
         "keywords": [
           {
-            "match": ["art", "draw"],
-            "replies": ["Finally someone gets it", "I could sketch you. Maybe."]
+            "match": [
+              "art",
+              "draw"
+            ],
+            "replies": [
+              "Finally someone gets it",
+              "I could sketch you. Maybe."
+            ]
           },
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hiii", "Oh hey"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hiii",
+              "Oh hey"
+            ]
           }
         ]
       }
@@ -201,12 +274,24 @@
         ],
         "keywords": [
           {
-            "match": ["gym", "workout"],
-            "replies": ["5am. Be there.", "I'll spot you"]
+            "match": [
+              "gym",
+              "workout"
+            ],
+            "replies": [
+              "5am. Be there.",
+              "I'll spot you"
+            ]
           },
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hey!", "What's up champ"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hey!",
+              "What's up champ"
+            ]
           }
         ]
       }
@@ -231,12 +316,24 @@
         ],
         "keywords": [
           {
-            "match": ["tv", "show"],
-            "replies": ["Did you watch last night??", "No spoilers please"]
+            "match": [
+              "tv",
+              "show"
+            ],
+            "replies": [
+              "Did you watch last night??",
+              "No spoilers please"
+            ]
           },
           {
-            "match": ["hey", "hi"],
-            "replies": ["Hey hey", "Hi!"]
+            "match": [
+              "hey",
+              "hi"
+            ],
+            "replies": [
+              "Hey hey",
+              "Hi!"
+            ]
           }
         ]
       }
@@ -258,20 +355,42 @@
         ],
         "keywords": [
           {
-            "match": ["hey", "hi", "hello"],
-            "replies": ["you came back", "knew you would"]
+            "match": [
+              "hey",
+              "hi",
+              "hello"
+            ],
+            "replies": [
+              "you came back",
+              "knew you would"
+            ]
           },
           {
-            "match": ["who"],
-            "replies": ["you know who this is", "Its who you think it is"]
+            "match": [
+              "who"
+            ],
+            "replies": [
+              "you know who this is",
+              "Its who you think it is"
+            ]
           },
           {
-            "match": ["what"],
-            "replies": ["Ill be in touch soon.", "Don't worry, Ill look after you"]
+            "match": [
+              "what"
+            ],
+            "replies": [
+              "Ill be in touch soon.",
+              "Don't worry, Ill look after you"
+            ]
           },
           {
-            "match": ["love"],
-            "replies": ["Awwww love you too", "Really? Its giving... needy vibes"]
+            "match": [
+              "love"
+            ],
+            "replies": [
+              "Awwww love you too",
+              "Really? Its giving... needy vibes"
+            ]
           }
         ]
       }

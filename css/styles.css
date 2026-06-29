@@ -2167,3 +2167,72 @@ html.install-gate-active #install-gate {
     50% { opacity: 1; transform: translate(-2px, 1px); }
     100% { opacity: 0.65; transform: translate(1px, -1px); }
 }
+
+/* === Trophies === */
+.trophy-branch-label {
+    font-size: 9px;
+    font-weight: bold;
+    border-bottom: 1px dashed var(--lcd-pixel);
+    padding-bottom: 2px;
+    margin-top: 4px;
+}
+
+.trophy-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 6px;
+}
+
+.trophy-card {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+    border: 2px solid var(--lcd-pixel);
+    padding: 4px 6px;
+    background: transparent;
+}
+
+.trophy-card--unlocked {
+    background: rgba(140, 172, 36, 0.08);
+}
+
+.trophy-card--locked {
+    opacity: 0.55;
+}
+
+.trophy-card-glyph {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--lcd-pixel);
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.trophy-card-glyph--locked {
+    color: transparent;
+    text-shadow: 0 0 0 var(--lcd-pixel);
+}
+
+.trophy-card-body {
+    min-width: 0;
+    flex: 1;
+}
+
+.trophy-card-title {
+    font-size: 10px;
+    font-weight: bold;
+    line-height: 1.2;
+}
+
+.trophy-card-hint {
+    font-size: 8px;
+    opacity: 0.85;
+    line-height: 1.25;
+    margin-top: 2px;
+}

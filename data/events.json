@@ -21,7 +21,10 @@
       "conditions": {
         "minShifts": 5,
         "minCash": 20,
-        "requiresApps": ["messages", "work"],
+        "requiresApps": [
+          "messages",
+          "work"
+        ],
         "onePerContact": true
       },
       "opening": {
@@ -45,16 +48,24 @@
           "id": "lend",
           "label": "LEND ${amount}",
           "reply": "Legend. Cheers nephew.",
-          "effect": { "type": "deduct_cash", "refundable": false }
+          "effect": {
+            "type": "deduct_cash",
+            "refundable": false
+          }
         },
         {
           "id": "refuse",
           "label": "SORRY NO",
           "reply": "Some nephew you are.",
-          "effect": { "type": "close" }
+          "effect": {
+            "type": "close"
+          }
         }
       ],
-      "tags": ["money_sink", "family"]
+      "tags": [
+        "money_sink",
+        "family"
+      ]
     },
     {
       "id": "mom_grocery_help",
@@ -69,7 +80,10 @@
       "conditions": {
         "minShifts": 3,
         "minCash": 10,
-        "requiresApps": ["messages", "work"],
+        "requiresApps": [
+          "messages",
+          "work"
+        ],
         "onePerContact": true
       },
       "opening": {
@@ -91,16 +105,24 @@
           "id": "help",
           "label": "SEND ${amount}",
           "reply": "Thanks love. You're a good lad.",
-          "effect": { "type": "deduct_cash", "refundable": false }
+          "effect": {
+            "type": "deduct_cash",
+            "refundable": false
+          }
         },
         {
           "id": "refuse",
           "label": "CANT AFFORD IT",
           "reply": "Ok. Rent still due though.",
-          "effect": { "type": "close" }
+          "effect": {
+            "type": "close"
+          }
         }
       ],
-      "tags": ["money_sink", "family"]
+      "tags": [
+        "money_sink",
+        "family"
+      ]
     },
     {
       "id": "lottery_scam",
@@ -116,7 +138,11 @@
       "conditions": {
         "minShifts": 10,
         "minCash": 100,
-        "requiresApps": ["messages", "work", "casino"],
+        "requiresApps": [
+          "messages",
+          "work",
+          "casino"
+        ],
         "onePerContact": true
       },
       "opening": {
@@ -131,7 +157,7 @@
       },
       "deadlineDays": 2,
       "escalation": {
-        "multiplier": 1.0,
+        "multiplier": 1,
         "minExtra": 20,
         "forcedMessage": "Bank flagged your account. Pay ${amount} release fee or lose the jackpot.",
         "deductEvenIfBroke": true
@@ -141,16 +167,24 @@
           "id": "pay_fee",
           "label": "PAY ${amount}",
           "reply": "Processing... hang on.",
-          "effect": { "type": "deduct_cash", "refundable": false }
+          "effect": {
+            "type": "deduct_cash",
+            "refundable": false
+          }
         },
         {
           "id": "refuse",
           "label": "THIS IS A SCAM",
           "reply": "Your loss nephew. Millions gone.",
-          "effect": { "type": "close" }
+          "effect": {
+            "type": "close"
+          }
         }
       ],
-      "tags": ["money_sink", "scam"]
+      "tags": [
+        "money_sink",
+        "scam"
+      ]
     }
   ]
 }

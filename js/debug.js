@@ -8,10 +8,8 @@ function applyDebugBootstrap() {
     if (!isDebugMode()) return;
 
     Object.keys(state.unlockedApps).forEach(key => {
-        if (key === 'vipJobs') return;
         state.unlockedApps[key] = true;
     });
-    state.unlockedApps.vipJobs = true;
     updateWorkAppLabel();
     updateAppMenu();
 }
@@ -27,7 +25,7 @@ function debugGiveMoney(amount) {
 
     state.cash += value;
     updateHUD();
-    showToast(`+$${value.toFixed(2)}`);
+    showToast(`+${formatMoney(value)}`);
     renderDebugMenu();
 }
 
@@ -76,37 +74,23 @@ function debugGrantSkill(skillId) {
 }
 
 function renderDebugSkills(container) {
-    const header = document.createElement('div');
-    header.className = 'text-[9px] mb-1 font-bold border-t border-dashed border-[var(--lcd-pixel)] pt-2';
-    header.innerText = 'GIVE SKILLS';
-    container.appendChild(header);
-
-    if (!SKILLS_DB.length) {
-        const empty = document.createElement('div');
-        empty.className = 'text-[9px] opacity-70 mb-3';
-        empty.innerText = 'NO SKILLS LOADED';
-        container.appendChild(empty);
-        return;
-    }
-
-    const list = document.createElement('div');
-    list.className = 'flex flex-col gap-1 mb-3';
-    container.appendChild(list);
-
-    SKILLS_DB.forEach(skill => {
-        const owned = hasSkill(skill.id);
-        const btn = document.createElement('button');
-        btn.className = `nokia-btn nokia-btn-outline w-full py-1 text-[10px] mb-0 normal-case${owned ? ' opacity-60' : ''}`;
-        btn.disabled = owned;
-        btn.innerHTML = `
-            <span class="flex flex-col gap-[2px] items-start">
-                <span class="font-bold">${escapeHtml(skill.name)}</span>
-                <span class="text-[8px] opacity-80">#${skill.id} · ${escapeHtml(skill.key || 'NO KEY')}</span>
-            </span>
-            <span>${owned ? 'OK' : '>'}</span>
-        `;
-        if (!owned) btn.onclick = () => debugGrantSkill(skill.id);
-        list.appendChild(btn);
+    renderDebugButtonList(container, {
+        title: 'GIVE SKILLS',
+        emptyText: 'NO SKILLS LOADED',
+        items: SKILLS_DB.map(skill => {
+            const owned = hasSkill(skill.id);
+            return {
+                disabled: owned,
+                html: `
+                    <span class="flex flex-col gap-[2px] items-start">
+                        <span class="font-bold">${escapeHtml(skill.name)}</span>
+                        <span class="text-[8px] opacity-80">#${skill.id} · ${escapeHtml(skill.key || 'NO KEY')}</span>
+                    </span>
+                    <span>${owned ? 'OK' : '>'}</span>
+                `,
+                onClick: owned ? null : () => debugGrantSkill(skill.id),
+            };
+        }),
     });
 }
 
@@ -124,7 +108,7 @@ function renderDebugMenu() {
 
     container.innerHTML = `
         <div class="text-[9px] mb-1 font-bold">GIVE MONEY</div>
-        <div class="text-[9px] mb-2 opacity-80">CASH: $${state.cash.toFixed(2)}</div>
+        <div class="text-[9px] mb-2 opacity-80">CASH: ${formatMoney(state.cash)}</div>
         <div id="debug-cash-presets" class="grid grid-cols-2 gap-1 mb-2"></div>
         <div class="debug-cash-row mb-3">
             <input
@@ -211,35 +195,19 @@ function debugGiveMoneyFromInput() {
 }
 
 function renderDebugJobs(container) {
-    const header = document.createElement('div');
-    header.className = 'text-[9px] mb-1 font-bold border-t border-dashed border-[var(--lcd-pixel)] pt-2';
-    header.innerText = 'LAUNCH JOB MINIGAME';
-    container.appendChild(header);
-
-    if (!JOB_DB.length) {
-        const empty = document.createElement('div');
-        empty.className = 'text-[9px] opacity-70 mb-3';
-        empty.innerText = 'NO JOBS LOADED';
-        container.appendChild(empty);
-        return;
-    }
-
-    const list = document.createElement('div');
-    list.className = 'flex flex-col gap-1 mb-3';
-    container.appendChild(list);
-
-    JOB_DB.forEach(job => {
-        const btn = document.createElement('button');
-        btn.className = 'nokia-btn nokia-btn-outline w-full py-1 text-[10px] mb-0 normal-case';
-        btn.innerHTML = `
-            <span class="flex flex-col gap-[2px] items-start">
-                <span class="font-bold">${escapeHtml(job.title)}</span>
-                <span class="text-[8px] opacity-80">$${job.pay.toFixed(2)}/s · ${escapeHtml(job.id)}</span>
-            </span>
-            <span>></span>
-        `;
-        btn.onclick = () => debugLaunchJobShift(job.title);
-        list.appendChild(btn);
+    renderDebugButtonList(container, {
+        title: 'LAUNCH JOB MINIGAME',
+        emptyText: 'NO JOBS LOADED',
+        items: JOB_DB.map(job => ({
+            html: `
+                <span class="flex flex-col gap-[2px] items-start">
+                    <span class="font-bold">${escapeHtml(job.title)}</span>
+                    <span class="text-[8px] opacity-80">${formatMoney(job.pay)}/s · ${escapeHtml(job.id)}</span>
+                </span>
+                <span>></span>
+            `,
+            onClick: () => debugLaunchJobShift(job.title),
+        })),
     });
 }
 
