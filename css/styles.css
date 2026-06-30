@@ -2523,16 +2523,19 @@ html.install-gate-active #install-gate {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 0.75em;
-    height: 0.9em;
+    width: 11px;
+    height: 11px;
+    font-size: 10px;
+    line-height: 1;
     text-align: center;
-}
-
-.snake-head {
-    font-weight: bold;
+    flex-shrink: 0;
 }
 
 .snake-food {
+    font-weight: bold;
+}
+
+.snake-head {
     font-weight: bold;
 }
 

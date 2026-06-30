@@ -114,27 +114,34 @@ function renderSnakeGrid() {
     });
     const head = snake[0];
 
-    let html = '';
+    grid.replaceChildren();
+
     for (let y = 0; y < gridH; y++) {
-        html += '<div class="snake-row">';
+        const row = document.createElement('div');
+        row.className = 'snake-row';
+
         for (let x = 0; x < gridW; x++) {
-            let ch = '·';
-            let cls = 'snake-cell';
+            const cell = document.createElement('span');
+            let ch = '.';
+            cell.className = 'snake-cell';
+
             if (head && head.x === x && head.y === y) {
                 ch = '@';
-                cls += ' snake-head';
+                cell.classList.add('snake-head');
             } else if (bodySet.has(snakeCellKey(x, y))) {
                 ch = 'o';
-                cls += ' snake-body';
+                cell.classList.add('snake-body');
             } else if (food && food.x === x && food.y === y) {
-                ch = '■';
-                cls += ' snake-food';
+                ch = '#';
+                cell.classList.add('snake-food');
             }
-            html += `<span class="${cls}">${ch}</span>`;
+
+            cell.textContent = ch;
+            row.appendChild(cell);
         }
-        html += '</div>';
+
+        grid.appendChild(row);
     }
-    grid.innerHTML = html;
 }
 
 function queueSnakeDir(dx, dy) {
