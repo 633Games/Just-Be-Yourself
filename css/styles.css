@@ -2480,3 +2480,73 @@ html.install-gate-active #install-gate {
     line-height: 1.25;
     margin-top: 2px;
 }
+
+/* === Snake casino minigame === */
+
+.snake-hud {
+    flex-shrink: 0;
+}
+
+.snake-fx-label {
+    display: inline-block;
+    transform-origin: center center;
+    will-change: transform, filter;
+}
+
+.snake-fx-label.cash-hud-pop,
+.snake-fx-label.cash-hud-settle {
+    transition: none;
+}
+
+.snake-grid-wrap {
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.snake-grid {
+    margin: 0;
+    font-size: 10px;
+    line-height: 1.1;
+    letter-spacing: 0.12em;
+    font-family: 'Silkscreen', monospace;
+    white-space: pre;
+    color: var(--lcd-pixel);
+}
+
+.snake-cell {
+    display: inline-block;
+    width: 0.65em;
+    text-align: center;
+}
+
+.snake-head {
+    font-weight: bold;
+}
+
+.snake-food {
+    font-weight: bold;
+}
+
+.snake-dpad {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.snake-dpad-row {
+    display: flex;
+    gap: 24px;
+}
+
+.snake-dpad-btn {
+    width: 40px;
+    height: 32px;
+    min-width: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}

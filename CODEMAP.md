@@ -24,7 +24,7 @@ Serve with `python3 -m http.server 8000`.
 | Shift lifecycle, timing bar, trader keys, executive taps | [`js/work-core.js`](js/work-core.js) |
 | Pizza shift art + tip taps | [`js/work-pizza.js`](js/work-pizza.js) |
 | Burger shift art + flip bar | [`js/work-burger.js`](js/work-burger.js) |
-| Scratch / blackjack | [`js/casino.js`](js/casino.js) |
+| Scratch / blackjack / snake | [`js/casino.js`](js/casino.js) · snake → [`js/casino-snake.js`](js/casino-snake.js) |
 | Random events (Steve, Mom, scam) | [`js/events.js`](js/events.js) + [`data/events.json`](data/events.json) |
 | Happiness & lifetime stats screen | [`js/stats.js`](js/stats.js) |
 | Cinder swipe / matches / crash / VIP unlock | [`js/cinder.js`](js/cinder.js) |
@@ -50,7 +50,7 @@ Later files may call earlier ones. Do not reorder without checking dependencies.
 ```
 utils.js → sfx.js → ascii.js → data.js → state.js → skills.js → events.js → stats.js
 → debug.js → ui.js → messages.js → trophies.js → jobs.js → vipjobs.js
-→ work-pizza.js → work-burger.js → work-core.js → casino.js → cinder.js
+→ work-pizza.js → work-burger.js → work-core.js → casino-snake.js → casino.js → cinder.js
 → boot.js → main.js
 ```
 
@@ -75,7 +75,7 @@ New work minigame → new `work-*.js` loaded **before** `work-core.js`.
 | `cinder` | Dating deck, matches, crash flags |
 | `eventHistory`, `activeEvents`, `eventStats` | Random events |
 | `historyStats`, `happiness`, `skillProgress` | Stats & skill unlock progress |
-| `interview`, `scratch`, `bj` | Transient minigame state |
+| `interview`, `scratch`, `bj`, `snake` | Transient minigame state |
 
 Rent formula: `getWeeklyRent()` in `state.js`.
 
@@ -210,6 +210,7 @@ New job with custom art → copy this split pattern; wire from `renderJobScene` 
 ### [`js/casino.js`](js/casino.js)
 
 `initScratch`, `buyScratch`, `revealScratch` · `initBlackjack`, `setBjWager`, `leaveBlackjack`, `startBjDeal`, `endBj`, `checkCasinoSkillUnlocks` hook.  
+Snake: `initSnake`, `startSnakeRun`, `queueSnakeDir`, `leaveSnake` in [`js/casino-snake.js`](js/casino-snake.js) — virtual pot/combo FX during run, `adjustCash` on entry (−$5) and bank at end (max $500 jackpot).
 Blackjack wager moves to the table on +/- / custom / max (`setBjWager`); bet settles in `endBj` (win: payout; lose: already on table; push: refund).
 
 ### [`js/cinder.js`](js/cinder.js)

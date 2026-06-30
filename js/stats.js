@@ -5,6 +5,7 @@ const DEFAULT_HISTORY_STATS = {
     jobEarnings: 0,
     casinoEarnings: 0,
     scratchJackpots: 0,
+    snakeClears: 0,
     rentSpent: 0,
     eventMoneyGiven: 0,
     interviewsTotal: 0,
@@ -59,6 +60,12 @@ function recordCasinoWin(amount) {
 function recordScratchJackpot() {
     ensureStatsState();
     state.historyStats.scratchJackpots++;
+    refreshStatsView();
+}
+
+function recordSnakeClear() {
+    ensureStatsState();
+    state.historyStats.snakeClears++;
     refreshStatsView();
 }
 
@@ -153,6 +160,7 @@ function renderStats() {
             <div class="flex justify-between"><span>JOB EARNINGS</span><span>${formatMoney(hist.jobEarnings)}</span></div>
             <div class="flex justify-between"><span>CASINO EARNINGS</span><span>${formatMoney(hist.casinoEarnings)}</span></div>
             <div class="flex justify-between"><span>SCRATCH JACKPOTS</span><span>${hist.scratchJackpots}</span></div>
+            <div class="flex justify-between"><span>SNAKE CLEARS</span><span>${hist.snakeClears}</span></div>
             <div class="flex justify-between"><span>RENT PAID</span><span>${formatMoney(hist.rentSpent)}</span></div>
             <div class="flex justify-between"><span>EVENT MONEY GIVEN</span><span>${formatMoney(hist.eventMoneyGiven)}</span></div>
             <div class="flex justify-between"><span>INTERVIEWS</span><span>${hist.interviewsTotal}</span></div>

@@ -26,6 +26,21 @@ const state = {
     // Casino State
     scratch: { active: false, boxes: [], won: false, jackpotsFound: 0 },
     bj: { bet: 1, deck: [], player: [], dealer: [], state: 'bet' }, // bet, play, over
+    snake: {
+        phase: 'lobby',
+        gridW: 12,
+        gridH: 10,
+        snake: [],
+        dir: { x: 1, y: 0 },
+        nextDir: null,
+        pendingDirs: [],
+        food: null,
+        combo: 0,
+        eaten: 0,
+        pot: 0,
+        tickMs: 180,
+        intervalId: null,
+    },
     // Messages
     messages: [],
     messagesUnread: 0,
@@ -77,6 +92,7 @@ const state = {
         jobEarnings: 0,
         casinoEarnings: 0,
         scratchJackpots: 0,
+        snakeClears: 0,
         rentSpent: 0,
         eventMoneyGiven: 0,
         interviewsTotal: 0,

@@ -491,6 +491,10 @@
                                 <span>2- BLACKJACK</span>
                                 <span>></span>
                             </button>
+                            <button onclick="initSnake()" class="nokia-btn">
+                                <span>3- SNAKE ($5)</span>
+                                <span>></span>
+                            </button>
                         </div>
 
                         <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
@@ -521,6 +525,45 @@
 
                         <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
                             <button id="btn-scratch-leave" onclick="leaveScratch()" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] hidden">
+                                [ LEAVE ]
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- === SNAKE VIEW === -->
+                    <div id="snake-view" class="w-full h-full hidden flex-col relative">
+                        <div class="bg-[var(--lcd-pixel)] text-[var(--lcd-bg)] text-[10px] px-2 py-1 flex justify-between items-center shrink-0">
+                            <span>SNAKE-O</span>
+                            <span>JACKPOT $500</span>
+                        </div>
+
+                        <div class="flex-1 flex flex-col items-center justify-center p-2 gap-2 min-h-0">
+                            <div class="snake-hud w-full flex justify-between text-[10px] px-1">
+                                <span>POT <span id="snake-pot" class="snake-fx-label">$0.00</span></span>
+                                <span>COMBO <span id="snake-combo" class="snake-fx-label">x0</span></span>
+                            </div>
+                            <div class="text-[9px] opacity-80">EAT <span id="snake-eaten">0 / 15</span></div>
+
+                            <div class="snake-grid-wrap border-2 border-[var(--lcd-pixel)] p-1 shrink-0">
+                                <pre id="snake-grid" class="snake-grid" aria-label="Snake game board"></pre>
+                            </div>
+
+                            <div id="snake-dpad" class="snake-dpad hidden">
+                                <button type="button" onclick="queueSnakeDir(0,-1)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Up">↑</button>
+                                <div class="snake-dpad-row">
+                                    <button type="button" onclick="queueSnakeDir(-1,0)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Left">←</button>
+                                    <button type="button" onclick="queueSnakeDir(1,0)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Right">→</button>
+                                </div>
+                                <button type="button" onclick="queueSnakeDir(0,1)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Down">↓</button>
+                            </div>
+
+                            <button id="btn-snake-start" onclick="startSnakeRun()" class="nokia-btn nokia-btn-outline w-full py-2">
+                                START RUN (-$5.00)
+                            </button>
+                        </div>
+
+                        <div class="p-2 shrink-0 border-t-2 border-dashed border-[var(--lcd-pixel)]">
+                            <button id="btn-snake-leave" onclick="leaveSnake()" class="nokia-btn nokia-btn-outline w-full py-1 text-[10px] hidden">
                                 [ LEAVE ]
                             </button>
                         </div>
@@ -804,6 +847,7 @@
     <script src="js/work-pizza.js"></script>
     <script src="js/work-burger.js"></script>
     <script src="js/work-core.js"></script>
+    <script src="js/casino-snake.js"></script>
     <script src="js/casino.js"></script>
     <script src="js/cinder.js"></script>
     <script src="js/boot.js"></script>
