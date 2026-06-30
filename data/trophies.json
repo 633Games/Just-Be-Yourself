@@ -31,6 +31,8 @@
     { "id": "bj_total_250", "title": "Stacked Deck", "hint": "Two hundred fifty in winnings. Total, not one hand.", "branch": "casino", "parent": "bj_win", "hidden": false, "glyph": "♦" },
     { "id": "bj_allin_win", "title": "Double Down on Destiny", "hint": "Max bet. Win the hand.", "branch": "casino", "parent": "bj_win", "hidden": false, "glyph": "♥" },
     { "id": "bj_allin_lose", "title": "Wholesale Loss", "hint": "Max bet. Lose it all.", "branch": "casino", "parent": "bj_win", "hidden": true, "glyph": "♠" },
+    { "id": "snake_play", "title": "Feed the Machine", "hint": "Five dollars. Fifteen squares.", "branch": "casino", "parent": "casino_enter", "hidden": false, "glyph": "@" },
+    { "id": "snake_clear", "title": "Long Snake", "hint": "Fifteen squares. Five hundred dollars.", "branch": "casino", "parent": "snake_play", "hidden": false, "glyph": "■" },
 
     { "id": "rent_paid", "title": "Landlord's Cut", "hint": "Weekly amount. Pay button in a family thread.", "branch": "social", "parent": "two_shifts", "hidden": false, "glyph": "⌂" },
     { "id": "dating_app", "title": "Swipe Culture", "hint": "Unlocks after your first payment upstairs.", "branch": "social", "parent": "rent_paid", "hidden": false, "glyph": "♡" },

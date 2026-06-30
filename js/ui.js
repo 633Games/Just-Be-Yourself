@@ -381,6 +381,181 @@ function onCashGainDing(stepIndex, total, durationMs) {
     });
 }
 
+const targetHudFxState = new Map();
+let targetFxBurstId = 0;
+let targetFxResetTimer = null;
+
+function getTargetHudFxState(el) {
+    if (!targetHudFxState.has(el)) {
+        targetHudFxState.set(el, { scale: 1, rotate: 0, anim: null });
+    }
+    return targetHudFxState.get(el);
+}
+
+function hitCashHudOn(el, stepIndex, total, landDurationMs) {
+    if (!el) return;
+
+    const fx = getTargetHudFxState(el);
+    const progress = total > 0 ? (stepIndex + 1) / total : 1;
+    const targetScale = Math.min(CASH_SCALE_MAX, 1 + progress * (CASH_SCALE_MAX - 1));
+    const overshoot = Math.min(
+        CASH_SCALE_MAX + 0.05,
+        targetScale + Math.max(0.05, (targetScale - fx.scale) * 0.55)
+    );
+    const wobbleDir = stepIndex % 2 === 0 ? -1 : 1;
+    const targetRotate = wobbleDir * CASH_WOBBLE_DEG * (0.55 + progress * 0.45);
+    const overshootRotate = targetRotate * 1.35;
+    const popMs = Math.min(340, Math.max(130, landDurationMs * 0.42));
+
+    if (fx.anim) {
+        fx.anim.cancel();
+        fx.anim = null;
+    }
+
+    el.classList.remove('cash-hud-settle');
+    el.classList.add('cash-hud-pop');
+
+    fx.anim = el.animate(
+        [
+            {
+                transform: cashHudTransform(fx.scale, fx.rotate),
+                filter: 'brightness(1)',
+            },
+            {
+                transform: cashHudTransform(overshoot, overshootRotate),
+                filter: 'brightness(1.14)',
+            },
+            {
+                transform: cashHudTransform(targetScale, targetRotate),
+                filter: 'brightness(1.05)',
+            },
+        ],
+        {
+            duration: popMs,
+            easing: CASH_POP_EASE,
+            fill: 'forwards',
+        }
+    );
+
+    fx.anim.onfinish = () => {
+        fx.scale = targetScale;
+        fx.rotate = targetRotate;
+        el.style.transform = cashHudTransform(targetScale, targetRotate);
+        fx.anim = null;
+    };
+}
+
+function resetTargetHudFx(el) {
+    if (!el) return;
+
+    const fx = getTargetHudFxState(el);
+    if (fx.anim) {
+        fx.anim.cancel();
+        fx.anim = null;
+    }
+
+    if (fx.scale <= 1.001 && Math.abs(fx.rotate) < 0.05) {
+        fx.scale = 1;
+        fx.rotate = 0;
+        el.classList.remove('cash-hud-pop', 'cash-hud-settle');
+        el.style.transform = '';
+        return;
+    }
+
+    const fromScale = fx.scale;
+    const fromRotate = fx.rotate;
+    el.classList.remove('cash-hud-pop');
+    el.classList.add('cash-hud-settle');
+
+    fx.anim = el.animate(
+        [
+            { transform: cashHudTransform(fromScale, fromRotate) },
+            { transform: cashHudTransform(1.04, fromRotate * 0.25) },
+            { transform: cashHudTransform(1, 0) },
+        ],
+        {
+            duration: Math.max(320, CASH_BURST_PAD_MS - 80),
+            easing: CASH_SETTLE_EASE,
+            fill: 'forwards',
+        }
+    );
+
+    fx.anim.onfinish = () => {
+        fx.scale = 1;
+        fx.rotate = 0;
+        el.classList.remove('cash-hud-settle');
+        el.style.transform = '';
+        fx.anim = null;
+    };
+}
+
+function spawnCashGainFloaterOnTarget(targetEl, label, durationMs, stepIndex, onLand) {
+    const layer = document.getElementById('cash-fx-layer');
+    if (!layer || !targetEl) return;
+
+    const duration = Math.max(120, Number(durationMs) || 480);
+    const fromLeft = stepIndex % 2 === 0;
+    const travel = CASH_FLOATER_TRAVEL_PX;
+    const half = travel / 2;
+    const layerRect = layer.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const centerX = targetRect.left + targetRect.width / 2 - layerRect.left;
+    const centerY = targetRect.top + targetRect.height / 2 - layerRect.top;
+
+    const el = document.createElement('span');
+    el.className = 'cash-gain-floater';
+    el.textContent = label;
+    el.style.left = `${centerX}px`;
+    el.style.top = `${centerY}px`;
+    el.style.setProperty('--cash-floater-duration', `${duration}ms`);
+    el.style.setProperty('--floater-start-x', fromLeft ? `-${travel}px` : `${travel}px`);
+    el.style.setProperty('--floater-start-y', `${travel}px`);
+    el.style.setProperty('--floater-mid-x', fromLeft ? `-${half}px` : `${half}px`);
+    el.style.setProperty('--floater-mid-y', `${half}px`);
+    layer.appendChild(el);
+
+    const landAt = duration * 0.68;
+    setTimeout(() => {
+        if (onLand) onLand();
+    }, landAt);
+
+    setTimeout(() => el.remove(), duration + 40);
+}
+
+function onCashGainDingForTarget(targetEl, stepIndex, total, durationMs) {
+    if (!document.getElementById('cash-fx-layer') || !targetEl) return;
+
+    spawnCashGainFloaterOnTarget(targetEl, CASH_GAIN_FLOATER_TEXT, durationMs, stepIndex, () => {
+        hitCashHudOn(targetEl, stepIndex, total, durationMs);
+    });
+}
+
+function beginCashGainFxBurstForTargets(targetIds, dingCount, totalMs) {
+    const burstId = ++targetFxBurstId;
+    if (targetFxResetTimer) clearTimeout(targetFxResetTimer);
+
+    const targets = targetIds
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+
+    targets.forEach(el => {
+        const fx = getTargetHudFxState(el);
+        if (fx.anim) {
+            fx.anim.cancel();
+            fx.anim = null;
+        }
+        fx.scale = 1;
+        fx.rotate = 0;
+        el.classList.remove('cash-hud-pop', 'cash-hud-settle');
+        el.style.transform = '';
+    });
+
+    targetFxResetTimer = setTimeout(() => {
+        if (burstId !== targetFxBurstId) return;
+        targets.forEach(el => resetTargetHudFx(el));
+    }, totalMs + CASH_BURST_PAD_MS);
+}
+
 function advanceDay() {
     const prevDate = new Date(state.gameDateMs);
     const prevMonth = prevDate.getMonth();
@@ -420,6 +595,7 @@ const APP_BEEP_VIEWS = new Set([
     'gamble-menu-view',
     'scratch-view',
     'blackjack-view',
+    'snake-view',
     'stats-view',
     'trophies-view',
     'cinder-view',
@@ -441,7 +617,7 @@ function switchView(viewId) {
         return;
     }
 
-    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'vip-jobs-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'messages-view', 'messages-thread-view', 'stats-view', 'trophies-view', 'cinder-view', 'cinder-matches-view', 'debug-view'].forEach(id => {
+    ['home-view', 'name-setup-view', 'job-view', 'cv-view', 'vip-jobs-view', 'job-searcher-view', 'interview-view', 'gamble-menu-view', 'scratch-view', 'blackjack-view', 'snake-view', 'messages-view', 'messages-thread-view', 'stats-view', 'trophies-view', 'cinder-view', 'cinder-matches-view', 'debug-view'].forEach(id => {
         const el = document.getElementById(id);
         if (el) {
             el.classList.add('hidden');

@@ -783,6 +783,28 @@ function playMoneyLossOnly(amount) {
     playMoneyLoss(loss, state.cash + loss, -loss);
 }
 
+function playMoneyGainFxOnly(amount, options = {}) {
+    const value = Math.abs(Number(amount) || 0);
+    if (value <= 0) return;
+
+    const targets = options.targets || ['snake-pot', 'snake-combo'];
+    resumeSfxContext();
+
+    const result = scheduleMoneyGainCascade(value, (step, total) => {
+        const durationMs = getMoneyGainDingDuration(value, step, total);
+        targets.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && typeof onCashGainDingForTarget === 'function') {
+                onCashGainDingForTarget(el, step, total, durationMs);
+            }
+        });
+    });
+
+    if (typeof beginCashGainFxBurstForTargets === 'function') {
+        beginCashGainFxBurstForTargets(targets, result.count, result.totalMs);
+    }
+}
+
 function adjustCash(delta, options = {}) {
     const amount = Number(delta) || 0;
     if (amount === 0) return;
