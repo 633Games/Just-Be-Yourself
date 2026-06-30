@@ -116,6 +116,7 @@ function renderSnakeGrid() {
 
     let html = '';
     for (let y = 0; y < gridH; y++) {
+        html += '<div class="snake-row">';
         for (let x = 0; x < gridW; x++) {
             let ch = '·';
             let cls = 'snake-cell';
@@ -131,9 +132,9 @@ function renderSnakeGrid() {
             }
             html += `<span class="${cls}">${ch}</span>`;
         }
-        if (y < gridH - 1) html += '\n';
+        html += '</div>';
     }
-    grid.textContent = html;
+    grid.innerHTML = html;
 }
 
 function queueSnakeDir(dx, dy) {
