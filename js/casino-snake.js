@@ -8,6 +8,8 @@ const SNAKE_TICK_SPEEDUP = 12;
 const SNAKE_SPEEDUP_EVERY = 3;
 
 let snakeKeyHandler = null;
+let snakeJoystickHandlers = null;
+let snakeJoystickLastDir = null;
 
 function roundSnakeMoney(amount) {
     return Math.round((Number(amount) || 0) * 100) / 100;
@@ -43,6 +45,126 @@ function cleanupSnake() {
         document.removeEventListener('keydown', snakeKeyHandler);
         snakeKeyHandler = null;
     }
+    cleanupSnakeJoystick();
+}
+
+function resetSnakeJoystickKnob() {
+    const knob = document.getElementById('snake-joystick-knob');
+    const base = document.getElementById('snake-joystick-base');
+    if (knob) {
+        knob.style.transform = 'translate(0px, 0px)';
+    }
+    if (base) {
+        base.classList.remove('is-active');
+    }
+}
+
+function cleanupSnakeJoystick() {
+    const base = document.getElementById('snake-joystick-base');
+    if (snakeJoystickHandlers && base) {
+        base.removeEventListener('pointerdown', snakeJoystickHandlers.down);
+        base.removeEventListener('pointermove', snakeJoystickHandlers.move);
+        base.removeEventListener('pointerup', snakeJoystickHandlers.up);
+        base.removeEventListener('pointercancel', snakeJoystickHandlers.up);
+        if (base.hasPointerCapture && snakeJoystickHandlers.capturedId != null) {
+            try {
+                base.releasePointerCapture(snakeJoystickHandlers.capturedId);
+            } catch (_) { /* already released */ }
+        }
+    }
+    snakeJoystickHandlers = null;
+    snakeJoystickLastDir = null;
+    resetSnakeJoystickKnob();
+}
+
+function getSnakeJoystickDirection(dx, dy, deadZone) {
+    if (Math.hypot(dx, dy) < deadZone) return null;
+    if (Math.abs(dx) > Math.abs(dy)) {
+        return dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+    }
+    return dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+}
+
+function applySnakeJoystickDirection(dir) {
+    if (!dir) return;
+    if (
+        snakeJoystickLastDir &&
+        snakeJoystickLastDir.x === dir.x &&
+        snakeJoystickLastDir.y === dir.y
+    ) {
+        return;
+    }
+    snakeJoystickLastDir = { x: dir.x, y: dir.y };
+    queueSnakeDir(dir.x, dir.y);
+}
+
+function updateSnakeJoystickFromPointer(base, clientX, clientY) {
+    const knob = document.getElementById('snake-joystick-knob');
+    if (!knob) return;
+
+    const rect = base.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    const maxRadius = rect.width / 2 - 20;
+    const dist = Math.hypot(dx, dy);
+    const clampedDist = Math.min(dist, maxRadius);
+    const angle = Math.atan2(dy, dx);
+    const knobX = Math.cos(angle) * clampedDist;
+    const knobY = Math.sin(angle) * clampedDist;
+
+    knob.style.transform = `translate(${knobX}px, ${knobY}px)`;
+
+    const deadZone = rect.width * 0.14;
+    const dir = getSnakeJoystickDirection(dx, dy, deadZone);
+    applySnakeJoystickDirection(dir);
+}
+
+function bindSnakeJoystick() {
+    const base = document.getElementById('snake-joystick-base');
+    if (!base || snakeJoystickHandlers) return;
+
+    snakeJoystickLastDir = null;
+
+    const onDown = (e) => {
+        if (state.snake.phase !== 'playing') return;
+        e.preventDefault();
+        base.classList.add('is-active');
+        base.setPointerCapture(e.pointerId);
+        snakeJoystickHandlers.capturedId = e.pointerId;
+        updateSnakeJoystickFromPointer(base, e.clientX, e.clientY);
+    };
+
+    const onMove = (e) => {
+        if (state.snake.phase !== 'playing') return;
+        if (!base.classList.contains('is-active')) return;
+        e.preventDefault();
+        updateSnakeJoystickFromPointer(base, e.clientX, e.clientY);
+    };
+
+    const onUp = (e) => {
+        if (!base.classList.contains('is-active')) return;
+        e.preventDefault();
+        if (base.hasPointerCapture(e.pointerId)) {
+            base.releasePointerCapture(e.pointerId);
+        }
+        snakeJoystickHandlers.capturedId = null;
+        base.classList.remove('is-active');
+        resetSnakeJoystickKnob();
+    };
+
+    snakeJoystickHandlers = {
+        down: onDown,
+        move: onMove,
+        up: onUp,
+        capturedId: null,
+    };
+
+    base.addEventListener('pointerdown', onDown);
+    base.addEventListener('pointermove', onMove);
+    base.addEventListener('pointerup', onUp);
+    base.addEventListener('pointercancel', onUp);
 }
 
 function leaveSnake() {
@@ -66,9 +188,9 @@ function initSnake() {
     state.snake.tickMs = SNAKE_TICK_START;
 
     const startBtn = document.getElementById('btn-snake-start');
-    const dpad = document.getElementById('snake-dpad');
+    const joystick = document.getElementById('snake-joystick');
     if (startBtn) startBtn.classList.remove('hidden');
-    if (dpad) dpad.classList.add('hidden');
+    if (joystick) joystick.classList.add('hidden');
 
     updateSnakeHud();
     renderSnakeGrid();
@@ -209,12 +331,13 @@ function startSnakeRun() {
     renderSnakeGrid();
 
     const startBtn = document.getElementById('btn-snake-start');
-    const dpad = document.getElementById('snake-dpad');
+    const joystick = document.getElementById('snake-joystick');
     if (startBtn) startBtn.classList.add('hidden');
-    if (dpad) dpad.classList.remove('hidden');
+    if (joystick) joystick.classList.remove('hidden');
     updateSnakeLeaveUI();
 
     bindSnakeInput();
+    bindSnakeJoystick();
 
     state.snake.intervalId = setInterval(snakeTick, state.snake.tickMs);
 }
@@ -329,9 +452,9 @@ function finishSnakeRun(won) {
     }
 
     const startBtn = document.getElementById('btn-snake-start');
-    const dpad = document.getElementById('snake-dpad');
+    const joystick = document.getElementById('snake-joystick');
     if (startBtn) startBtn.classList.remove('hidden');
-    if (dpad) dpad.classList.add('hidden');
+    if (joystick) joystick.classList.add('hidden');
     updateSnakeLeaveUI();
 
     state.snake.phase = 'lobby';
