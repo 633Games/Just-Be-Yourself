@@ -548,13 +548,10 @@
                                 <div id="snake-grid" class="snake-grid" aria-label="Snake game board"></div>
                             </div>
 
-                            <div id="snake-dpad" class="snake-dpad hidden">
-                                <button type="button" onclick="queueSnakeDir(0,-1)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Up">↑</button>
-                                <div class="snake-dpad-row">
-                                    <button type="button" onclick="queueSnakeDir(-1,0)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Left">←</button>
-                                    <button type="button" onclick="queueSnakeDir(1,0)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Right">→</button>
+                            <div id="snake-joystick" class="snake-joystick hidden" aria-label="Snake direction joystick">
+                                <div id="snake-joystick-base" class="snake-joystick-base">
+                                    <div id="snake-joystick-knob" class="snake-joystick-knob"></div>
                                 </div>
-                                <button type="button" onclick="queueSnakeDir(0,1)" class="nokia-btn nokia-btn-outline snake-dpad-btn" aria-label="Down">↓</button>
                             </div>
 
                             <button id="btn-snake-start" onclick="startSnakeRun()" class="nokia-btn nokia-btn-outline w-full py-2">
@@ -847,7 +844,7 @@
     <script src="js/work-pizza.js"></script>
     <script src="js/work-burger.js"></script>
     <script src="js/work-core.js"></script>
-    <script src="js/casino-snake.js?v=2"></script>
+    <script src="js/casino-snake.js?v=3"></script>
     <script src="js/casino.js"></script>
     <script src="js/cinder.js"></script>
     <script src="js/boot.js"></script>
